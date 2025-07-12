@@ -219,7 +219,7 @@ export default function SessionForm() {
             <div className="space-y-2">
               <Label className="text-abyss-ethereal">Session Type</Label>
               <Select value={sessionData.sessionType} onValueChange={(value) => setSessionData(prev => ({ ...prev, sessionType: value }))}>
-                <SelectTrigger className="bg-abyss-dark/40 border-abyss-teal/20 text-abyss-ethereal">
+                <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -235,7 +235,7 @@ export default function SessionForm() {
                 placeholder="Gym name or crag location"
                 value={sessionData.location}
                 onChange={(e) => setSessionData(prev => ({ ...prev, location: e.target.value }))}
-                className="bg-abyss-dark/40 border-abyss-teal/20 text-abyss-ethereal"
+                className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
               />
             </div>
 
@@ -246,7 +246,7 @@ export default function SessionForm() {
                 placeholder="60"
                 value={sessionData.duration}
                 onChange={(e) => setSessionData(prev => ({ ...prev, duration: e.target.value }))}
-                className="bg-abyss-dark/40 border-abyss-teal/20 text-abyss-ethereal"
+                className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
               />
             </div>
 
@@ -256,7 +256,7 @@ export default function SessionForm() {
                 placeholder="How did the session go?"
                 value={sessionData.notes}
                 onChange={(e) => setSessionData(prev => ({ ...prev, notes: e.target.value }))}
-                className="bg-abyss-dark/40 border-abyss-teal/20 text-abyss-ethereal"
+                className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
                 rows={3}
               />
             </div>
@@ -304,7 +304,7 @@ export default function SessionForm() {
                         value={problem.grade} 
                         onValueChange={(value) => updateProblem(index, 'grade', value)}
                       >
-                        <SelectTrigger className="bg-abyss-dark/40 border-abyss-teal/20 text-abyss-ethereal">
+                        <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -321,7 +321,7 @@ export default function SessionForm() {
                         value={problem.style} 
                         onValueChange={(value) => updateProblem(index, 'style', value)}
                       >
-                        <SelectTrigger className="bg-abyss-dark/40 border-abyss-teal/20 text-abyss-ethereal">
+                        <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -381,7 +381,7 @@ export default function SessionForm() {
                         min="1"
                         value={problem.attempts}
                         onChange={(e) => updateProblem(index, 'attempts', parseInt(e.target.value) || 1)}
-                        className="w-16 bg-abyss-dark/40 border-abyss-teal/20 text-abyss-ethereal"
+                        className="w-16 bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal"
                       />
                     </div>
                   </div>

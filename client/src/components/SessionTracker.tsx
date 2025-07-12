@@ -134,7 +134,7 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
             <div className="space-y-2">
               <Label className="text-abyss-ethereal">Grade System</Label>
               <Select value={gradeSystem} onValueChange={setGradeSystem}>
-                <SelectTrigger className="bg-abyss-dark/50 border-abyss-teal/30 text-abyss-ethereal">
+                <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -148,7 +148,7 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
             <div className="space-y-2">
               <Label className="text-abyss-ethereal">Grade</Label>
               <Select value={grade} onValueChange={setGrade}>
-                <SelectTrigger className="bg-abyss-dark/50 border-abyss-teal/30 text-abyss-ethereal">
+                <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -165,7 +165,7 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
           <div className="space-y-2">
             <Label className="text-abyss-ethereal">Style (Optional)</Label>
             <Select value={style} onValueChange={setStyle}>
-              <SelectTrigger className="bg-abyss-dark/50 border-abyss-teal/30 text-abyss-ethereal">
+              <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
                 <SelectValue placeholder="Select climbing style" />
               </SelectTrigger>
               <SelectContent>
@@ -187,7 +187,7 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
                 max="50"
                 value={attempts}
                 onChange={(e) => setAttempts(parseInt(e.target.value) || 1)}
-                className="bg-abyss-dark/50 border-abyss-teal/30 text-abyss-ethereal"
+                className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal"
               />
             </div>
             
@@ -212,7 +212,7 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add notes about the climb..."
-              className="bg-abyss-dark/50 border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
+              className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
             />
           </div>
 
