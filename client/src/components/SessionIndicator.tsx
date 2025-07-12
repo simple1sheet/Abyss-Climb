@@ -19,12 +19,12 @@ export default function SessionIndicator() {
     enabled: !!user,
   });
 
-  // Update timer every minute for active sessions
+  // Update timer every second for active sessions
   useEffect(() => {
     if (activeSession && activeSession.status === "active") {
       const interval = setInterval(() => {
         setCurrentTime(new Date());
-      }, 60000); // Update every minute
+      }, 1000); // Update every second for accuracy
 
       return () => clearInterval(interval);
     }
@@ -82,20 +82,26 @@ export default function SessionIndicator() {
 
   const formatDuration = (session: any) => {
     const start = new Date(session.startTime);
-    const now = currentTime;
-    const totalMinutes = Math.floor((now.getTime() - start.getTime()) / (1000 * 60));
+    
+    // Calculate total elapsed time from start
+    const totalElapsedMs = currentTime.getTime() - start.getTime();
+    const totalElapsedMinutes = Math.floor(totalElapsedMs / (1000 * 60));
     
     // Subtract total paused time
     const totalPausedTime = session.totalPausedTime || 0;
     
-    // If currently paused, subtract the current pause duration
-    let currentPauseDuration = 0;
+    // If currently paused, don't add current pause time to active time
+    let activeMinutes;
     if (session.status === "paused" && session.pausedAt) {
+      // When paused, freeze the timer at the point it was paused
       const pauseStart = new Date(session.pausedAt);
-      currentPauseDuration = Math.floor((now.getTime() - pauseStart.getTime()) / (1000 * 60));
+      const timePausedMs = pauseStart.getTime() - start.getTime();
+      const timePausedMinutes = Math.floor(timePausedMs / (1000 * 60));
+      activeMinutes = Math.max(0, timePausedMinutes - totalPausedTime);
+    } else {
+      // When active, show real-time counting
+      activeMinutes = Math.max(0, totalElapsedMinutes - totalPausedTime);
     }
-    
-    const activeMinutes = Math.max(0, totalMinutes - totalPausedTime - currentPauseDuration);
     
     if (activeMinutes < 60) {
       return `${activeMinutes}m`;
@@ -106,7 +112,8 @@ export default function SessionIndicator() {
     return `${hours}h ${minutes}m`;
   };
 
-  if (!activeSession) {
+  // Only show indicator if there's an active or paused session (not completed)
+  if (!activeSession || activeSession.status === "completed") {
     return null;
   }
 

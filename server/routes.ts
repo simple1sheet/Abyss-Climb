@@ -104,9 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (updates.endTime) {
         const userId = req.user.claims.sub;
         // Set status to completed when session ends
-        if (!updates.status) {
-          updates.status = "completed";
-        }
+        updates.status = "completed";
         await questGenerator.checkSessionQuests(userId, sessionId);
       }
       

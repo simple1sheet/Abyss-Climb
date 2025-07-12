@@ -52,9 +52,11 @@ export default function Session() {
       });
     },
     onError: (error: any) => {
-      if (error.activeSession) {
+      // Parse error response
+      const errorData = error?.response?.data || error;
+      if (errorData.activeSession) {
         // User already has an active session
-        setActiveSessionId(error.activeSession.id);
+        setActiveSessionId(errorData.activeSession.id);
         toast({
           title: "Active Session Found",
           description: "You already have an active session. Resuming...",

@@ -213,7 +213,8 @@ export class DatabaseStorage implements IStorage {
           or(
             eq(climbingSessions.status, "active"),
             eq(climbingSessions.status, "paused")
-          )
+          ),
+          sql`${climbingSessions.endTime} IS NULL`
         )
       )
       .orderBy(desc(climbingSessions.createdAt))
