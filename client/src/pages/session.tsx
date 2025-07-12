@@ -1,149 +1,40 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useSession } from "@/hooks/useSession";
 import SessionTracker from "@/components/SessionTracker";
+import SessionControls from "@/components/SessionControls";
 
 export default function Session() {
-  const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { activeSession, createSessionMutation } = useSession();
   
   const [sessionType, setSessionType] = useState<"indoor" | "outdoor" | "">("");
   const [location, setLocationValue] = useState("");
-  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
 
-  // Check for active session on component mount
-  const { data: activeSession } = useQuery({
-    queryKey: ["/api/sessions/active"],
-    enabled: !!user,
-  });
-
-  useEffect(() => {
-    if (activeSession) {
-      setActiveSessionId(activeSession.id);
-    }
-  }, [activeSession]);
-
-  const createSessionMutation = useMutation({
-    mutationFn: async (data: { sessionType: string; location: string }) => {
-      const response = await apiRequest("POST", "/api/sessions", {
-        sessionType: data.sessionType,
-        location: data.location,
-        startTime: new Date().toISOString(),
-      });
-      return response.json();
-    },
-    onSuccess: (session) => {
-      setActiveSessionId(session.id);
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions/active"] });
-      toast({
-        title: "Session Started",
-        description: "Your climbing session has begun!",
-      });
-    },
-    onError: (error: any) => {
-      // Parse error response
-      const errorData = error?.response?.data || error;
-      if (errorData.activeSession) {
-        // User already has an active session
-        setActiveSessionId(errorData.activeSession.id);
-        toast({
-          title: "Active Session Found",
-          description: "You already have an active session. Resuming...",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to start session. Please try again.",
-          variant: "destructive",
-        });
-      }
-    },
-  });
-
-  const endSessionMutation = useMutation({
-    mutationFn: async (sessionId: number) => {
-      const response = await apiRequest("PATCH", `/api/sessions/${sessionId}`, {
-        endTime: new Date().toISOString(),
-        status: "completed",
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions/active"] });
-      toast({
-        title: "Session Ended",
-        description: "Your climbing session has been saved!",
-      });
-      setActiveSessionId(null);
-      setLocation("/");
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to end session. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const pauseSessionMutation = useMutation({
-    mutationFn: async (sessionId: number) => {
-      const response = await apiRequest("POST", `/api/sessions/${sessionId}/pause`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions/active"] });
-      toast({
-        title: "Session Paused",
-        description: "Your session has been paused. You can resume it anytime.",
-      });
-      setLocation("/");
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to pause session. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleStartSession = () => {
+  const handleCreateSession = () => {
     if (!sessionType || !location) {
-      toast({
-        title: "Missing Information",
-        description: "Please select session type and location.",
-        variant: "destructive",
-      });
       return;
     }
-
+    
     createSessionMutation.mutate({ sessionType, location });
+    
+    // Clear form after successful creation
+    setSessionType("");
+    setLocationValue("");
   };
 
-  const handleEndSession = () => {
-    if (activeSessionId) {
-      endSessionMutation.mutate(activeSessionId);
-    }
-  };
-
-  const handlePauseSession = () => {
-    if (activeSessionId) {
-      pauseSessionMutation.mutate(activeSessionId);
-    }
-  };
+  if (!user) {
+    return (
+      <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen flex items-center justify-center">
+        <div className="text-abyss-ethereal">Please log in to start a session.</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
@@ -155,43 +46,15 @@ export default function Session() {
 
       {/* Header */}
       <header className="relative z-20 px-6 pt-12 pb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setLocation("/")}
-              className="text-abyss-amber hover:text-abyss-ethereal transition-colors"
-            >
-              <i className="fas fa-arrow-left text-xl"></i>
-            </button>
-            <h1 className="text-lg font-semibold text-abyss-ethereal">
-              {activeSessionId ? "Active Session" : "Start Session"}
-            </h1>
-          </div>
-          {activeSessionId && (
-            <div className="flex space-x-2">
-              <Button
-                onClick={handlePauseSession}
-                className="bg-abyss-teal hover:bg-abyss-teal/90 text-abyss-dark font-semibold"
-                disabled={pauseSessionMutation.isPending}
-              >
-                {pauseSessionMutation.isPending ? "Pausing..." : "Pause"}
-              </Button>
-              <Button
-                onClick={handleEndSession}
-                className="bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold"
-                disabled={endSessionMutation.isPending}
-              >
-                {endSessionMutation.isPending ? "Ending..." : "End Session"}
-              </Button>
-            </div>
-          )}
-        </div>
+        <h1 className="text-lg font-semibold text-abyss-ethereal">
+          {activeSession ? "Active Session" : "Start Session"}
+        </h1>
       </header>
 
       {/* Main Content */}
       <div className="relative z-10 px-6 pb-24">
-        {!activeSessionId ? (
-          <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
+        {!activeSession ? (
+          <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 mb-6">
             <CardHeader>
               <CardTitle className="text-abyss-ethereal">Session Details</CardTitle>
             </CardHeader>
@@ -220,7 +83,7 @@ export default function Session() {
               </div>
 
               <Button
-                onClick={handleStartSession}
+                onClick={handleCreateSession}
                 className="w-full bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold py-3 abyss-glow"
                 disabled={createSessionMutation.isPending}
               >
@@ -229,7 +92,10 @@ export default function Session() {
             </CardContent>
           </Card>
         ) : (
-          <SessionTracker sessionId={activeSessionId} />
+          <div className="space-y-6">
+            <SessionControls />
+            <SessionTracker sessionId={activeSession.id} />
+          </div>
         )}
       </div>
     </div>
