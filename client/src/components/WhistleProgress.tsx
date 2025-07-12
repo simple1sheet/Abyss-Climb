@@ -2,16 +2,47 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, Award, Target } from "lucide-react";
+import { Sparkles, Award, Target, ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 export default function WhistleProgress() {
   const { user } = useAuth();
+  const [openCategories, setOpenCategories] = useState<string[]>([]);
   
   const { data: skills } = useQuery({
     queryKey: ["/api/skills"],
     enabled: !!user,
   });
+
+  const toggleCategory = (category: string) => {
+    setOpenCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const groupSkillsByCategory = (skills: any[]) => {
+    const categories = {
+      Movement: [],
+      Technique: [],
+      Strength: [],
+      Mind: []
+    };
+    
+    if (!skills) return categories;
+    
+    skills.forEach(skill => {
+      const category = skill.category || 'Technique';
+      if (categories[category as keyof typeof categories]) {
+        categories[category as keyof typeof categories].push(skill);
+      }
+    });
+    
+    return categories;
+  };
 
   const getWhistleName = (level: number): string => {
     const whistleNames = {
@@ -129,17 +160,50 @@ export default function WhistleProgress() {
                 <Sparkles className="h-4 w-4 mr-2" />
                 Skills Progress
               </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {skills.map((skill: any) => (
-                  <div key={skill.id} className="bg-abyss-dark/40 border border-abyss-teal/10 rounded p-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-abyss-ethereal capitalize">{skill.skillType}</span>
-                      <span className="text-xs text-abyss-amber">{skill.maxGrade || "V0"}</span>
-                    </div>
-                    <div className="text-xs text-abyss-ethereal/60 mt-1">
-                      {skill.category} • {skill.totalProblems || 0} completed
-                    </div>
-                  </div>
+              <div className="space-y-2">
+                {Object.entries(groupSkillsByCategory(skills)).map(([category, categorySkills]) => (
+                  categorySkills.length > 0 && (
+                    <Collapsible key={category} open={openCategories.includes(category)}>
+                      <CollapsibleTrigger 
+                        className="w-full" 
+                        onClick={() => toggleCategory(category)}
+                      >
+                        <div className="bg-abyss-dark/40 border border-abyss-teal/10 rounded-lg p-3 flex items-center justify-between hover:bg-abyss-dark/60 transition-colors">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium text-abyss-ethereal">{category}</span>
+                            <Badge variant="outline" className="text-xs text-abyss-amber border-abyss-amber/30">
+                              {categorySkills.length} skills
+                            </Badge>
+                          </div>
+                          {openCategories.includes(category) ? (
+                            <ChevronDown className="h-4 w-4 text-abyss-ethereal/60" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-abyss-ethereal/60" />
+                          )}
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-2">
+                        <div className="ml-4 space-y-1">
+                          {categorySkills.map((skill: any) => (
+                            <div key={skill.id} className="bg-abyss-dark/20 border border-abyss-teal/5 rounded p-2 flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-abyss-ethereal/90">⤷</span>
+                                <span className="text-sm text-abyss-ethereal capitalize">{skill.skillType}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-abyss-ethereal/60">
+                                  {skill.totalProblems || 0} completed
+                                </span>
+                                <Badge variant="outline" className="text-xs text-abyss-amber border-abyss-amber/30">
+                                  {skill.maxGrade || "V0"}
+                                </Badge>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )
                 ))}
               </div>
             </div>
