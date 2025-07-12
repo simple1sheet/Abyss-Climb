@@ -98,8 +98,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const problemData = insertBoulderProblemSchema.parse(req.body);
       const problem = await storage.createBoulderProblem(problemData);
       
-      // Update quest progress
       const userId = req.user.claims.sub;
+      
+      // Update skill progression if the problem has a style and was completed
+      if (problem.style && problem.completed) {
+        const category = gradeConverter.getSkillCategoryForStyle(problem.style);
+        await storage.upsertUserSkill(userId, problem.style, problem.grade, category);
+      }
+      
+      // Update quest progress
       await questGenerator.updateQuestProgress(userId, problem.grade, problem.style || undefined);
       
       res.json(problem);

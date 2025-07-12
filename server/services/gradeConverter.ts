@@ -108,6 +108,70 @@ export class GradeConverter {
     if (numericValue <= 17) return 6; // Layer 6: V15-V17
     return 7; // Layer 7: V18+
   }
+
+  getWhistleLevel(grade: string, system: string): number {
+    const vScale = this.convertGrade(grade, system, 'V-Scale');
+    const numericValue = this.getGradeNumericValue(vScale, 'V-Scale');
+    
+    // New whistle system based on grade difficulty
+    if (numericValue === 0) return 0; // Bell whistle: V0
+    if (numericValue <= 2) return 1; // Red whistle: V1-V2
+    if (numericValue <= 4) return 2; // Blue whistle: V3-V4
+    if (numericValue <= 6) return 3; // Moon whistle: V5-V6
+    if (numericValue <= 8) return 4; // Black whistle: V7-V8
+    return 5; // White whistle: V9+
+  }
+
+  getWhistleName(level: number): string {
+    const whistleNames = {
+      0: "Bell Whistle",
+      1: "Red Whistle",
+      2: "Blue Whistle",
+      3: "Moon Whistle",
+      4: "Black Whistle",
+      5: "White Whistle"
+    };
+    return whistleNames[level as keyof typeof whistleNames] || "Unknown";
+  }
+
+  getSkillCategoryForStyle(style: string): string {
+    // Map climbing styles to 4 main categories
+    const categoryMapping = {
+      // Movement category
+      'dynos': 'Movement',
+      'mantling': 'Movement',
+      'stemming': 'Movement',
+      'flagging': 'Movement',
+      'heel_hooks': 'Movement',
+      'toe_hooks': 'Movement',
+      
+      // Technique category
+      'crimps': 'Technique',
+      'pinches': 'Technique',
+      'slopers': 'Technique',
+      'jugs': 'Technique',
+      'pockets': 'Technique',
+      'underclings': 'Technique',
+      'gaston': 'Technique',
+      
+      // Strength category
+      'overhangs': 'Strength',
+      'roofs': 'Strength',
+      'campus': 'Strength',
+      'lockoffs': 'Strength',
+      'core': 'Strength',
+      
+      // Mind category
+      'balance': 'Mind',
+      'slabs': 'Mind',
+      'reading': 'Mind',
+      'sequencing': 'Mind',
+      'risk_management': 'Mind',
+      'mental_game': 'Mind'
+    };
+    
+    return categoryMapping[style as keyof typeof categoryMapping] || 'Technique';
+  }
 }
 
 export const gradeConverter = new GradeConverter();

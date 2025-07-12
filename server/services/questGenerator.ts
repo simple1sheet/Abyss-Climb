@@ -135,7 +135,13 @@ export class QuestGenerator {
   }
 
   private generateDailySkillQuest(userSkills: any[]): any {
-    const weakestSkill = userSkills.sort((a, b) => a.level - b.level)[0];
+    // Sort by lowest max grade achieved to target weakest skills
+    const weakestSkill = userSkills.sort((a, b) => {
+      const aGrade = parseInt(a.maxGrade?.replace('V', '') || '0');
+      const bGrade = parseInt(b.maxGrade?.replace('V', '') || '0');
+      return aGrade - bGrade;
+    })[0];
+    
     const dailyQuests = this.CONCRETE_QUESTS.daily.filter(q => 
       q.requirements.style === weakestSkill.skillType
     );
@@ -180,11 +186,7 @@ export class QuestGenerator {
   }
 
   async updateQuestProgress(userId: string, grade: string, style?: string): Promise<void> {
-    // Award skill XP based on climb type
-    if (style) {
-      const skillXP = this.calculateSkillXP(grade, style);
-      await storage.upsertUserSkill(userId, style, skillXP);
-    }
+    // Skill progression is now handled in the routes.ts file when problems are created
     
     // Update quest progress
     const activeQuests = await storage.getUserQuests(userId, "active");
@@ -243,23 +245,8 @@ export class QuestGenerator {
     }
   }
 
-  private calculateSkillXP(grade: string, style: string): number {
-    const gradeValue = parseInt(grade.replace('V', '')) || 0;
-    const baseXP = Math.max(10, gradeValue * 5);
-    
-    // Different styles give different XP amounts
-    const styleMultipliers = {
-      'crimps': 1.0,
-      'dynos': 1.2,
-      'movement': 1.1,
-      'strength': 1.3,
-      'balance': 1.1,
-      'flexibility': 1.0,
-    };
-    
-    const multiplier = styleMultipliers[style as keyof typeof styleMultipliers] || 1.0;
-    return Math.round(baseXP * multiplier);
-  }
+  // XP calculation is no longer used in the new skill system
+  // Skills are now based on max grade achieved per skill type
 
   async checkSessionQuests(userId: string, sessionId: number): Promise<void> {
     const problems = await storage.getBoulderProblemsForSession(sessionId);

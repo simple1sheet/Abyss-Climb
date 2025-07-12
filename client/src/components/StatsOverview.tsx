@@ -82,11 +82,11 @@ export default function StatsOverview() {
 
             <div className="bg-abyss-dark/40 border border-abyss-teal/10 rounded-lg p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-abyss-ethereal/70">Total XP</span>
+                <span className="text-sm text-abyss-ethereal/70">Whistle Level</span>
                 <Award className="h-4 w-4 text-abyss-amber" />
               </div>
               <div className="text-lg font-bold text-abyss-ethereal">
-                {(stats?.totalXP || 0).toLocaleString()}
+                {user?.whistleLevel || 0}
               </div>
             </div>
           </div>
@@ -106,9 +106,9 @@ export default function StatsOverview() {
                 </div>
                 <div className="text-center">
                   <div className="text-lg font-bold text-abyss-ethereal">
-                    {stats.weeklyStats.xp || 0}
+                    {user?.currentLayer || 1}
                   </div>
-                  <div className="text-xs text-abyss-ethereal/60">XP</div>
+                  <div className="text-xs text-abyss-ethereal/60">Layer</div>
                 </div>
                 <div className="text-center">
                   <div className="text-lg font-bold text-abyss-ethereal">

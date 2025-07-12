@@ -45,7 +45,7 @@ export interface IStorage {
   createSkill(skill: InsertSkill): Promise<Skill>;
   getUserSkills(userId: string): Promise<Skill[]>;
   updateSkill(id: number, updates: Partial<Skill>): Promise<Skill>;
-  upsertUserSkill(userId: string, skillType: string, xpGain: number): Promise<Skill>;
+  upsertUserSkill(userId: string, skillType: string, grade: string, category: string): Promise<Skill>;
   
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
@@ -73,9 +73,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    // Calculate whistle level based on total XP
-    const totalXP = userData.totalXP || 0;
-    const whistleLevel = this.calculateWhistleLevel(totalXP);
+    // Get user's skills to calculate whistle level
+    const userSkills = await this.getUserSkills(userData.id);
+    const whistleLevel = this.calculateWhistleLevel(userSkills);
     const currentLayer = this.calculateCurrentLayer(whistleLevel);
     
     const [user] = await db
@@ -98,17 +98,24 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  private calculateWhistleLevel(totalXP: number): number {
-    // Red Whistle: 0-499 XP
-    // Blue Whistle: 500-1499 XP
-    // Moon Whistle: 1500-2999 XP
-    // Black Whistle: 3000-4999 XP
-    // White Whistle: 5000+ XP
-    if (totalXP < 500) return 1;
-    if (totalXP < 1500) return 2;
-    if (totalXP < 3000) return 3;
-    if (totalXP < 5000) return 4;
-    return 5;
+  private calculateWhistleLevel(userSkills: Skill[]): number {
+    // Calculate whistle level based on highest grade achieved across all skills
+    // Bell whistle: V0, Red: V1-V2, Blue: V3-V4, Moon: V5-V6, Black: V7-V8, White: V9+
+    let highestGrade = 0;
+    
+    for (const skill of userSkills) {
+      const gradeNum = this.getGradeNumericValue(skill.maxGrade || "V0");
+      if (gradeNum > highestGrade) {
+        highestGrade = gradeNum;
+      }
+    }
+    
+    if (highestGrade === 0) return 0; // Bell whistle
+    if (highestGrade <= 2) return 1; // Red whistle
+    if (highestGrade <= 4) return 2; // Blue whistle
+    if (highestGrade <= 6) return 3; // Moon whistle
+    if (highestGrade <= 8) return 4; // Black whistle
+    return 5; // White whistle
   }
 
   private calculateCurrentLayer(whistleLevel: number): number {
@@ -216,7 +223,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(skills)
       .where(eq(skills.userId, userId))
-      .orderBy(desc(skills.level));
+      .orderBy(desc(skills.totalProblems));
   }
 
   async updateSkill(id: number, updates: Partial<Skill>): Promise<Skill> {
@@ -228,7 +235,7 @@ export class DatabaseStorage implements IStorage {
     return updatedSkill;
   }
 
-  async upsertUserSkill(userId: string, skillType: string, xpGain: number): Promise<Skill> {
+  async upsertUserSkill(userId: string, skillType: string, grade: string, category: string): Promise<Skill> {
     // Check if skill exists
     const existingSkill = await db
       .select()
@@ -237,35 +244,53 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     if (existingSkill.length > 0) {
-      // Update existing skill
+      // Update existing skill if this grade is higher
       const skill = existingSkill[0];
-      const newXP = (skill.xp || 0) + xpGain;
-      const newLevel = Math.floor(newXP / 100) + 1; // 100 XP per level
+      const currentGradeNum = this.getGradeNumericValue(skill.maxGrade || "V0");
+      const newGradeNum = this.getGradeNumericValue(grade);
       
-      const [updatedSkill] = await db
-        .update(skills)
-        .set({ 
-          xp: newXP, 
-          level: newLevel,
-          updatedAt: new Date()
-        })
-        .where(eq(skills.id, skill.id))
-        .returning();
-      return updatedSkill;
+      if (newGradeNum > currentGradeNum) {
+        const [updatedSkill] = await db
+          .update(skills)
+          .set({ 
+            maxGrade: grade,
+            totalProblems: (skill.totalProblems || 0) + 1,
+            updatedAt: new Date()
+          })
+          .where(eq(skills.id, skill.id))
+          .returning();
+        return updatedSkill;
+      } else {
+        // Just increment problem count
+        const [updatedSkill] = await db
+          .update(skills)
+          .set({ 
+            totalProblems: (skill.totalProblems || 0) + 1,
+            updatedAt: new Date()
+          })
+          .where(eq(skills.id, skill.id))
+          .returning();
+        return updatedSkill;
+      }
     } else {
       // Create new skill
-      const newLevel = Math.floor(xpGain / 100) + 1;
       const [newSkill] = await db
         .insert(skills)
         .values({
           userId,
+          category,
           skillType,
-          xp: xpGain,
-          level: newLevel,
+          maxGrade: grade,
+          totalProblems: 1,
         })
         .returning();
       return newSkill;
     }
+  }
+
+  private getGradeNumericValue(grade: string): number {
+    const match = grade.match(/V(\d+)/);
+    return match ? parseInt(match[1]) : 0;
   }
 
   // Achievement operations

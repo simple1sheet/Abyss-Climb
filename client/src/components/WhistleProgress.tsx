@@ -15,6 +15,7 @@ export default function WhistleProgress() {
 
   const getWhistleName = (level: number): string => {
     const whistleNames = {
+      0: "Bell Whistle",
       1: "Red Whistle",
       2: "Blue Whistle",
       3: "Moon Whistle",
@@ -26,6 +27,7 @@ export default function WhistleProgress() {
 
   const getWhistleColor = (level: number): string => {
     const colors = {
+      0: "text-gray-400",
       1: "text-red-400",
       2: "text-blue-400",
       3: "text-yellow-400",
@@ -35,15 +37,16 @@ export default function WhistleProgress() {
     return colors[level as keyof typeof colors] || "text-gray-400";
   };
 
-  const getXPRequiredForNextLevel = (currentLevel: number): number => {
+  const getGradeRequiredForNextLevel = (currentLevel: number): string => {
     const requirements = {
-      1: 500,   // Red to Blue
-      2: 1500,  // Blue to Moon
-      3: 3000,  // Moon to Black
-      4: 5000,  // Black to White
-      5: 10000, // White (max)
+      0: "V1",   // Bell to Red
+      1: "V3",   // Red to Blue
+      2: "V5",   // Blue to Moon
+      3: "V7",   // Moon to Black
+      4: "V9",   // Black to White
+      5: "V12+", // White (max)
     };
-    return requirements[currentLevel as keyof typeof requirements] || 10000;
+    return requirements[currentLevel as keyof typeof requirements] || "V12+";
   };
 
   if (!user) {
@@ -60,10 +63,22 @@ export default function WhistleProgress() {
     );
   }
 
-  const currentXP = user.totalXP || 0;
-  const currentLevel = user.whistleLevel || 1;
-  const nextLevelXP = getXPRequiredForNextLevel(currentLevel);
-  const progressPercentage = currentLevel >= 5 ? 100 : (currentXP / nextLevelXP) * 100;
+  const currentLevel = user.whistleLevel || 0;
+  const nextLevelGrade = getGradeRequiredForNextLevel(currentLevel);
+  
+  // Calculate progress to next whistle based on highest skill grade
+  const getHighestSkillGrade = (): number => {
+    if (!skills || skills.length === 0) return 0;
+    let highest = 0;
+    for (const skill of skills) {
+      const gradeNum = parseInt(skill.maxGrade?.replace('V', '') || '0');
+      if (gradeNum > highest) highest = gradeNum;
+    }
+    return highest;
+  };
+  
+  const highestGrade = getHighestSkillGrade();
+  const progressPercentage = currentLevel >= 5 ? 100 : Math.min((highestGrade / parseInt(nextLevelGrade.replace('V', '')) || 1) * 100, 100);
 
   return (
     <section className="px-6 mb-8 relative z-10">
@@ -81,9 +96,9 @@ export default function WhistleProgress() {
           
           <div className="mb-4">
             <div className="flex items-center justify-between text-sm text-abyss-ethereal/70 mb-2">
-              <span>Total XP: {currentXP.toLocaleString()}</span>
+              <span>Highest Grade: V{highestGrade}</span>
               {currentLevel < 5 && (
-                <span>Next Level: {nextLevelXP.toLocaleString()} XP</span>
+                <span>Next Level: {nextLevelGrade}</span>
               )}
             </div>
             <Progress 
@@ -92,7 +107,7 @@ export default function WhistleProgress() {
             />
             {currentLevel < 5 && (
               <p className="text-xs text-abyss-ethereal/60 mt-1">
-                {(nextLevelXP - currentXP).toLocaleString()} XP to {getWhistleName(currentLevel + 1)}
+                Climb {nextLevelGrade} to reach {getWhistleName(currentLevel + 1)}
               </p>
             )}
           </div>
@@ -119,14 +134,10 @@ export default function WhistleProgress() {
                   <div key={skill.id} className="bg-abyss-dark/40 border border-abyss-teal/10 rounded p-2">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-abyss-ethereal capitalize">{skill.skillType}</span>
-                      <span className="text-xs text-abyss-amber">Lv.{skill.level}</span>
+                      <span className="text-xs text-abyss-amber">{skill.maxGrade || "V0"}</span>
                     </div>
-                    <Progress 
-                      value={(skill.xp % 100)} 
-                      className="h-1 bg-abyss-dark/60"
-                    />
                     <div className="text-xs text-abyss-ethereal/60 mt-1">
-                      {skill.xp} XP
+                      {skill.category} • {skill.totalProblems || 0} completed
                     </div>
                   </div>
                 ))}
