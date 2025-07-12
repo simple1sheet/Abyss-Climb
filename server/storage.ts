@@ -4,6 +4,7 @@ import {
   boulderProblems,
   quests,
   achievements,
+  skills,
   type User,
   type UpsertUser,
   type ClimbingSession,
@@ -12,6 +13,8 @@ import {
   type InsertBoulderProblem,
   type Quest,
   type InsertQuest,
+  type Skill,
+  type InsertSkill,
   type Achievement,
   type InsertAchievement,
 } from "@shared/schema";
@@ -37,6 +40,12 @@ export interface IStorage {
   createQuest(quest: InsertQuest): Promise<Quest>;
   getUserQuests(userId: string, status?: string): Promise<Quest[]>;
   updateQuest(id: number, updates: Partial<Quest>): Promise<Quest>;
+  
+  // Skill operations
+  createSkill(skill: InsertSkill): Promise<Skill>;
+  getUserSkills(userId: string): Promise<Skill[]>;
+  updateSkill(id: number, updates: Partial<Skill>): Promise<Skill>;
+  upsertUserSkill(userId: string, skillType: string, xpGain: number): Promise<Skill>;
   
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
@@ -158,6 +167,72 @@ export class DatabaseStorage implements IStorage {
       .where(eq(quests.id, id))
       .returning();
     return updatedQuest;
+  }
+
+  // Skill operations
+  async createSkill(skill: InsertSkill): Promise<Skill> {
+    const [newSkill] = await db
+      .insert(skills)
+      .values(skill)
+      .returning();
+    return newSkill;
+  }
+
+  async getUserSkills(userId: string): Promise<Skill[]> {
+    return await db
+      .select()
+      .from(skills)
+      .where(eq(skills.userId, userId))
+      .orderBy(desc(skills.level));
+  }
+
+  async updateSkill(id: number, updates: Partial<Skill>): Promise<Skill> {
+    const [updatedSkill] = await db
+      .update(skills)
+      .set(updates)
+      .where(eq(skills.id, id))
+      .returning();
+    return updatedSkill;
+  }
+
+  async upsertUserSkill(userId: string, skillType: string, xpGain: number): Promise<Skill> {
+    // Check if skill exists
+    const existingSkill = await db
+      .select()
+      .from(skills)
+      .where(and(eq(skills.userId, userId), eq(skills.skillType, skillType)))
+      .limit(1);
+
+    if (existingSkill.length > 0) {
+      // Update existing skill
+      const skill = existingSkill[0];
+      const newXP = (skill.xp || 0) + xpGain;
+      const newLevel = Math.floor(newXP / 100) + 1; // 100 XP per level
+      
+      const [updatedSkill] = await db
+        .update(skills)
+        .set({ 
+          xp: newXP, 
+          level: newLevel,
+          updatedAt: new Date()
+        })
+        .where(eq(skills.id, skill.id))
+        .returning();
+      return updatedSkill;
+    } else {
+      // Create new skill
+      const newLevel = Math.floor(xpGain / 100) + 1;
+      const [newSkill] = await db
+        .insert(skills)
+        .values({
+          userId,
+          skillType,
+          xp: xpGain,
+          level: newLevel,
+        })
+        .returning();
+      return newSkill;
+    }
   }
 
   // Achievement operations

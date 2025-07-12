@@ -7,8 +7,8 @@ export default function QuickActions() {
     <section className="px-6 mb-8 relative z-10">
       <div className="grid grid-cols-3 gap-4">
         <button 
-          onClick={() => setLocation("/session")}
-          className="bg-abyss-purple/40 backdrop-blur-sm rounded-xl p-4 border border-abyss-teal/20 hover:bg-abyss-purple/60 transition-all duration-300 depth-layer"
+          onClick={() => setLocation("/session/new")}
+          className="bg-abyss-purple/40 backdrop-blur-sm rounded-xl p-4 border border-abyss-teal/20 hover:bg-abyss-purple/60 transition-all duration-300 depth-layer relic-shimmer"
         >
           <div className="text-center">
             <i className="fas fa-mountain text-2xl text-abyss-amber mb-2"></i>
@@ -18,7 +18,7 @@ export default function QuickActions() {
         
         <button 
           onClick={() => setLocation("/quests")}
-          className="bg-abyss-purple/40 backdrop-blur-sm rounded-xl p-4 border border-abyss-teal/20 hover:bg-abyss-purple/60 transition-all duration-300 depth-layer"
+          className="bg-abyss-purple/40 backdrop-blur-sm rounded-xl p-4 border border-abyss-teal/20 hover:bg-abyss-purple/60 transition-all duration-300 depth-layer floating-animation"
         >
           <div className="text-center">
             <i className="fas fa-scroll text-2xl text-abyss-amber mb-2"></i>

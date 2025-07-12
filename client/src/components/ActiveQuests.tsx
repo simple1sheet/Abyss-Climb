@@ -66,16 +66,23 @@ export default function ActiveQuests() {
           </Card>
         ) : (
           activeQuests.map((quest: any) => (
-            <Card key={quest.id} className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
+            <Card key={quest.id} className={`bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer quest-entrance ${quest.questType === 'daily' ? 'relic-shimmer' : ''}`}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-abyss-teal/50 rounded-full flex items-center justify-center">
+                    <div className={`w-8 h-8 ${quest.questType === 'daily' ? 'bg-abyss-amber/50 curse-effect' : 'bg-abyss-teal/50'} rounded-full flex items-center justify-center`}>
                       <i className={`${getLayerIcon(quest.layer)} text-sm text-abyss-amber`}></i>
                     </div>
                     <div>
                       <h3 className="text-abyss-ethereal font-medium">{quest.title}</h3>
-                      <p className="text-xs text-abyss-amber">{getLayerName(quest.layer)}</p>
+                      <div className="flex items-center space-x-2">
+                        <p className="text-xs text-abyss-amber">{getLayerName(quest.layer)}</p>
+                        {quest.questType === 'daily' && (
+                          <span className="text-xs bg-abyss-amber/20 text-abyss-amber px-2 py-1 rounded-full">
+                            Daily
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <span className="text-xs text-abyss-ethereal/60">

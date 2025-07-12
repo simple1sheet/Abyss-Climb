@@ -129,6 +129,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Skills
+  app.get('/api/skills', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const skills = await storage.getUserSkills(userId);
+      res.json(skills);
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+      res.status(500).json({ message: "Failed to fetch skills" });
+    }
+  });
+
   // Grade conversion
   app.post('/api/grades/convert', isAuthenticated, async (req: any, res) => {
     try {

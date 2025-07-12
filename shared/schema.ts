@@ -62,9 +62,12 @@ export const boulderProblems = pgTable("boulder_problems", {
   grade: varchar("grade").notNull(), // V0, V1, etc.
   gradeSystem: varchar("grade_system").default("V-Scale"), // V-Scale, Font, German
   style: varchar("style"), // crimps, dynos, overhangs, etc.
+  holdType: varchar("hold_type"), // crimps, slopers, pinches, jugs, etc.
+  wallAngle: varchar("wall_angle"), // overhang, vertical, slab
   completed: boolean("completed").default(false),
   attempts: integer("attempts").default(1),
   notes: text("notes"),
+  skillsGained: jsonb("skills_gained").default('{}'), // Track which skills were practiced
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -81,12 +84,24 @@ export const quests = pgTable("quests", {
   status: varchar("status").default("active"), // active, completed, failed
   progress: integer("progress").default(0),
   maxProgress: integer("max_progress").notNull(),
+  questType: varchar("quest_type").default("daily"), // daily, weekly, layer
   expiresAt: timestamp("expires_at"),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // User achievements and milestones
+// Skills table for tracking climbing abilities
+export const skills = pgTable("skills", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  skillType: varchar("skill_type").notNull(), // crimps, dynos, movement, strength, balance, flexibility
+  level: integer("level").default(1),
+  xp: integer("xp").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
@@ -101,6 +116,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(climbingSessions),
   quests: many(quests),
   achievements: many(achievements),
+  skills: many(skills),
 }));
 
 export const climbingSessionsRelations = relations(climbingSessions, ({ one, many }) => ({
@@ -116,6 +132,10 @@ export const questsRelations = relations(quests, ({ one }) => ({
   user: one(users, { fields: [quests.userId], references: [users.id] }),
 }));
 
+export const skillsRelations = relations(skills, ({ one }) => ({
+  user: one(users, { fields: [skills.userId], references: [users.id] }),
+}));
+
 export const achievementsRelations = relations(achievements, ({ one }) => ({
   user: one(users, { fields: [achievements.userId], references: [users.id] }),
 }));
@@ -125,6 +145,7 @@ export const insertUserSchema = createInsertSchema(users);
 export const insertClimbingSessionSchema = createInsertSchema(climbingSessions);
 export const insertBoulderProblemSchema = createInsertSchema(boulderProblems);
 export const insertQuestSchema = createInsertSchema(quests);
+export const insertSkillSchema = createInsertSchema(skills);
 export const insertAchievementSchema = createInsertSchema(achievements);
 
 // Types
@@ -136,5 +157,7 @@ export type InsertBoulderProblem = z.infer<typeof insertBoulderProblemSchema>;
 export type BoulderProblem = typeof boulderProblems.$inferSelect;
 export type InsertQuest = z.infer<typeof insertQuestSchema>;
 export type Quest = typeof quests.$inferSelect;
+export type InsertSkill = z.infer<typeof insertSkillSchema>;
+export type Skill = typeof skills.$inferSelect;
 export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
 export type Achievement = typeof achievements.$inferSelect;

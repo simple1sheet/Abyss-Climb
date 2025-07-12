@@ -64,6 +64,23 @@ async function upsertUser(
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
   });
+  
+  // Initialize skills for new users
+  const existingSkills = await storage.getUserSkills(claims["sub"]);
+  if (existingSkills.length === 0) {
+    const defaultSkills = [
+      { userId: claims["sub"], skillType: 'crimps', level: 1, xp: 0 },
+      { userId: claims["sub"], skillType: 'dynos', level: 1, xp: 0 },
+      { userId: claims["sub"], skillType: 'movement', level: 1, xp: 0 },
+      { userId: claims["sub"], skillType: 'strength', level: 1, xp: 0 },
+      { userId: claims["sub"], skillType: 'balance', level: 1, xp: 0 },
+      { userId: claims["sub"], skillType: 'flexibility', level: 1, xp: 0 },
+    ];
+    
+    for (const skill of defaultSkills) {
+      await storage.createSkill(skill);
+    }
+  }
 }
 
 export async function setupAuth(app: Express) {
