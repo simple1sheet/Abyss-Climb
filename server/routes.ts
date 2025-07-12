@@ -69,6 +69,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionId = parseInt(req.params.id);
       const updates = req.body;
       
+      // Convert string dates to Date objects
+      if (updates.endTime && typeof updates.endTime === 'string') {
+        updates.endTime = new Date(updates.endTime);
+      }
+      if (updates.startTime && typeof updates.startTime === 'string') {
+        updates.startTime = new Date(updates.startTime);
+      }
+      
       const session = await storage.updateClimbingSession(sessionId, updates);
       
       // Check session-based quests when session is completed

@@ -184,16 +184,16 @@ export default function ActiveQuests() {
                       <div className="mb-2">
                         <div className="flex items-center justify-between text-xs text-abyss-ethereal/70 mb-1">
                           <span>Progress</span>
-                          <span>{quest.progress || 0}/{quest.maxProgress}</span>
+                          <span>{quest.currentProgress || 0}/{quest.targetValue}</span>
                         </div>
                         <Progress 
-                          value={((quest.progress || 0) / quest.maxProgress) * 100} 
+                          value={((quest.currentProgress || 0) / quest.targetValue) * 100} 
                           className="h-2 bg-abyss-dark/60"
                         />
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
-                      {quest.progress >= quest.maxProgress ? (
+                      {quest.currentProgress >= quest.targetValue ? (
                         <Button
                           onClick={() => completeQuest.mutate(quest.id)}
                           disabled={completeQuest.isPending}
