@@ -13,114 +13,256 @@ export class QuestGenerator {
     7: { name: "Final Maelstrom", grades: ["V18+"], maxQuests: 10 },
   };
 
-  private readonly DAILY_QUEST_TEMPLATES = [
-    // Fun & Light Daily Quests
-    {
-      title: "Morning Warm-Up",
-      description: "Complete 3 easy boulder problems to start your day",
-      requirements: { type: "problems", count: 3, gradeRange: "easy" },
-      xpReward: 50,
-      difficulty: "easy"
-    },
-    {
-      title: "Technique Focus",
-      description: "Complete 2 boulder problems with perfect technique",
-      requirements: { type: "problems", style: "technique", count: 2 },
-      xpReward: 75,
-      difficulty: "easy"
-    },
-    {
-      title: "Crimp Master",
-      description: "Complete 3 boulder problems focusing on crimp holds",
-      requirements: { type: "problems", style: "crimps", count: 3 },
-      xpReward: 80,
-      difficulty: "easy"
-    },
-    {
-      title: "Sloper Challenge",
-      description: "Complete 2 boulder problems with sloper holds",
-      requirements: { type: "problems", style: "slopers", count: 2 },
-      xpReward: 85,
-      difficulty: "medium"
-    },
-    {
-      title: "Pinch Power",
-      description: "Complete 3 boulder problems with pinch holds",
-      requirements: { type: "problems", style: "pinches", count: 3 },
-      xpReward: 90,
-      difficulty: "medium"
-    },
-    {
-      title: "Dynamic Flow",
-      description: "Complete 2 boulder problems with dynamic movements",
-      requirements: { type: "problems", style: "dynos", count: 2 },
-      xpReward: 100,
-      difficulty: "medium"
-    },
-    {
-      title: "Balance Beam",
-      description: "Complete 3 boulder problems focusing on balance",
-      requirements: { type: "problems", style: "balance", count: 3 },
-      xpReward: 75,
-      difficulty: "easy"
-    },
-    {
-      title: "Overhang Adventure",
-      description: "Complete 2 overhang boulder problems",
-      requirements: { type: "problems", wallAngle: "overhang", count: 2 },
-      xpReward: 95,
-      difficulty: "medium"
-    },
-    {
-      title: "Slab Explorer",
-      description: "Complete 2 slab boulder problems",
-      requirements: { type: "problems", wallAngle: "slab", count: 2 },
-      xpReward: 80,
-      difficulty: "easy"
-    },
-    {
-      title: "Endurance Builder",
-      description: "Complete 5 boulder problems in one session",
-      requirements: { type: "problems", count: 5, sessionBased: true },
-      xpReward: 120,
-      difficulty: "medium"
-    },
-    {
-      title: "Flash Attempt",
-      description: "Complete 1 boulder problem on your first attempt",
-      requirements: { type: "problems", count: 1, maxAttempts: 1 },
-      xpReward: 110,
-      difficulty: "medium"
-    },
-    {
-      title: "Outdoor Explorer",
-      description: "Complete 2 outdoor boulder problems",
-      requirements: { type: "problems", location: "outdoor", count: 2 },
-      xpReward: 130,
-      difficulty: "medium"
-    },
-    {
-      title: "Grade Comfort",
-      description: "Complete 3 boulder problems at your comfort grade",
-      requirements: { type: "problems", count: 3, gradeRange: "comfort" },
-      xpReward: 70,
-      difficulty: "easy"
-    },
-    {
-      title: "Volume Training",
-      description: "Complete 6 boulder problems of any difficulty",
-      requirements: { type: "problems", count: 6 },
-      xpReward: 140,
-      difficulty: "hard"
-    },
-    {
-      title: "Mixed Styles",
-      description: "Complete 4 boulder problems with different hold types",
-      requirements: { type: "problems", count: 4, mixedStyles: true },
-      xpReward: 105,
-      difficulty: "medium"
-    }
-  ];
+  private readonly QUEST_TYPES = {
+    TECHNIQUE: 'technique',
+    CREATIVE: 'creative', 
+    SOCIAL: 'social',
+    ENDURANCE: 'endurance',
+    PROGRESSION: 'progression',
+    EXPLORATION: 'exploration',
+    MINDFULNESS: 'mindfulness'
+  };
+
+  private readonly DAILY_QUEST_TEMPLATES = {
+    [this.QUEST_TYPES.TECHNIQUE]: [
+      {
+        title: "Crimp Master",
+        description: "Focus on crimp holds by completing 4 problems with primarily crimp holds",
+        difficulty: "medium",
+        xpReward: 80,
+        requirements: { type: "problems", count: 4, style: "crimps", gradeRange: "comfort" }
+      },
+      {
+        title: "Sloper Specialist",
+        description: "Master sloper holds by completing 3 problems with primarily sloper holds",
+        difficulty: "hard",
+        xpReward: 115,
+        requirements: { type: "problems", count: 3, style: "slopers", gradeRange: "comfort" }
+      },
+      {
+        title: "Footwork Focus",
+        description: "Practice precise footwork on 4 slab problems requiring delicate balance",
+        difficulty: "medium", 
+        xpReward: 85,
+        requirements: { type: "problems", count: 4, wallAngle: "slab", gradeRange: "comfort" }
+      },
+      {
+        title: "Mantling Master",
+        description: "Practice mantling technique by completing 3 problems that require topping out",
+        difficulty: "medium",
+        xpReward: 90,
+        requirements: { type: "problems", count: 3, style: "mantles", gradeRange: "comfort" }
+      },
+      {
+        title: "Heel Hook Hero",
+        description: "Master heel hooks by completing 3 problems that require heel hook techniques",
+        difficulty: "medium",
+        xpReward: 95,
+        requirements: { type: "problems", count: 3, style: "heel_hooks", gradeRange: "comfort" }
+      }
+    ],
+    [this.QUEST_TYPES.CREATIVE]: [
+      {
+        title: "Beta Breaker",
+        description: "Find alternative sequences by completing 3 problems using unconventional beta",
+        difficulty: "medium",
+        xpReward: 100,
+        requirements: { type: "alternative_beta", count: 3, gradeRange: "comfort" }
+      },
+      {
+        title: "Style Switcher",
+        description: "Adapt your climbing style by completing the same problem 3 different ways",
+        difficulty: "hard",
+        xpReward: 120,
+        requirements: { type: "style_variations", count: 3, gradeRange: "comfort" }
+      },
+      {
+        title: "Blindfolded Boulder",
+        description: "Enhance body awareness by completing 1 easy problem with eyes closed",
+        difficulty: "medium",
+        xpReward: 110,
+        requirements: { type: "blindfolded", count: 1, gradeRange: "easy" }
+      },
+      {
+        title: "Elimination Game",
+        description: "Challenge yourself by completing 2 problems while eliminating specific holds",
+        difficulty: "hard",
+        xpReward: 130,
+        requirements: { type: "elimination", count: 2, gradeRange: "comfort" }
+      },
+      {
+        title: "Mirror Match",
+        description: "Practice symmetry by completing 2 problems using only matching hand positions",
+        difficulty: "medium",
+        xpReward: 95,
+        requirements: { type: "mirror_climbing", count: 2, gradeRange: "comfort" }
+      }
+    ],
+    [this.QUEST_TYPES.SOCIAL]: [
+      {
+        title: "Buddy System",
+        description: "Climb with a partner and complete 4 problems together, sharing beta",
+        difficulty: "easy",
+        xpReward: 70,
+        requirements: { type: "partner_climbing", count: 4, gradeRange: "comfort" }
+      },
+      {
+        title: "Teaching Moment",
+        description: "Help a newer climber by teaching them beta for 2 problems",
+        difficulty: "easy",
+        xpReward: 85,
+        requirements: { type: "teaching", count: 2, gradeRange: "easy" }
+      },
+      {
+        title: "Group Challenge",
+        description: "Join a group session and complete 3 problems with encouragement from others",
+        difficulty: "medium",
+        xpReward: 90,
+        requirements: { type: "group_climbing", count: 3, gradeRange: "comfort" }
+      },
+      {
+        title: "Beta Share",
+        description: "Share and receive beta by working on 2 problems with different climbers",
+        difficulty: "easy",
+        xpReward: 75,
+        requirements: { type: "beta_sharing", count: 2, gradeRange: "comfort" }
+      },
+      {
+        title: "Cheer Squad",
+        description: "Support others by cheering on 3 different climbers attempting their projects",
+        difficulty: "easy",
+        xpReward: 60,
+        requirements: { type: "cheering", count: 3, gradeRange: "any" }
+      }
+    ],
+    [this.QUEST_TYPES.ENDURANCE]: [
+      {
+        title: "Volume Training",
+        description: "Build endurance with 8 problems at easy grades without long breaks",
+        difficulty: "medium",
+        xpReward: 100,
+        requirements: { type: "problems", count: 8, gradeRange: "easy", timeLimit: "45min" }
+      },
+      {
+        title: "Circuit Challenge",
+        description: "Complete a 6-problem circuit 2 times with minimal rest between rounds",
+        difficulty: "hard",
+        xpReward: 140,
+        requirements: { type: "circuit", count: 6, rounds: 2, gradeRange: "comfort" }
+      },
+      {
+        title: "Pump Test",
+        description: "Test your endurance by completing 4 problems on overhangs consecutively",
+        difficulty: "hard",
+        xpReward: 120,
+        requirements: { type: "consecutive", count: 4, wallAngle: "overhang", gradeRange: "comfort" }
+      },
+      {
+        title: "Time Trial",
+        description: "Complete 5 problems within 30 minutes to test speed and efficiency",
+        difficulty: "medium",
+        xpReward: 110,
+        requirements: { type: "time_trial", count: 5, timeLimit: "30min", gradeRange: "comfort" }
+      },
+      {
+        title: "Stamina Builder",
+        description: "Climb for 60 minutes straight, completing at least 6 problems",
+        difficulty: "medium",
+        xpReward: 130,
+        requirements: { type: "duration", count: 6, timeLimit: "60min", gradeRange: "easy" }
+      }
+    ],
+    [this.QUEST_TYPES.PROGRESSION]: [
+      {
+        title: "Project Push",
+        description: "Work on pushing your limits by attempting 1 problem at your maximum grade",
+        difficulty: "hard",
+        xpReward: 150,
+        requirements: { type: "problems", count: 1, gradeRange: "challenge" }
+      },
+      {
+        title: "Grade Breakthrough",
+        description: "Attempt to break through to the next grade by trying 2 problems above your comfort zone",
+        difficulty: "hard",
+        xpReward: 180,
+        requirements: { type: "grade_push", count: 2, gradeRange: "challenge" }
+      },
+      {
+        title: "Limit Test",
+        description: "Test your absolute limit by attempting 1 problem 2 grades above your comfort zone",
+        difficulty: "extreme",
+        xpReward: 200,
+        requirements: { type: "limit_test", count: 1, gradeRange: "extreme" }
+      }
+    ],
+    [this.QUEST_TYPES.EXPLORATION]: [
+      {
+        title: "Area Explorer",
+        description: "Explore new sections by completing 3 problems in an area you haven't climbed before",
+        difficulty: "medium",
+        xpReward: 90,
+        requirements: { type: "new_area", count: 3, gradeRange: "comfort" }
+      },
+      {
+        title: "Outdoor Adventure",
+        description: "Connect with nature by completing 3 outdoor boulder problems",
+        difficulty: "medium",
+        xpReward: 140,
+        requirements: { type: "problems", count: 3, location: "outdoor", gradeRange: "comfort" }
+      },
+      {
+        title: "Color Quest",
+        description: "Complete 4 problems of the same color/hold type you rarely climb",
+        difficulty: "medium",
+        xpReward: 85,
+        requirements: { type: "color_focus", count: 4, gradeRange: "comfort" }
+      },
+      {
+        title: "Angle Variety",
+        description: "Experience different angles by completing 1 slab, 1 vertical, and 1 overhang problem",
+        difficulty: "medium",
+        xpReward: 105,
+        requirements: { type: "angle_variety", count: 3, gradeRange: "comfort" }
+      }
+    ],
+    [this.QUEST_TYPES.MINDFULNESS]: [
+      {
+        title: "Flow State",
+        description: "Focus on smooth, flowing movement by completing 3 problems without stopping mid-climb",
+        difficulty: "medium",
+        xpReward: 100,
+        requirements: { type: "flow_state", count: 3, gradeRange: "comfort" }
+      },
+      {
+        title: "Breath Control",
+        description: "Practice controlled breathing by completing 2 problems while maintaining steady breathing",
+        difficulty: "medium",
+        xpReward: 90,
+        requirements: { type: "breath_control", count: 2, gradeRange: "comfort" }
+      },
+      {
+        title: "Mindful Movement",
+        description: "Climb with full awareness by completing 3 problems while focusing on every movement",
+        difficulty: "easy",
+        xpReward: 80,
+        requirements: { type: "mindful_climbing", count: 3, gradeRange: "easy" }
+      },
+      {
+        title: "Visualization Victory",
+        description: "Enhance mental preparation by visualizing and then completing 2 problems",
+        difficulty: "medium",
+        xpReward: 95,
+        requirements: { type: "visualization", count: 2, gradeRange: "comfort" }
+      },
+      {
+        title: "Patience Practice",
+        description: "Develop patience by spending 10 minutes analyzing 1 problem before attempting",
+        difficulty: "medium",
+        xpReward: 110,
+        requirements: { type: "analysis", count: 1, timeLimit: "10min", gradeRange: "challenge" }
+      }
+    ]
+  };
 
   private readonly LAYER_QUEST_TEMPLATES = {
     1: { // Edge of Abyss
@@ -252,18 +394,64 @@ export class QuestGenerator {
     // Combine used titles to avoid both active and recent duplicates
     const allUsedTitles = [...new Set([...usedTitles, ...recentTitles])];
 
-    // Filter available templates to avoid duplicates
-    const availableTemplates = this.DAILY_QUEST_TEMPLATES.filter(
-      template => !allUsedTitles.includes(template.title)
-    );
+    // Get quest types already used today to ensure variety
+    const usedTypes = new Set();
+    [...existingDailyQuests, ...recentQuests].forEach(quest => {
+      for (const [type, templates] of Object.entries(this.DAILY_QUEST_TEMPLATES)) {
+        if (templates.some((template: any) => template.title === quest.title)) {
+          usedTypes.add(type);
+        }
+      }
+    });
 
-    if (availableTemplates.length === 0) {
-      // If all templates are used, fall back to AI generation for variety
+    // Limit progression quests to 1 per day
+    const hasProgressionQuest = usedTypes.has(this.QUEST_TYPES.PROGRESSION);
+    
+    // Select quest type with variety in mind
+    const availableTypes = Object.keys(this.QUEST_TYPES).filter(type => {
+      const questType = this.QUEST_TYPES[type as keyof typeof this.QUEST_TYPES];
+      
+      // Skip progression if already have one
+      if (questType === this.QUEST_TYPES.PROGRESSION && hasProgressionQuest) {
+        return false;
+      }
+      
+      // Prefer unused types
+      return !usedTypes.has(questType);
+    });
+
+    // If no unused types available, allow any type except progression (if limit reached)
+    const questTypesToUse = availableTypes.length > 0 ? availableTypes : 
+      Object.keys(this.QUEST_TYPES).filter(type => {
+        const questType = this.QUEST_TYPES[type as keyof typeof this.QUEST_TYPES];
+        return !(questType === this.QUEST_TYPES.PROGRESSION && hasProgressionQuest);
+      });
+
+    if (questTypesToUse.length === 0) {
+      // Fallback to AI generation if no types available
       await this.generateAIQuest(userId, currentLayer, userSkills);
       return;
     }
 
-    // Properly randomize selection using crypto for better randomness
+    // Randomly select a quest type
+    const randomTypeIndex = Math.floor(Math.random() * questTypesToUse.length);
+    const selectedType = this.QUEST_TYPES[questTypesToUse[randomTypeIndex] as keyof typeof this.QUEST_TYPES];
+    
+    // Get templates for selected type
+    const typeTemplates = this.DAILY_QUEST_TEMPLATES[selectedType];
+    
+    // Filter out used templates
+    const availableTemplates = typeTemplates.filter(
+      (template: any) => !allUsedTitles.includes(template.title)
+    );
+
+    if (availableTemplates.length === 0) {
+      // If all templates in this type are used, fall back to AI generation
+      await this.generateAIQuest(userId, currentLayer, userSkills);
+      return;
+    }
+
+    // Randomly select a template from available ones
     const randomIndex = Math.floor(Math.random() * availableTemplates.length);
     const selectedTemplate = availableTemplates[randomIndex];
     
@@ -277,7 +465,7 @@ export class QuestGenerator {
       questType: "daily",
       status: "active",
       xpReward: adaptedQuest.xpReward,
-      maxProgress: adaptedQuest.requirements.count,
+      maxProgress: adaptedQuest.requirements.count || 1,
       progress: 0,
       layer: currentLayer,
       requirements: adaptedQuest.requirements,

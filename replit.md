@@ -25,12 +25,15 @@ Preferred communication style: Simple, everyday language.
 ### ✓ Enhanced Features (Latest Updates - January 2025)
 - **XP-Based Layer Progression**: Replaced quest-based layer advancement with XP thresholds (Layer 1: 0 XP to Layer 7: 12,000 XP)
 - **Automatic Layer Advancement**: Players advance layers automatically when reaching XP thresholds
-- **Pool-Based Quest System**: 15 unique daily quest templates with proper randomization and duplicate prevention
-- **Smart Duplicate Prevention**: Prevents both active and recently completed quest duplicates for maximum variety
+- **Diverse Quest Type System**: 7 distinct quest categories (Technique, Creative, Social, Endurance, Progression, Exploration, Mindfulness) with 35+ unique templates
+- **Smart Quest Variety**: Each quest type offers unique challenges beyond simple "complete X problems" format
+- **Intelligent Type Selection**: System ensures variety by tracking used quest types and limiting progression quests to 1 per day
+- **Creative Quest Mechanics**: Includes blindfolded climbing, beta breaking, style switching, elimination games, and mindfulness practices
+- **Social Integration**: Encourages community interaction through teaching, group challenges, and peer support quests
+- **Endurance Challenges**: Time trials, circuits, stamina builders, and consecutive problem challenges
 - **One-Time Layer Quests**: Special high-XP quests for each layer (300-3000 XP) generated only once per layer
 - **Proper Random Selection**: Uses crypto-quality randomization to ensure different quests each time
 - **Quest Adaptation**: Daily quests automatically adapt to user's skill level and current layer
-- **Mixed Quest Types**: Fun, light daily quests (50-140 XP) plus challenging layer quests for progression
 - **Comprehensive Quest Tracking**: Quests track by grade, style, wall angle, and location requirements
 - **Fallback AI Generation**: When all template pool is exhausted, system falls back to AI-generated quests
 - **Real-time XP Progress**: Progress bars show exact XP needed for next layer advancement
