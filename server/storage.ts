@@ -4,6 +4,7 @@ import {
   boulderProblems,
   quests,
   achievements,
+  skills,
   type User,
   type UpsertUser,
   type ClimbingSession,
@@ -14,6 +15,8 @@ import {
   type InsertQuest,
   type Achievement,
   type InsertAchievement,
+  type Skill,
+  type InsertSkill,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
@@ -54,6 +57,11 @@ export interface IStorage {
       time: number;
     };
   }>;
+  
+  // Skill operations
+  getUserSkills(userId: string): Promise<Skill[]>;
+  upsertSkill(skill: InsertSkill): Promise<Skill>;
+  updateSkillXP(userId: string, skillType: string, xp: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -246,6 +254,79 @@ export class DatabaseStorage implements IStorage {
         time: weeklyTime,
       },
     };
+  }
+
+  // Skill operations
+  async getUserSkills(userId: string): Promise<Skill[]> {
+    return await db
+      .select()
+      .from(skills)
+      .where(eq(skills.userId, userId))
+      .orderBy(desc(skills.level));
+  }
+
+  async upsertSkill(skill: InsertSkill): Promise<Skill> {
+    const [existingSkill] = await db
+      .select()
+      .from(skills)
+      .where(
+        and(
+          eq(skills.userId, skill.userId),
+          eq(skills.skillType, skill.skillType)
+        )
+      );
+
+    if (existingSkill) {
+      const [updatedSkill] = await db
+        .update(skills)
+        .set({
+          ...skill,
+          updatedAt: new Date(),
+        })
+        .where(eq(skills.id, existingSkill.id))
+        .returning();
+      return updatedSkill;
+    } else {
+      const [newSkill] = await db
+        .insert(skills)
+        .values(skill)
+        .returning();
+      return newSkill;
+    }
+  }
+
+  async updateSkillXP(userId: string, skillType: string, xp: number): Promise<void> {
+    const [skill] = await db
+      .select()
+      .from(skills)
+      .where(
+        and(
+          eq(skills.userId, userId),
+          eq(skills.skillType, skillType)
+        )
+      );
+
+    if (skill) {
+      const newXP = (skill.xp || 0) + xp;
+      const newLevel = Math.floor(newXP / 100) + 1; // Level up every 100 XP
+      
+      await db
+        .update(skills)
+        .set({
+          xp: newXP,
+          level: newLevel,
+          updatedAt: new Date(),
+        })
+        .where(eq(skills.id, skill.id));
+    } else {
+      // Create new skill if it doesn't exist
+      await this.upsertSkill({
+        userId,
+        skillType,
+        level: 1,
+        xp,
+      });
+    }
   }
 }
 

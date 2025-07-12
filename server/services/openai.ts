@@ -131,3 +131,70 @@ export async function analyzeClimbingProgress(
     throw new Error("Failed to analyze climbing progress: " + (error as Error).message);
   }
 }
+
+export async function provideCoachFeedback(
+  type: "session" | "quest" | "skills",
+  data: any
+): Promise<{
+  feedback: string;
+  encouragement: string;
+  nextSteps: string[];
+}> {
+  let prompt = "";
+
+  switch (type) {
+    case "session":
+      prompt = `Provide coaching feedback for this climbing session:
+      
+      Session: ${JSON.stringify(data)}
+      
+      Give:
+      - Feedback on performance (what went well, what could improve)
+      - Encouragement (motivational message)
+      - Next steps (specific actionable advice)`;
+      break;
+    
+    case "quest":
+      prompt = `Provide coaching feedback for this quest completion:
+      
+      Quest: ${JSON.stringify(data)}
+      
+      Give:
+      - Feedback on quest achievement
+      - Encouragement for continued progress
+      - Next steps for skill development`;
+      break;
+    
+    case "skills":
+      prompt = `Provide coaching feedback for these climbing skills:
+      
+      Skills: ${JSON.stringify(data)}
+      
+      Give:
+      - Feedback on skill development
+      - Encouragement on progress
+      - Next steps for improvement`;
+      break;
+  }
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are an encouraging climbing coach AI. Provide supportive, actionable feedback that motivates climbers to improve. Keep responses concise and practical."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    return JSON.parse(response.choices[0].message.content!);
+  } catch (error) {
+    throw new Error("Failed to provide coach feedback: " + (error as Error).message);
+  }
+}

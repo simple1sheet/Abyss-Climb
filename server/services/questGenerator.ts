@@ -1,17 +1,23 @@
 import { storage } from "../storage";
-import { generateQuest } from "./openai";
 import { type InsertQuest } from "@shared/schema";
 
 export class QuestGenerator {
   private readonly LAYER_CONFIGS = {
-    1: { name: "Edge of the Abyss", grades: ["V0", "V1", "V2"], maxQuests: 3 },
-    2: { name: "Forest of Temptation", grades: ["V3", "V4", "V5"], maxQuests: 4 },
-    3: { name: "Great Fault", grades: ["V6", "V7", "V8"], maxQuests: 5 },
-    4: { name: "Goblets of Giants", grades: ["V9", "V10", "V11"], maxQuests: 6 },
-    5: { name: "Sea of Corpses", grades: ["V12", "V13", "V14"], maxQuests: 7 },
-    6: { name: "Capital of the Unreturned", grades: ["V15", "V16", "V17"], maxQuests: 8 },
-    7: { name: "Final Maelstrom", grades: ["V18+"], maxQuests: 10 },
+    1: { name: "Edge of the Abyss", grades: ["V0", "V1", "V2"], maxQuests: 2 },
+    2: { name: "Forest of Temptation", grades: ["V3", "V4", "V5"], maxQuests: 3 },
+    3: { name: "Great Fault", grades: ["V6", "V7", "V8"], maxQuests: 3 },
+    4: { name: "Goblets of Giants", grades: ["V9", "V10", "V11"], maxQuests: 4 },
+    5: { name: "Sea of Corpses", grades: ["V12", "V13", "V14"], maxQuests: 4 },
+    6: { name: "Capital of the Unreturned", grades: ["V15", "V16", "V17"], maxQuests: 5 },
+    7: { name: "Final Maelstrom", grades: ["V18+"], maxQuests: 5 },
   };
+
+  private readonly SIMPLE_QUESTS = [
+    { type: "problems", text: "problems", styles: ["any"] },
+    { type: "grade", text: "grade", styles: ["any"] },
+    { type: "style", text: "style", styles: ["crimps", "dynos", "overhangs", "slabs", "technical"] },
+    { type: "session", text: "session", styles: ["any"] },
+  ];
 
   async generateQuestForUser(userId: string): Promise<void> {
     const user = await storage.getUser(userId);
@@ -25,64 +31,86 @@ export class QuestGenerator {
       return;
     }
 
-    // Get recent climbing data to inform quest generation
-    const recentSessions = await storage.getUserClimbingSessions(userId, 5);
-    const recentGrades: string[] = [];
-    
-    for (const session of recentSessions) {
-      const problems = await storage.getBoulderProblemsForSession(session.id);
-      recentGrades.push(...problems.map(p => p.grade));
-    }
+    // Generate simple, climbing-focused quest
+    const questData = this.generateSimpleQuest(user.currentLayer || 1);
 
-    try {
-      const questData = await generateQuest(
-        user.currentLayer || 1,
-        user.whistleLevel || 1,
-        "mixed", // TODO: Determine user's preferred style
-        recentGrades.slice(0, 10) // Last 10 grades
-      );
-
-      const quest: InsertQuest = {
-        userId,
-        title: questData.title,
-        description: questData.description,
-        layer: user.currentLayer || 1,
-        difficulty: questData.difficulty,
-        xpReward: questData.xpReward,
-        requirements: questData.requirements,
-        maxProgress: questData.requirements.count,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      };
-
-      await storage.createQuest(quest);
-    } catch (error) {
-      console.error("Failed to generate quest:", error);
-      // Fallback to a simple quest
-      await this.generateFallbackQuest(userId, user.currentLayer || 1);
-    }
-  }
-
-  private async generateFallbackQuest(userId: string, layer: number): Promise<void> {
-    const layerConfig = this.LAYER_CONFIGS[layer as keyof typeof this.LAYER_CONFIGS];
-    
-    const fallbackQuest: InsertQuest = {
+    const quest: InsertQuest = {
       userId,
-      title: `${layerConfig.name} Challenge`,
-      description: `Complete climbing problems in ${layerConfig.name} to gain experience and progress deeper into the Abyss.`,
-      layer,
-      difficulty: "medium",
-      xpReward: 100 + (layer * 25),
-      requirements: {
-        type: "problems",
-        count: 3,
-        grade: layerConfig.grades[0],
-      },
-      maxProgress: 3,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      title: questData.title,
+      description: questData.description,
+      layer: user.currentLayer || 1,
+      difficulty: questData.difficulty,
+      xpReward: questData.xpReward,
+      requirements: questData.requirements,
+      maxProgress: questData.requirements.count,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
     };
 
-    await storage.createQuest(fallbackQuest);
+    await storage.createQuest(quest);
   }
+
+  private generateSimpleQuest(layer: number): {
+    title: string;
+    description: string;
+    requirements: { type: string; count: number; grade?: string; style?: string };
+    xpReward: number;
+    difficulty: string;
+  } {
+    const layerConfig = this.LAYER_CONFIGS[layer as keyof typeof this.LAYER_CONFIGS];
+    const questTypes = [
+      {
+        type: "problems",
+        template: (count: number, grade?: string) => ({
+          title: grade ? `Climb ${count} ${grade} problems` : `Climb ${count} problems`,
+          description: grade ? `Complete ${count} ${grade} boulder problems to progress.` : `Complete ${count} boulder problems to progress.`,
+          requirements: { type: "problems", count, grade },
+        }),
+      },
+      {
+        type: "grade",
+        template: (count: number, grade?: string) => ({
+          title: `Send ${count} ${grade} problems`,
+          description: `Successfully complete ${count} ${grade} problems.`,
+          requirements: { type: "problems", count, grade },
+        }),
+      },
+      {
+        type: "style",
+        template: (count: number, style?: string) => ({
+          title: `Master ${count} ${style} problems`,
+          description: `Complete ${count} problems focusing on ${style} technique.`,
+          requirements: { type: "style", count, style },
+        }),
+      },
+    ];
+
+    // Choose random quest type
+    const questType = questTypes[Math.floor(Math.random() * questTypes.length)];
+    
+    // Set count based on layer (higher layers = more problems)
+    const count = Math.max(3, Math.min(10, 2 + layer));
+    
+    // Choose appropriate grade for layer
+    const grade = layerConfig.grades[Math.floor(Math.random() * layerConfig.grades.length)];
+    
+    // Choose style if style quest
+    const styles = ["crimps", "dynos", "overhangs", "slabs", "technical"];
+    const style = styles[Math.floor(Math.random() * styles.length)];
+    
+    const questData = questType.template(count, questType.type === "problems" ? grade : undefined);
+    
+    if (questType.type === "style") {
+      questData.requirements.style = style;
+    }
+
+    return {
+      ...questData,
+      xpReward: 50 + (layer * 25) + (count * 10),
+      difficulty: layer <= 2 ? "easy" : layer <= 4 ? "medium" : layer <= 6 ? "hard" : "extreme",
+    };
+  }
+
+
 
   async updateQuestProgress(userId: string, grade: string, style?: string): Promise<void> {
     const activeQuests = await storage.getUserQuests(userId, "active");

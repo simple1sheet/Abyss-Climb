@@ -96,11 +96,23 @@ export const achievements = pgTable("achievements", {
   unlockedAt: timestamp("unlocked_at").defaultNow(),
 });
 
+// Skill system for tracking climbing abilities
+export const skills = pgTable("skills", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  skillType: varchar("skill_type").notNull(), // movement, crimps, dynos, overhangs, etc.
+  level: integer("level").default(1),
+  xp: integer("xp").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(climbingSessions),
   quests: many(quests),
   achievements: many(achievements),
+  skills: many(skills),
 }));
 
 export const climbingSessionsRelations = relations(climbingSessions, ({ one, many }) => ({
@@ -120,12 +132,17 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
   user: one(users, { fields: [achievements.userId], references: [users.id] }),
 }));
 
+export const skillsRelations = relations(skills, ({ one }) => ({
+  user: one(users, { fields: [skills.userId], references: [users.id] }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertClimbingSessionSchema = createInsertSchema(climbingSessions);
 export const insertBoulderProblemSchema = createInsertSchema(boulderProblems);
 export const insertQuestSchema = createInsertSchema(quests);
 export const insertAchievementSchema = createInsertSchema(achievements);
+export const insertSkillSchema = createInsertSchema(skills);
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -138,3 +155,5 @@ export type InsertQuest = z.infer<typeof insertQuestSchema>;
 export type Quest = typeof quests.$inferSelect;
 export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
 export type Achievement = typeof achievements.$inferSelect;
+export type InsertSkill = z.infer<typeof insertSkillSchema>;
+export type Skill = typeof skills.$inferSelect;

@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
-import { analyzeClimbingProgress } from "./services/openai";
+import { analyzeClimbingProgress, provideCoachFeedback } from "./services/openai";
+import { skillManager } from "./services/skillManager";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -16,6 +17,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
+      
+      // Initialize skills for new users
+      await skillManager.initializeUserSkills(userId);
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -83,9 +88,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const problemData = insertBoulderProblemSchema.parse(req.body);
       const problem = await storage.createBoulderProblem(problemData);
       
-      // Update quest progress
       const userId = req.user.claims.sub;
+      
+      // Update quest progress
       await questGenerator.updateQuestProgress(userId, problem.grade, problem.style || undefined);
+      
+      // Update skills
+      await skillManager.updateSkillFromProblem(userId, problem.grade, problem.style || undefined, problem.completed || false);
+      
+      // Update user progression (layer and whistle level)
+      await skillManager.updateUserProgression(userId);
       
       res.json(problem);
     } catch (error) {
@@ -170,6 +182,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching achievements:", error);
       res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  // Skills routes
+  app.get("/api/skills", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const skills = await storage.getUserSkills(userId);
+      res.json(skills);
+    } catch (error) {
+      console.error("Error fetching skills:", error);
+      res.status(500).json({ message: "Failed to fetch skills" });
+    }
+  });
+
+  // Coach feedback routes
+  app.post("/api/coach/feedback", isAuthenticated, async (req: any, res) => {
+    try {
+      const { type, data } = req.body;
+      const feedback = await provideCoachFeedback(type, data);
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error providing coach feedback:", error);
+      res.status(500).json({ message: "Failed to provide coach feedback" });
     }
   });
 
