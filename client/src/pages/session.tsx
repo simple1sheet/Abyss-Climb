@@ -151,7 +151,7 @@ export default function Session() {
                   value={location}
                   onChange={(e) => setLocationValue(e.target.value)}
                   placeholder="Enter location name"
-                  className="bg-abyss-dark/50 border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
+                  className="bg-[#4d4d4d] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
                 />
               </div>
 
