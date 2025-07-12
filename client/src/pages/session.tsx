@@ -135,7 +135,7 @@ export default function Session() {
               <div className="space-y-2">
                 <Label className="text-abyss-ethereal">Session Type</Label>
                 <Select value={sessionType} onValueChange={setSessionType}>
-                  <SelectTrigger className="bg-abyss-dark/50 border-abyss-teal/30 text-abyss-ethereal">
+                  <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
                     <SelectValue placeholder="Select session type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -151,7 +151,7 @@ export default function Session() {
                   value={location}
                   onChange={(e) => setLocationValue(e.target.value)}
                   placeholder="Enter location name"
-                  className="bg-[#4d4d4d] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
+                  className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
                 />
               </div>
 
