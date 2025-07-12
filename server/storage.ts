@@ -73,18 +73,51 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    // Calculate whistle level based on total XP
+    const totalXP = userData.totalXP || 0;
+    const whistleLevel = this.calculateWhistleLevel(totalXP);
+    const currentLayer = this.calculateCurrentLayer(whistleLevel);
+    
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values({
+        ...userData,
+        whistleLevel,
+        currentLayer,
+      })
       .onConflictDoUpdate({
         target: users.id,
         set: {
           ...userData,
+          whistleLevel,
+          currentLayer,
           updatedAt: new Date(),
         },
       })
       .returning();
     return user;
+  }
+
+  private calculateWhistleLevel(totalXP: number): number {
+    // Red Whistle: 0-499 XP
+    // Blue Whistle: 500-1499 XP
+    // Moon Whistle: 1500-2999 XP
+    // Black Whistle: 3000-4999 XP
+    // White Whistle: 5000+ XP
+    if (totalXP < 500) return 1;
+    if (totalXP < 1500) return 2;
+    if (totalXP < 3000) return 3;
+    if (totalXP < 5000) return 4;
+    return 5;
+  }
+
+  private calculateCurrentLayer(whistleLevel: number): number {
+    // Layer progression based on whistle level
+    if (whistleLevel <= 1) return 1;
+    if (whistleLevel <= 2) return 2;
+    if (whistleLevel <= 3) return 3;
+    if (whistleLevel <= 4) return 4;
+    return Math.min(whistleLevel + 1, 7);
   }
 
   // Climbing session operations

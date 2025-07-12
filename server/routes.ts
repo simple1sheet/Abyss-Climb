@@ -70,6 +70,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = req.body;
       
       const session = await storage.updateClimbingSession(sessionId, updates);
+      
+      // Check session-based quests when session is completed
+      if (updates.endTime) {
+        const userId = req.user.claims.sub;
+        await questGenerator.checkSessionQuests(userId, sessionId);
+      }
+      
       res.json(session);
     } catch (error) {
       console.error("Error updating session:", error);
@@ -126,6 +133,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating quest:", error);
       res.status(500).json({ message: "Failed to generate quest" });
+    }
+  });
+
+  app.post('/api/quests/:id/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const questId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const quest = await storage.updateQuest(questId, {
+        status: "completed",
+        completedAt: new Date(),
+      });
+      
+      // Award XP to user
+      const user = await storage.getUser(userId);
+      if (user) {
+        await storage.upsertUser({
+          ...user,
+          totalXP: (user.totalXP || 0) + quest.xpReward,
+        });
+      }
+      
+      res.json(quest);
+    } catch (error) {
+      console.error("Error completing quest:", error);
+      res.status(500).json({ message: "Failed to complete quest" });
+    }
+  });
+
+  app.post('/api/quests/:id/discard', isAuthenticated, async (req: any, res) => {
+    try {
+      const questId = parseInt(req.params.id);
+      const quest = await storage.updateQuest(questId, {
+        status: "discarded",
+      });
+      res.json(quest);
+    } catch (error) {
+      console.error("Error discarding quest:", error);
+      res.status(500).json({ message: "Failed to discard quest" });
     }
   });
 

@@ -1,7 +1,9 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
+import { Sparkles, Award, Target } from "lucide-react";
 
 export default function WhistleProgress() {
   const { user } = useAuth();
@@ -11,89 +13,126 @@ export default function WhistleProgress() {
     enabled: !!user,
   });
 
-  const getWhistleLevel = (whistleLevel: number) => {
-    const levels = {
-      1: { name: "Red Whistle", color: "bg-red-500", icon: "fas fa-medal", minSkillLevel: 1 },
-      2: { name: "Blue Whistle", color: "bg-blue-500", icon: "fas fa-award", minSkillLevel: 3 },
-      3: { name: "Moon Whistle", color: "bg-purple-500", icon: "fas fa-gem", minSkillLevel: 5 },
-      4: { name: "Black Whistle", color: "bg-gray-800", icon: "fas fa-crown", minSkillLevel: 8 },
-      5: { name: "White Whistle", color: "bg-white", icon: "fas fa-star", minSkillLevel: 12 },
+  const getWhistleName = (level: number): string => {
+    const whistleNames = {
+      1: "Red Whistle",
+      2: "Blue Whistle",
+      3: "Moon Whistle",
+      4: "Black Whistle",
+      5: "White Whistle",
     };
-    return levels[whistleLevel as keyof typeof levels] || levels[1];
+    return whistleNames[level as keyof typeof whistleNames] || "Unknown Whistle";
   };
 
-  const getSkillIcon = (skillType: string) => {
-    const icons = {
-      crimps: "fas fa-hand-rock",
-      dynos: "fas fa-rocket",
-      movement: "fas fa-running",
-      strength: "fas fa-dumbbell",
-      balance: "fas fa-balance-scale",
-      flexibility: "fas fa-leaf",
+  const getWhistleColor = (level: number): string => {
+    const colors = {
+      1: "text-red-400",
+      2: "text-blue-400",
+      3: "text-yellow-400",
+      4: "text-gray-800",
+      5: "text-white",
     };
-    return icons[skillType as keyof typeof icons] || "fas fa-question";
+    return colors[level as keyof typeof colors] || "text-gray-400";
   };
 
-  const whistleInfo = getWhistleLevel(user?.whistleLevel || 1);
-  const totalXP = user?.totalXP || 0;
-  const currentLevel = user?.whistleLevel || 1;
-  const nextLevelXP = currentLevel * 1000;
-  const progress = Math.min((totalXP / nextLevelXP) * 100, 100);
+  const getXPRequiredForNextLevel = (currentLevel: number): number => {
+    const requirements = {
+      1: 500,   // Red to Blue
+      2: 1500,  // Blue to Moon
+      3: 3000,  // Moon to Black
+      4: 5000,  // Black to White
+      5: 10000, // White (max)
+    };
+    return requirements[currentLevel as keyof typeof requirements] || 10000;
+  };
 
-  // Calculate average skill level for whistle progression
-  const averageSkillLevel = skills?.length > 0 
-    ? skills.reduce((sum: number, skill: any) => sum + skill.level, 0) / skills.length
-    : 1;
+  if (!user) {
+    return (
+      <section className="px-6 mb-8">
+        <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20">
+          <CardContent className="p-4">
+            <div className="text-center text-abyss-ethereal">
+              <p>Please log in to view your whistle progress</p>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    );
+  }
+
+  const currentXP = user.totalXP || 0;
+  const currentLevel = user.whistleLevel || 1;
+  const nextLevelXP = getXPRequiredForNextLevel(currentLevel);
+  const progressPercentage = currentLevel >= 5 ? 100 : (currentXP / nextLevelXP) * 100;
 
   return (
     <section className="px-6 mb-8 relative z-10">
-      <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
-        <CardContent className="p-6">
+      <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer whistle-pulse">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-abyss-ethereal">Whistle Progress</h2>
-            <div className="whistle-glow">
-              <i className={`${whistleInfo.icon} text-3xl text-abyss-amber`}></i>
+            <div className="flex items-center space-x-2">
+              <Badge className={`${getWhistleColor(currentLevel)} bg-abyss-dark/50`}>
+                {getWhistleName(currentLevel)}
+              </Badge>
+              <Award className={`h-5 w-5 ${getWhistleColor(currentLevel)}`} />
             </div>
           </div>
           
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-abyss-ethereal/80">{whistleInfo.name}</span>
-              <span className="text-abyss-amber font-medium">Level {currentLevel}</span>
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-sm text-abyss-ethereal/70 mb-2">
+              <span>Total XP: {currentXP.toLocaleString()}</span>
+              {currentLevel < 5 && (
+                <span>Next Level: {nextLevelXP.toLocaleString()} XP</span>
+              )}
             </div>
-            <Progress value={progress} className="h-3" />
-            <div className="flex justify-between text-xs text-abyss-ethereal/60">
-              <span>{totalXP} XP</span>
-              <span>{nextLevelXP} XP</span>
-            </div>
+            <Progress 
+              value={progressPercentage} 
+              className="h-3 bg-abyss-dark/60"
+            />
+            {currentLevel < 5 && (
+              <p className="text-xs text-abyss-ethereal/60 mt-1">
+                {(nextLevelXP - currentXP).toLocaleString()} XP to {getWhistleName(currentLevel + 1)}
+              </p>
+            )}
+          </div>
 
-            {/* Skills Grid */}
-            <div className="pt-4 border-t border-abyss-teal/20">
-              <h3 className="text-sm font-medium text-abyss-ethereal mb-3">Cave Raider Skills</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {skills?.map((skill: any) => (
-                  <div key={skill.id} className="bg-abyss-dark/40 rounded-lg p-3 text-center">
-                    <div className="flex items-center justify-center mb-1">
-                      <i className={`${getSkillIcon(skill.skillType)} text-abyss-amber text-sm`}></i>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-abyss-amber">{user.currentLayer || 1}</div>
+              <div className="text-sm text-abyss-ethereal/70">Current Layer</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-abyss-teal">{skills?.length || 0}</div>
+              <div className="text-sm text-abyss-ethereal/70">Skills Tracked</div>
+            </div>
+          </div>
+
+          {skills && skills.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-abyss-ethereal mb-2 flex items-center">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Skills Progress
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {skills.map((skill: any) => (
+                  <div key={skill.id} className="bg-abyss-dark/40 border border-abyss-teal/10 rounded p-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-abyss-ethereal capitalize">{skill.skillType}</span>
+                      <span className="text-xs text-abyss-amber">Lv.{skill.level}</span>
                     </div>
-                    <p className="text-xs text-abyss-ethereal/80 capitalize">{skill.skillType}</p>
-                    <p className="text-xs text-abyss-amber font-medium">Lvl {skill.level}</p>
-                    <div className="w-full bg-abyss-dark/60 rounded-full h-1 mt-1">
-                      <div 
-                        className="bg-abyss-amber h-1 rounded-full transition-all duration-300"
-                        style={{ width: `${(skill.xp % 100)}%` }}
-                      ></div>
+                    <Progress 
+                      value={(skill.xp % 100)} 
+                      className="h-1 bg-abyss-dark/60"
+                    />
+                    <div className="text-xs text-abyss-ethereal/60 mt-1">
+                      {skill.xp} XP
                     </div>
                   </div>
                 ))}
               </div>
-              {(!skills || skills.length === 0) && (
-                <div className="text-center py-4">
-                  <p className="text-abyss-ethereal/60 text-sm">Complete climbs to develop skills</p>
-                </div>
-              )}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </section>

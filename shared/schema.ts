@@ -142,7 +142,10 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
-export const insertClimbingSessionSchema = createInsertSchema(climbingSessions);
+export const insertClimbingSessionSchema = createInsertSchema(climbingSessions, {
+  startTime: z.coerce.date(),
+  endTime: z.coerce.date().optional(),
+});
 export const insertBoulderProblemSchema = createInsertSchema(boulderProblems);
 export const insertQuestSchema = createInsertSchema(quests);
 export const insertSkillSchema = createInsertSchema(skills);

@@ -15,7 +15,7 @@ Preferred communication style: Simple, everyday language.
 ### ✓ Core Features Implemented
 - **7-Layer progression system** based on Made in Abyss layers (Edge of Abyss → Final Maelstrom)
 - **Skill-based whistle system** (Red → White Whistle) with individual skill tracking and XP progression
-- **AI-powered quest generation** using OpenAI GPT-4o for personalized climbing challenges
+- **Concrete quest system** with trackable goals like "Complete 5 boulder problems with difficulty V2"
 - **Daily skill-focused quests** that target users' weakest skills for balanced progression
 - **Climbing session tracking** for indoor/outdoor sessions with boulder problem logging
 - **Grade conversion system** supporting V-Scale, Fontainebleau, and German grading systems

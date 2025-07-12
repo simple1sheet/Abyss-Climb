@@ -1,16 +1,92 @@
 import { storage } from "../storage";
-import { generateQuest } from "./openai";
-import { type InsertQuest } from "@shared/schema";
+import { InsertQuest } from "../../shared/schema";
 
 export class QuestGenerator {
   private readonly LAYER_CONFIGS = {
-    1: { name: "Edge of the Abyss", grades: ["V0", "V1", "V2"], maxQuests: 3 },
-    2: { name: "Forest of Temptation", grades: ["V3", "V4", "V5"], maxQuests: 4 },
-    3: { name: "Great Fault", grades: ["V6", "V7", "V8"], maxQuests: 5 },
-    4: { name: "Goblets of Giants", grades: ["V9", "V10", "V11"], maxQuests: 6 },
-    5: { name: "Sea of Corpses", grades: ["V12", "V13", "V14"], maxQuests: 7 },
+    1: { name: "Edge of the Abyss", grades: ["V0", "V1", "V2"], maxQuests: 2 },
+    2: { name: "Forest of Temptation", grades: ["V3", "V4", "V5"], maxQuests: 3 },
+    3: { name: "Great Fault", grades: ["V6", "V7", "V8"], maxQuests: 4 },
+    4: { name: "Goblets of Giants", grades: ["V9", "V10", "V11"], maxQuests: 5 },
+    5: { name: "Sea of Corpses", grades: ["V12", "V13", "V14"], maxQuests: 6 },
     6: { name: "Capital of the Unreturned", grades: ["V15", "V16", "V17"], maxQuests: 8 },
     7: { name: "Final Maelstrom", grades: ["V18+"], maxQuests: 10 },
+  };
+
+  private readonly CONCRETE_QUESTS = {
+    daily: [
+      {
+        title: "Daily Crimper",
+        description: "Complete 3 boulder problems focusing on crimp holds",
+        requirements: { type: "problems", style: "crimps", count: 3 },
+        xpReward: 75,
+        difficulty: "easy"
+      },
+      {
+        title: "Dynamic Movement",
+        description: "Complete 2 boulder problems with dynamic movements",
+        requirements: { type: "problems", style: "dynos", count: 2 },
+        xpReward: 100,
+        difficulty: "medium"
+      },
+      {
+        title: "Strength Training",
+        description: "Complete 3 boulder problems focusing on strength",
+        requirements: { type: "problems", style: "strength", count: 3 },
+        xpReward: 90,
+        difficulty: "medium"
+      },
+      {
+        title: "Balance Practice",
+        description: "Complete 3 boulder problems focusing on balance",
+        requirements: { type: "problems", style: "balance", count: 3 },
+        xpReward: 80,
+        difficulty: "easy"
+      },
+      {
+        title: "Flexibility Work",
+        description: "Complete 2 boulder problems requiring flexibility",
+        requirements: { type: "problems", style: "flexibility", count: 2 },
+        xpReward: 70,
+        difficulty: "easy"
+      },
+      {
+        title: "Flow Movement",
+        description: "Complete 4 boulder problems focusing on smooth movement",
+        requirements: { type: "problems", style: "movement", count: 4 },
+        xpReward: 85,
+        difficulty: "medium"
+      }
+    ],
+    layer: [
+      {
+        title: "Grade Progression",
+        description: "Complete 1 boulder problem at your layer's grade",
+        requirements: { type: "grade_specific", count: 1 },
+        xpReward: 200,
+        difficulty: "hard"
+      },
+      {
+        title: "Session Consistency",
+        description: "Complete 3 climbing sessions this week",
+        requirements: { type: "sessions", count: 3 },
+        xpReward: 150,
+        difficulty: "medium"
+      },
+      {
+        title: "Outdoor Adventure",
+        description: "Complete 1 outdoor climbing session",
+        requirements: { type: "outdoor_sessions", count: 1 },
+        xpReward: 250,
+        difficulty: "hard"
+      },
+      {
+        title: "Problem Crusher",
+        description: "Complete 8 boulder problems in a single session",
+        requirements: { type: "problems_in_session", count: 8 },
+        xpReward: 180,
+        difficulty: "medium"
+      }
+    ]
   };
 
   async generateQuestForUser(userId: string): Promise<void> {
@@ -29,116 +105,74 @@ export class QuestGenerator {
     const userSkills = await storage.getUserSkills(userId);
     const hasSkillQuest = activeQuests.some(q => q.questType === "daily");
     
-    try {
-      let questData;
-      let questType = "weekly";
-      
-      // 70% chance to generate a daily skill-focused quest if user doesn't have one
-      if (!hasSkillQuest && userSkills.length > 0 && Math.random() < 0.7) {
-        questData = await this.generateDailySkillQuest(user, userSkills);
-        questType = "daily";
-      } else {
-        // Generate regular quest
-        const recentSessions = await storage.getUserClimbingSessions(userId, 5);
-        const recentGrades: string[] = [];
-        
-        for (const session of recentSessions) {
-          const problems = await storage.getBoulderProblemsForSession(session.id);
-          recentGrades.push(...problems.map(p => p.grade));
-        }
-
-        questData = await generateQuest(
-          user.currentLayer || 1,
-          user.whistleLevel || 1,
-          "mixed",
-          recentGrades.slice(0, 10)
-        );
-      }
-
-      const quest: InsertQuest = {
-        userId,
-        title: questData.title,
-        description: questData.description,
-        layer: user.currentLayer || 1,
-        difficulty: questData.difficulty,
-        xpReward: questData.xpReward,
-        requirements: questData.requirements,
-        maxProgress: questData.requirements.count || 1,
-        questType,
-        expiresAt: new Date(Date.now() + (questType === "daily" ? 24 : 7 * 24) * 60 * 60 * 1000),
-      };
-
-      await storage.createQuest(quest);
-    } catch (error) {
-      console.error("Failed to generate quest:", error);
-      await this.generateFallbackQuest(userId, user.currentLayer || 1);
+    let questData;
+    let questType = "layer";
+    
+    // 70% chance to generate a daily skill-focused quest if user doesn't have one
+    if (!hasSkillQuest && userSkills.length > 0 && Math.random() < 0.7) {
+      questData = this.generateDailySkillQuest(userSkills);
+      questType = "daily";
+    } else {
+      // Generate layer quest
+      questData = this.generateLayerQuest(user.currentLayer || 1, layerConfig);
+      questType = "layer";
     }
+
+    const quest: InsertQuest = {
+      userId,
+      title: questData.title,
+      description: questData.description,
+      layer: user.currentLayer || 1,
+      difficulty: questData.difficulty,
+      xpReward: questData.xpReward,
+      requirements: questData.requirements,
+      maxProgress: questData.requirements.count || 1,
+      questType,
+      expiresAt: new Date(Date.now() + (questType === "daily" ? 24 : 7 * 24) * 60 * 60 * 1000),
+    };
+
+    await storage.createQuest(quest);
   }
 
-  private async generateDailySkillQuest(user: any, userSkills: any[]): Promise<any> {
+  private generateDailySkillQuest(userSkills: any[]): any {
     const weakestSkill = userSkills.sort((a, b) => a.level - b.level)[0];
-    const layerConfig = this.LAYER_CONFIGS[user.currentLayer as keyof typeof this.LAYER_CONFIGS];
+    const dailyQuests = this.CONCRETE_QUESTS.daily.filter(q => 
+      q.requirements.style === weakestSkill.skillType
+    );
     
-    const skillQuests = {
-      crimps: {
-        title: "Crimson Grip Challenge",
-        description: "Master the art of crimping in the depths of the Abyss. Even the smallest holds can be conquered with proper technique.",
-        requirements: { skillType: "crimps", count: 3, grade: layerConfig.grades[0] }
-      },
-      dynos: {
-        title: "Leaping Through the Void",
-        description: "Channel your inner cave raider and make dynamic movements to reach distant holds. The Abyss rewards the bold.",
-        requirements: { skillType: "dynos", count: 2, grade: layerConfig.grades[0] }
-      },
-      movement: {
-        title: "Fluid Cave Navigation",
-        description: "Develop the flowing movement of a seasoned cave raider. Grace and efficiency will guide you deeper.",
-        requirements: { skillType: "movement", count: 4, grade: layerConfig.grades[0] }
-      },
-      strength: {
-        title: "Forge of the Depths",
-        description: "Build the strength needed to haul heavy relics from the Abyss. Power is essential for any true cave raider.",
-        requirements: { skillType: "strength", count: 3, grade: layerConfig.grades[1] || layerConfig.grades[0] }
-      },
-      balance: {
-        title: "Equilibrium of the Abyss",
-        description: "Find your center in the unstable depths. Balance is the difference between ascent and the curse of the Abyss.",
-        requirements: { skillType: "balance", count: 3, grade: layerConfig.grades[0] }
-      },
-      flexibility: {
-        title: "Serpentine Adaptation",
-        description: "Adapt to the twisted formations of the Abyss. Flexibility opens paths that strength alone cannot.",
-        requirements: { skillType: "flexibility", count: 3, grade: layerConfig.grades[0] }
-      }
-    };
+    if (dailyQuests.length > 0) {
+      return dailyQuests[Math.floor(Math.random() * dailyQuests.length)];
+    }
+    
+    // Default fallback
+    return this.CONCRETE_QUESTS.daily[0];
+  }
 
-    const skillQuest = skillQuests[weakestSkill.skillType as keyof typeof skillQuests];
+  private generateLayerQuest(layer: number, layerConfig: any): any {
+    const layerQuests = this.CONCRETE_QUESTS.layer;
+    const randomQuest = layerQuests[Math.floor(Math.random() * layerQuests.length)];
     
-    return {
-      title: skillQuest.title,
-      description: skillQuest.description,
-      difficulty: "easy",
-      xpReward: 75,
-      requirements: skillQuest.requirements
-    };
+    // Customize quest based on layer
+    if (randomQuest.requirements.type === "grade_specific") {
+      const layerGrade = layerConfig.grades[Math.floor(Math.random() * layerConfig.grades.length)];
+      randomQuest.requirements.grade = layerGrade;
+      randomQuest.description = `Complete 1 boulder problem at grade ${layerGrade}`;
+    }
+    
+    return randomQuest;
   }
 
   private async generateFallbackQuest(userId: string, layer: number): Promise<void> {
-    const layerConfig = this.LAYER_CONFIGS[layer as keyof typeof this.LAYER_CONFIGS];
-    
     const fallbackQuest: InsertQuest = {
       userId,
-      title: `${layerConfig.name} Challenge`,
-      description: `Complete climbing problems in ${layerConfig.name} to gain experience and progress deeper into the Abyss.`,
+      title: "Cave Raider's Challenge",
+      description: "Complete 3 boulder problems of any grade",
       layer,
-      difficulty: "medium",
-      xpReward: 100 + (layer * 25),
-      requirements: {
-        type: "problems",
-        count: 3,
-        grade: layerConfig.grades[0],
-      },
+      difficulty: "easy",
+      xpReward: 50,
+      requirements: { type: "problems", count: 3 },
       maxProgress: 3,
+      questType: "layer",
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     };
 
@@ -153,7 +187,60 @@ export class QuestGenerator {
     }
     
     // Update quest progress
-    await this.updateQuestProgressLegacy(userId, grade, style);
+    const activeQuests = await storage.getUserQuests(userId, "active");
+    
+    for (const quest of activeQuests) {
+      const requirements = quest.requirements as any;
+      let shouldUpdate = false;
+      
+      switch (requirements.type) {
+        case "problems":
+          if (!requirements.style || requirements.style === style) {
+            shouldUpdate = true;
+          }
+          break;
+        case "grade_specific":
+          if (requirements.grade && grade === requirements.grade) {
+            shouldUpdate = true;
+          }
+          break;
+        case "grade_progression":
+          // Check if this grade is higher than user's average
+          const userSessions = await storage.getUserClimbingSessions(userId, 10);
+          const allGrades = [];
+          for (const session of userSessions) {
+            const problems = await storage.getBoulderProblemsForSession(session.id);
+            allGrades.push(...problems.map(p => parseInt(p.grade.replace('V', ''))));
+          }
+          const avgGrade = allGrades.length > 0 ? allGrades.reduce((a, b) => a + b) / allGrades.length : 0;
+          const currentGrade = parseInt(grade.replace('V', ''));
+          if (currentGrade > avgGrade) {
+            shouldUpdate = true;
+          }
+          break;
+      }
+      
+      if (shouldUpdate) {
+        const newProgress = (quest.progress || 0) + 1;
+        const updates: any = { progress: newProgress };
+        
+        if (newProgress >= quest.maxProgress) {
+          updates.status = "completed";
+          updates.completedAt = new Date();
+          
+          // Award XP to user
+          const user = await storage.getUser(userId);
+          if (user) {
+            await storage.upsertUser({
+              ...user,
+              totalXP: (user.totalXP || 0) + quest.xpReward,
+            });
+          }
+        }
+        
+        await storage.updateQuest(quest.id, updates);
+      }
+    }
   }
 
   private calculateSkillXP(grade: string, style: string): number {
@@ -174,32 +261,38 @@ export class QuestGenerator {
     return Math.round(baseXP * multiplier);
   }
 
-  async updateQuestProgressLegacy(userId: string, grade: string, style?: string): Promise<void> {
-    // This is the old quest progress method, keeping for backward compatibility
+  async checkSessionQuests(userId: string, sessionId: number): Promise<void> {
+    const problems = await storage.getBoulderProblemsForSession(sessionId);
+    const session = await storage.getClimbingSession(sessionId);
+    
+    if (!session) return;
+    
     const activeQuests = await storage.getUserQuests(userId, "active");
     
     for (const quest of activeQuests) {
       const requirements = quest.requirements as any;
       let shouldUpdate = false;
-
-      // Check if this climb matches quest requirements
-      if (requirements.type === "problems") {
-        if (!requirements.grade || requirements.grade === grade) {
+      
+      switch (requirements.type) {
+        case "sessions":
           shouldUpdate = true;
-        }
-      } else if (requirements.type === "style") {
-        if (requirements.style === style) {
-          shouldUpdate = true;
-        }
+          break;
+        case "outdoor_sessions":
+          if (session.sessionType === "outdoor") {
+            shouldUpdate = true;
+          }
+          break;
+        case "problems_in_session":
+          if (problems.length >= requirements.count) {
+            shouldUpdate = true;
+          }
+          break;
       }
-
-      if (shouldUpdate && quest.progress < quest.maxProgress) {
-        const newProgress = quest.progress + 1;
-        const updates: Partial<typeof quest> = {
-          progress: newProgress,
-        };
-
-        // Complete quest if progress reaches max
+      
+      if (shouldUpdate) {
+        const newProgress = (quest.progress || 0) + 1;
+        const updates: any = { progress: newProgress };
+        
         if (newProgress >= quest.maxProgress) {
           updates.status = "completed";
           updates.completedAt = new Date();
@@ -210,11 +303,10 @@ export class QuestGenerator {
             await storage.upsertUser({
               ...user,
               totalXP: (user.totalXP || 0) + quest.xpReward,
-              updatedAt: new Date(),
             });
           }
         }
-
+        
         await storage.updateQuest(quest.id, updates);
       }
     }
