@@ -35,6 +35,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/layer-progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const progressInfo = await storage.getLayerProgressInfo(userId);
+      res.json(progressInfo);
+    } catch (error) {
+      console.error("Error fetching layer progress:", error);
+      res.status(500).json({ message: "Failed to fetch layer progress" });
+    }
+  });
+
   // Climbing sessions
   app.post('/api/sessions', isAuthenticated, async (req: any, res) => {
     try {
@@ -229,13 +240,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         completedAt: new Date(),
       });
       
-      // Award XP to user
+      // Award XP to user and check for layer advancement
       const user = await storage.getUser(userId);
       if (user) {
-        await storage.upsertUser({
+        const newTotalXP = (user.totalXP || 0) + quest.xpReward;
+        const updatedUser = await storage.upsertUser({
           ...user,
-          totalXP: (user.totalXP || 0) + quest.xpReward,
+          totalXP: newTotalXP,
         });
+        
+        // Check if user advanced to next layer
+        const progressInfo = await storage.getLayerProgressInfo(userId);
+        if (progressInfo.currentLayer > (user.currentLayer || 1)) {
+          console.log(`User ${userId} advanced to layer ${progressInfo.currentLayer}!`);
+          // You could add achievement tracking here
+        }
       }
       
       res.json(quest);
@@ -311,6 +330,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching achievements:", error);
       res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  // Manual XP award endpoint (for testing)
+  app.post('/api/award-xp', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { xp } = req.body;
+      
+      if (!xp || typeof xp !== 'number') {
+        return res.status(400).json({ message: "XP amount must be a number" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const newTotalXP = (user.totalXP || 0) + xp;
+      const updatedUser = await storage.upsertUser({
+        ...user,
+        totalXP: newTotalXP,
+      });
+      
+      const progressInfo = await storage.getLayerProgressInfo(userId);
+      
+      res.json({
+        message: `Awarded ${xp} XP`,
+        newTotalXP,
+        currentLayer: progressInfo.currentLayer,
+        layerProgress: progressInfo.layerProgress,
+      });
+    } catch (error) {
+      console.error("Error awarding XP:", error);
+      res.status(500).json({ message: "Failed to award XP" });
     }
   });
 

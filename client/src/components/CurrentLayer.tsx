@@ -64,6 +64,11 @@ export default function CurrentLayer() {
     enabled: !!user,
   });
 
+  const { data: layerProgress } = useQuery({
+    queryKey: ["/api/layer-progress"],
+    enabled: !!user,
+  });
+
   if (!user) {
     return (
       <section className="px-6 mb-8">
@@ -78,21 +83,20 @@ export default function CurrentLayer() {
     );
   }
 
-  const currentLayer = user.currentLayer || 1;
+  const currentLayer = layerProgress?.currentLayer || user.currentLayer || 1;
   const layerInfo = LAYER_CONFIG[currentLayer as keyof typeof LAYER_CONFIG] || LAYER_CONFIG[1];
   
-  // Calculate layer progress based on quests
+  // Get XP progress information
+  const currentXP = layerProgress?.currentXP || user?.totalXP || 0;
+  const currentLayerXP = layerProgress?.currentLayerXP || 0;
+  const nextLayerXP = layerProgress?.nextLayerXP || 500;
+  const progressToNextLayer = layerProgress?.progressToNextLayer || 0;
+  const xpProgress = layerProgress?.layerProgress || 0;
+  
+  // Calculate active quests for display
   const layerQuests = quests?.filter((quest: any) => 
-    quest.status === 'active' && quest.targetLayer === currentLayer
+    quest.status === 'active' && quest.layer === currentLayer
   ) || [];
-  
-  const completedLayerQuests = quests?.filter((quest: any) => 
-    quest.status === 'completed' && quest.targetLayer === currentLayer
-  ) || [];
-  
-  const totalQuestsNeeded = 7; // Standard quests needed per layer
-  const questsCompleted = completedLayerQuests.length;
-  const layerProgress = Math.min((questsCompleted / totalQuestsNeeded) * 100, 100);
   
   const IconComponent = layerInfo.icon;
 
@@ -115,15 +119,18 @@ export default function CurrentLayer() {
             <div className="flex justify-between items-center mb-2">
               <span className="text-abyss-ethereal/80">Layer Progress</span>
               <span className="text-abyss-amber font-medium">
-                {questsCompleted}/{totalQuestsNeeded} Quests
+                {progressToNextLayer}/{nextLayerXP - currentLayerXP} XP
               </span>
             </div>
-            <Progress value={layerProgress} className="h-2" />
+            <Progress value={xpProgress} className="h-2" />
             <p className="text-xs text-abyss-ethereal/60 mt-2">
-              {layerProgress >= 100 
-                ? "Ready to advance to the next layer!" 
-                : `${totalQuestsNeeded - questsCompleted} more quests needed`}
+              {currentLayer === 7 
+                ? "Maximum layer reached!" 
+                : `${(nextLayerXP - currentXP)} XP needed to advance`}
             </p>
+            <div className="text-xs text-abyss-ethereal/50 mt-1">
+              Total XP: {currentXP.toLocaleString()}
+            </div>
           </div>
           
           <div className="text-sm text-abyss-ethereal/80 bg-abyss-dark/20 rounded-lg p-3">
@@ -139,11 +146,11 @@ export default function CurrentLayer() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-abyss-ethereal">{quest.title}</span>
                       <span className="text-xs text-abyss-amber">
-                        {quest.currentProgress}/{quest.targetValue}
+                        {quest.progress}/{quest.maxProgress}
                       </span>
                     </div>
                     <Progress 
-                      value={(quest.currentProgress / quest.targetValue) * 100} 
+                      value={(quest.progress / quest.maxProgress) * 100} 
                       className="h-1 mt-1"
                     />
                   </div>

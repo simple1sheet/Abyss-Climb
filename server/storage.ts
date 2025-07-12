@@ -65,6 +65,16 @@ export interface IStorage {
       time: number;
     };
   }>;
+
+  // Layer progression operations
+  getLayerProgressInfo(userId: string): Promise<{
+    currentLayer: number;
+    currentXP: number;
+    currentLayerXP: number;
+    nextLayerXP: number;
+    progressToNextLayer: number;
+    layerProgress: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -78,7 +88,11 @@ export class DatabaseStorage implements IStorage {
     // Get user's skills to calculate whistle level
     const userSkills = await this.getUserSkills(userData.id);
     const whistleLevel = this.calculateWhistleLevel(userSkills);
-    const currentLayer = this.calculateCurrentLayer(whistleLevel);
+    
+    // Calculate layer based on XP if totalXP is provided, otherwise use whistle level
+    const currentLayer = userData.totalXP !== undefined 
+      ? this.calculateCurrentLayerFromXP(userData.totalXP || 0)
+      : this.calculateCurrentLayer(whistleLevel);
     
     const [user] = await db
       .insert(users)
@@ -127,6 +141,36 @@ export class DatabaseStorage implements IStorage {
     if (whistleLevel <= 3) return 3;
     if (whistleLevel <= 4) return 4;
     return Math.min(whistleLevel + 1, 7);
+  }
+
+  // XP thresholds for each layer (cumulative)
+  private readonly LAYER_XP_THRESHOLDS = {
+    1: 0,     // Edge of Abyss - Start here
+    2: 500,   // Forest of Temptation - 500 XP
+    3: 1500,  // Great Fault - 1500 XP
+    4: 3000,  // Goblets of Giants - 3000 XP
+    5: 5000,  // Sea of Corpses - 5000 XP
+    6: 8000,  // Capital of the Unreturned - 8000 XP
+    7: 12000, // Final Maelstrom - 12000 XP
+  };
+
+  private calculateCurrentLayerFromXP(totalXP: number): number {
+    // Calculate current layer based on total XP
+    if (totalXP >= this.LAYER_XP_THRESHOLDS[7]) return 7;
+    if (totalXP >= this.LAYER_XP_THRESHOLDS[6]) return 6;
+    if (totalXP >= this.LAYER_XP_THRESHOLDS[5]) return 5;
+    if (totalXP >= this.LAYER_XP_THRESHOLDS[4]) return 4;
+    if (totalXP >= this.LAYER_XP_THRESHOLDS[3]) return 3;
+    if (totalXP >= this.LAYER_XP_THRESHOLDS[2]) return 2;
+    return 1;
+  }
+
+  private getNextLayerXP(currentLayer: number): number {
+    return this.LAYER_XP_THRESHOLDS[Math.min(currentLayer + 1, 7) as keyof typeof this.LAYER_XP_THRESHOLDS] || 0;
+  }
+
+  private getCurrentLayerXP(currentLayer: number): number {
+    return this.LAYER_XP_THRESHOLDS[currentLayer as keyof typeof this.LAYER_XP_THRESHOLDS] || 0;
   }
 
   // Climbing session operations
@@ -414,6 +458,36 @@ export class DatabaseStorage implements IStorage {
         xp: weeklyXP,
         time: weeklyTime,
       },
+    };
+  }
+
+  async getLayerProgressInfo(userId: string): Promise<{
+    currentLayer: number;
+    currentXP: number;
+    currentLayerXP: number;
+    nextLayerXP: number;
+    progressToNextLayer: number;
+    layerProgress: number;
+  }> {
+    const user = await this.getUser(userId);
+    const currentXP = user?.totalXP || 0;
+    const currentLayer = this.calculateCurrentLayerFromXP(currentXP);
+    
+    const currentLayerXP = this.getCurrentLayerXP(currentLayer);
+    const nextLayerXP = this.getNextLayerXP(currentLayer);
+    
+    // Calculate progress within current layer
+    const progressToNextLayer = Math.max(0, currentXP - currentLayerXP);
+    const layerXPRange = nextLayerXP - currentLayerXP;
+    const layerProgress = currentLayer === 7 ? 100 : Math.min(100, (progressToNextLayer / layerXPRange) * 100);
+
+    return {
+      currentLayer,
+      currentXP,
+      currentLayerXP,
+      nextLayerXP,
+      progressToNextLayer,
+      layerProgress,
     };
   }
 }
