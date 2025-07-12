@@ -26,18 +26,43 @@ export default function WhistleProgress() {
 
   const groupSkillsByCategory = (skills: any[]) => {
     const categories = {
-      Movement: [],
-      Technique: [],
-      Strength: [],
-      Mind: []
+      'Grip & Handwork': [],
+      'Body & Power': [],
+      'Balance & Flow': [],
+      'Mind & Strategy': [],
+      'Skill Challenges': []
     };
     
     if (!skills) return categories;
     
     skills.forEach(skill => {
-      const category = skill.category || 'Technique';
-      if (categories[category as keyof typeof categories]) {
-        categories[category as keyof typeof categories].push(skill);
+      const skillType = skill.skillType.toLowerCase();
+      
+      // Map skills to new categories
+      if (['jugs', 'crimps', 'endurance', 'pinches', 'slopers', 'pockets', 'underclings', 'gaston'].includes(skillType)) {
+        categories['Grip & Handwork'].push(skill);
+      } else if (['strength', 'dynos', 'mantles', 'campus', 'lockoffs', 'core', 'roofs'].includes(skillType)) {
+        categories['Body & Power'].push(skill);
+      } else if (['movement', 'balance', 'flexibility', 'stemming', 'flagging', 'heel_hooks', 'toe_hooks'].includes(skillType)) {
+        categories['Balance & Flow'].push(skill);
+      } else if (['slabs', 'technical', 'reading', 'sequencing', 'risk_management', 'mental_game'].includes(skillType)) {
+        categories['Mind & Strategy'].push(skill);
+      } else if (['overhangs'].includes(skillType)) {
+        categories['Skill Challenges'].push(skill);
+      } else {
+        // Default fallback based on original category
+        const originalCategory = skill.category || 'Technique';
+        if (originalCategory === 'Technique') {
+          categories['Grip & Handwork'].push(skill);
+        } else if (originalCategory === 'Strength') {
+          categories['Body & Power'].push(skill);
+        } else if (originalCategory === 'Movement') {
+          categories['Balance & Flow'].push(skill);
+        } else if (originalCategory === 'Mind') {
+          categories['Mind & Strategy'].push(skill);
+        } else {
+          categories['Skill Challenges'].push(skill);
+        }
       }
     });
     
@@ -189,11 +214,11 @@ export default function WhistleProgress() {
                               <div className="flex items-center space-x-2">
                                 <span className="text-xs text-abyss-ethereal/90">⤷</span>
                                 <span className="text-sm text-abyss-ethereal capitalize">{skill.skillType}</span>
+                                <span className="text-xs text-abyss-ethereal/50">
+                                  ({skill.category} – {skill.totalProblems || 0} completed)
+                                </span>
                               </div>
                               <div className="flex items-center space-x-2">
-                                <span className="text-xs text-abyss-ethereal/60">
-                                  {skill.totalProblems || 0} completed
-                                </span>
                                 <Badge variant="outline" className="text-xs text-abyss-amber border-abyss-amber/30">
                                   {skill.maxGrade || "V0"}
                                 </Badge>
