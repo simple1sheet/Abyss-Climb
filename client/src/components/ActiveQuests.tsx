@@ -53,7 +53,7 @@ export default function ActiveQuests() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Quest Completed!",
-        description: "You've earned XP for completing this quest.",
+        description: "Quest completed successfully and removed from active quests.",
       });
     },
   });
@@ -193,26 +193,25 @@ export default function ActiveQuests() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 ml-4">
-                      {quest.currentProgress >= quest.targetValue ? (
-                        <Button
-                          onClick={() => completeQuest.mutate(quest.id)}
-                          disabled={completeQuest.isPending}
-                          size="sm"
-                          className="bg-green-500/20 text-green-300 hover:bg-green-500/30 border-green-500/50"
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => discardQuest.mutate(quest.id)}
-                          disabled={discardQuest.isPending}
-                          size="sm"
-                          variant="outline"
-                          className="text-abyss-ethereal/60 hover:text-abyss-ethereal border-abyss-ethereal/30"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button
+                        onClick={() => completeQuest.mutate(quest.id)}
+                        disabled={completeQuest.isPending}
+                        size="sm"
+                        className="bg-green-500/20 text-green-300 hover:bg-green-500/30 border-green-500/50"
+                        title="Complete Quest"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() => discardQuest.mutate(quest.id)}
+                        disabled={discardQuest.isPending}
+                        size="sm"
+                        variant="outline"
+                        className="text-red-400 hover:text-red-300 border-red-400/50 hover:border-red-300/50"
+                        title="Discard Quest"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
