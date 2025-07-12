@@ -30,6 +30,7 @@ export interface IStorage {
   createClimbingSession(session: InsertClimbingSession): Promise<ClimbingSession>;
   getClimbingSession(id: number): Promise<ClimbingSession | undefined>;
   getUserClimbingSessions(userId: string, limit?: number): Promise<ClimbingSession[]>;
+  getActiveSession(userId: string): Promise<ClimbingSession | undefined>;
   updateClimbingSession(id: number, updates: Partial<ClimbingSession>): Promise<ClimbingSession>;
   
   // Boulder problem operations
@@ -177,7 +178,10 @@ export class DatabaseStorage implements IStorage {
   async createClimbingSession(session: InsertClimbingSession): Promise<ClimbingSession> {
     const [newSession] = await db
       .insert(climbingSessions)
-      .values(session)
+      .values({
+        ...session,
+        status: "active"
+      })
       .returning();
     return newSession;
   }
@@ -197,6 +201,21 @@ export class DatabaseStorage implements IStorage {
       .where(eq(climbingSessions.userId, userId))
       .orderBy(desc(climbingSessions.createdAt))
       .limit(limit);
+  }
+
+  async getActiveSession(userId: string): Promise<ClimbingSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(climbingSessions)
+      .where(
+        and(
+          eq(climbingSessions.userId, userId),
+          eq(climbingSessions.status, "active")
+        )
+      )
+      .orderBy(desc(climbingSessions.createdAt))
+      .limit(1);
+    return session;
   }
 
   async updateClimbingSession(id: number, updates: Partial<ClimbingSession>): Promise<ClimbingSession> {

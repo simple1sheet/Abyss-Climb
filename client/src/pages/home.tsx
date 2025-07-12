@@ -7,6 +7,7 @@ import ActiveQuests from "@/components/ActiveQuests";
 import RecentSessions from "@/components/RecentSessions";
 import StatsOverview from "@/components/StatsOverview";
 import BottomNavigation from "@/components/BottomNavigation";
+import SessionIndicator from "@/components/SessionIndicator";
 
 export default function Home() {
   const { user } = useAuth();
@@ -55,6 +56,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="relative z-10 pb-24">
+        <SessionIndicator />
         <WhistleProgress />
         <CurrentLayer />
         <QuickActions />

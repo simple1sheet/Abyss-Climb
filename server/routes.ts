@@ -50,6 +50,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/sessions', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      
+      // Check if user already has an active session
+      const activeSession = await storage.getActiveSession(userId);
+      if (activeSession) {
+        return res.status(400).json({ 
+          message: "You already have an active session",
+          activeSession 
+        });
+      }
+      
       const sessionData = insertClimbingSessionSchema.parse({
         ...req.body,
         userId,
@@ -93,6 +103,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check session-based quests when session is completed
       if (updates.endTime) {
         const userId = req.user.claims.sub;
+        // Set status to completed when session ends
+        if (!updates.status) {
+          updates.status = "completed";
+        }
         await questGenerator.checkSessionQuests(userId, sessionId);
       }
       
@@ -135,6 +149,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching problems:", error);
       res.status(500).json({ message: "Failed to fetch problems" });
+    }
+  });
+
+  // Get active session
+  app.get('/api/sessions/active', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const activeSession = await storage.getActiveSession(userId);
+      res.json(activeSession || null);
+    } catch (error) {
+      console.error("Error fetching active session:", error);
+      res.status(500).json({ message: "Failed to fetch active session" });
+    }
+  });
+
+  // Pause session
+  app.post('/api/sessions/:id/pause', isAuthenticated, async (req: any, res) => {
+    try {
+      const sessionId = parseInt(req.params.id);
+      const session = await storage.updateClimbingSession(sessionId, {
+        status: "paused"
+      });
+      res.json(session);
+    } catch (error) {
+      console.error("Error pausing session:", error);
+      res.status(500).json({ message: "Failed to pause session" });
+    }
+  });
+
+  // Resume session
+  app.post('/api/sessions/:id/resume', isAuthenticated, async (req: any, res) => {
+    try {
+      const sessionId = parseInt(req.params.id);
+      const session = await storage.updateClimbingSession(sessionId, {
+        status: "active"
+      });
+      res.json(session);
+    } catch (error) {
+      console.error("Error resuming session:", error);
+      res.status(500).json({ message: "Failed to resume session" });
     }
   });
 

@@ -52,6 +52,7 @@ export const climbingSessions = pgTable("climbing_sessions", {
   duration: integer("duration"), // in minutes
   notes: text("notes"),
   xpEarned: integer("xp_earned").default(0),
+  status: varchar("status").default("active"), // active, paused, completed
   createdAt: timestamp("created_at").defaultNow(),
 });
 

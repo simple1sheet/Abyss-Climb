@@ -40,6 +40,11 @@ Preferred communication style: Simple, everyday language.
 - **Grade-based Whistle System**: Whistle levels still advance based on highest climbing grade achieved
 - **Independent Quest Management**: Complete or discard quests outside of climbing sessions
 - **Enhanced Progress Display**: Shows XP progress, total XP, and layer advancement status
+- **Session Pause/Resume System**: Users can now pause climbing sessions and resume them later
+- **Session Status Tracking**: Sessions track status (active/paused/completed) in database
+- **Session Persistence**: Active sessions are preserved when navigating away from session screen
+- **Session Indicator**: Visual indicator shows when a session is active or paused across the app
+- **Flexible Session Management**: Users can leave sessions without ending them, maintaining progress
 
 ### ✓ Technical Implementation
 - **Database**: PostgreSQL with Drizzle ORM, all tables created and configured
