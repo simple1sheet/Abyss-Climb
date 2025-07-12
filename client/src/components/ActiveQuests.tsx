@@ -20,10 +20,7 @@ export default function ActiveQuests() {
 
   const generateQuest = useMutation({
     mutationFn: async () => {
-      return await apiRequest({
-        url: "/api/quests/generate",
-        method: "POST",
-      });
+      return await apiRequest("POST", "/api/quests/generate", {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
@@ -43,10 +40,7 @@ export default function ActiveQuests() {
 
   const completeQuest = useMutation({
     mutationFn: async (questId: number) => {
-      return await apiRequest({
-        url: `/api/quests/${questId}/complete`,
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
@@ -60,10 +54,7 @@ export default function ActiveQuests() {
 
   const discardQuest = useMutation({
     mutationFn: async (questId: number) => {
-      return await apiRequest({
-        url: `/api/quests/${questId}/discard`,
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/quests/${questId}/discard`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
