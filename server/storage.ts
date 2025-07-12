@@ -19,7 +19,7 @@ import {
   type InsertAchievement,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte, lt, sql } from "drizzle-orm";
+import { eq, desc, and, or, gte, lte, lt, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -210,7 +210,10 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(climbingSessions.userId, userId),
-          eq(climbingSessions.status, "active")
+          or(
+            eq(climbingSessions.status, "active"),
+            eq(climbingSessions.status, "paused")
+          )
         )
       )
       .orderBy(desc(climbingSessions.createdAt))

@@ -5,17 +5,30 @@ import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
 
 export default function SessionIndicator() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const { data: activeSession } = useQuery({
     queryKey: ["/api/sessions/active"],
     enabled: !!user,
   });
+
+  // Update timer every minute for active sessions
+  useEffect(() => {
+    if (activeSession && activeSession.status === "active") {
+      const interval = setInterval(() => {
+        setCurrentTime(new Date());
+      }, 60000); // Update every minute
+
+      return () => clearInterval(interval);
+    }
+  }, [activeSession]);
 
   const resumeSessionMutation = useMutation({
     mutationFn: async (sessionId: number) => {
@@ -67,17 +80,29 @@ export default function SessionIndicator() {
     return "bg-green-500/20 border-green-500/30";
   };
 
-  const formatDuration = (startTime: string) => {
-    const start = new Date(startTime);
-    const now = new Date();
-    const diffMinutes = Math.floor((now.getTime() - start.getTime()) / (1000 * 60));
+  const formatDuration = (session: any) => {
+    const start = new Date(session.startTime);
+    const now = currentTime;
+    const totalMinutes = Math.floor((now.getTime() - start.getTime()) / (1000 * 60));
     
-    if (diffMinutes < 60) {
-      return `${diffMinutes}m`;
+    // Subtract total paused time
+    const totalPausedTime = session.totalPausedTime || 0;
+    
+    // If currently paused, subtract the current pause duration
+    let currentPauseDuration = 0;
+    if (session.status === "paused" && session.pausedAt) {
+      const pauseStart = new Date(session.pausedAt);
+      currentPauseDuration = Math.floor((now.getTime() - pauseStart.getTime()) / (1000 * 60));
     }
     
-    const hours = Math.floor(diffMinutes / 60);
-    const minutes = diffMinutes % 60;
+    const activeMinutes = Math.max(0, totalMinutes - totalPausedTime - currentPauseDuration);
+    
+    if (activeMinutes < 60) {
+      return `${activeMinutes}m`;
+    }
+    
+    const hours = Math.floor(activeMinutes / 60);
+    const minutes = activeMinutes % 60;
     return `${hours}h ${minutes}m`;
   };
 
@@ -97,7 +122,7 @@ export default function SessionIndicator() {
               </span>
             </div>
             <div className="text-xs text-abyss-ethereal/70">
-              {activeSession.sessionType} • {formatDuration(activeSession.startTime)}
+              {activeSession.sessionType} • {formatDuration(activeSession)}
             </div>
           </div>
           <Button

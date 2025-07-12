@@ -49,6 +49,9 @@ export const climbingSessions = pgTable("climbing_sessions", {
   location: varchar("location"),
   startTime: timestamp("start_time").notNull(),
   endTime: timestamp("end_time"),
+  pausedAt: timestamp("paused_at"), // When session was paused
+  resumedAt: timestamp("resumed_at"), // When session was resumed
+  totalPausedTime: integer("total_paused_time").default(0), // Total time paused in minutes
   duration: integer("duration"), // in minutes
   notes: text("notes"),
   xpEarned: integer("xp_earned").default(0),

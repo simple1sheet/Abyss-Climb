@@ -168,8 +168,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/sessions/:id/pause', isAuthenticated, async (req: any, res) => {
     try {
       const sessionId = parseInt(req.params.id);
+      const now = new Date();
+      
+      // Get current session to calculate pause time
+      const currentSession = await storage.getClimbingSession(sessionId);
+      if (!currentSession) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      
       const session = await storage.updateClimbingSession(sessionId, {
-        status: "paused"
+        status: "paused",
+        pausedAt: now
       });
       res.json(session);
     } catch (error) {
@@ -182,8 +191,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/sessions/:id/resume', isAuthenticated, async (req: any, res) => {
     try {
       const sessionId = parseInt(req.params.id);
+      const now = new Date();
+      
+      // Get current session to calculate total paused time
+      const currentSession = await storage.getClimbingSession(sessionId);
+      if (!currentSession) {
+        return res.status(404).json({ message: "Session not found" });
+      }
+      
+      let totalPausedTime = currentSession.totalPausedTime || 0;
+      
+      // If session was paused, add the pause duration to total paused time
+      if (currentSession.pausedAt) {
+        const pauseDuration = Math.floor((now.getTime() - currentSession.pausedAt.getTime()) / (1000 * 60));
+        totalPausedTime += pauseDuration;
+      }
+      
       const session = await storage.updateClimbingSession(sessionId, {
-        status: "active"
+        status: "active",
+        resumedAt: now,
+        totalPausedTime,
+        pausedAt: null
       });
       res.json(session);
     } catch (error) {
