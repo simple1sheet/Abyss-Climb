@@ -4,7 +4,7 @@
 
 Abyss Climber is a full-stack web application that gamifies rock climbing progress tracking. Built with a "Made in Abyss" anime theme, it allows users to log climbing sessions, track boulder problems, complete quests, and progress through different "layers" of difficulty. The app combines climbing data with RPG-style elements like experience points, achievements, and a whistle-based level system.
 
-**Current Status**: Fully functional with all core features implemented including concrete quest completion system, climbing progress analysis, and grade conversion between V-Scale, Fontainebleau, and German systems. All components now display real user data with no placeholder content.
+**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content.
 
 ## User Preferences
 
@@ -14,7 +14,7 @@ Preferred communication style: Simple, everyday language.
 
 ### ✓ Core Features Implemented
 - **7-Layer progression system** based on Made in Abyss layers (Edge of Abyss → Final Maelstrom)
-- **Skill-based whistle system** (Red → White Whistle) with individual skill tracking and XP progression
+- **Skill-based whistle system** (Bell → White Whistle) with grade-based progression instead of XP
 - **Concrete quest system** with trackable goals like "Complete 5 boulder problems with difficulty V2"
 - **Daily skill-focused quests** that target users' weakest skills for balanced progression
 - **Climbing session tracking** for indoor/outdoor sessions with boulder problem logging
@@ -22,15 +22,15 @@ Preferred communication style: Simple, everyday language.
 - **Progress analysis** with AI insights on strengths, weaknesses, and recommendations
 - **Mobile-responsive UI** with Made in Abyss-inspired dark fantasy theme and immersive animations
 
-### ✓ Enhanced Features (Latest Updates)
-- **Skill System**: Six climbing skills (crimps, dynos, movement, strength, balance, flexibility)
-- **Automatic Skill XP**: Boulder problems award XP based on grade and climbing style
-- **Daily Quests**: Skill-targeted daily challenges with Made in Abyss themed lore
-- **Fantasy UI**: Immersive animations including whistle-pulse, floating, curse effects, and relic shimmer
-- **Session Form**: Comprehensive session tracking with problem logging and skill progression
-- **Real-time Progress**: Live skill tracking with visual progression indicators
-- **Quest Completion**: Interactive quest completion, discard, and generation with progress tracking
-- **Layer Progress**: Real-time layer advancement based on completed quests and climbing achievements
+### ✓ Enhanced Features (Latest Updates - January 2025)
+- **Redesigned Skill System**: Complete migration from XP-based to grade-based progression
+- **5 Main Skill Categories**: Grip & Handwork, Body & Power, Balance & Flow, Mind & Strategy, Skill Challenges
+- **Accordion-style Skills UI**: Collapsible panels for organized skill display with completion counts and max grades
+- **Grade-based Whistle Progression**: Whistle levels advance based on highest climbing grade achieved
+- **Independent Quest Management**: Complete or discard quests outside of climbing sessions
+- **Dual Action Buttons**: Always-visible Complete and Discard buttons for all active quests
+- **Real-time Skill Tracking**: Skills update automatically based on boulder problems completed
+- **Enhanced Progress Display**: Shows original category, completion count, and max grade for each skill
 
 ### ✓ Technical Implementation
 - **Database**: PostgreSQL with Drizzle ORM, all tables created and configured
