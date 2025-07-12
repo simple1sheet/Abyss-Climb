@@ -1,0 +1,213 @@
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { useLocation } from "wouter";
+import BottomNavigation from "@/components/BottomNavigation";
+
+export default function Quests() {
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const { data: quests, isLoading } = useQuery({
+    queryKey: ["/api/quests"],
+    enabled: !!user,
+  });
+
+  const generateQuestMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/quests/generate", {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      toast({
+        title: "Quest Generated",
+        description: "A new quest has been added to your journey!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to generate quest. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const getLayerIcon = (layer: number) => {
+    const icons = {
+      1: "fas fa-seedling",
+      2: "fas fa-tree",
+      3: "fas fa-mountain",
+      4: "fas fa-gem",
+      5: "fas fa-skull",
+      6: "fas fa-crown",
+      7: "fas fa-fire",
+    };
+    return icons[layer as keyof typeof icons] || "fas fa-question";
+  };
+
+  const getLayerName = (layer: number) => {
+    const names = {
+      1: "Edge of the Abyss",
+      2: "Forest of Temptation",
+      3: "Great Fault",
+      4: "Goblets of Giants",
+      5: "Sea of Corpses",
+      6: "Capital of the Unreturned",
+      7: "Final Maelstrom",
+    };
+    return names[layer as keyof typeof names] || "Unknown Layer";
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    const colors = {
+      easy: "bg-green-500",
+      medium: "bg-yellow-500",
+      hard: "bg-orange-500",
+      extreme: "bg-red-500",
+    };
+    return colors[difficulty as keyof typeof colors] || "bg-gray-500";
+  };
+
+  const activeQuests = quests?.filter((q: any) => q.status === "active") || [];
+  const completedQuests = quests?.filter((q: any) => q.status === "completed") || [];
+
+  return (
+    <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-10 w-40 h-40 bg-abyss-teal rounded-full blur-3xl"></div>
+      </div>
+
+      {/* Header */}
+      <header className="relative z-20 px-6 pt-12 pb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setLocation("/")}
+              className="text-abyss-amber hover:text-abyss-ethereal transition-colors"
+            >
+              <i className="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h1 className="text-lg font-semibold text-abyss-ethereal">Quests</h1>
+          </div>
+          <Button
+            onClick={() => generateQuestMutation.mutate()}
+            className="bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold"
+            disabled={generateQuestMutation.isPending}
+          >
+            <i className="fas fa-plus mr-2"></i>
+            {generateQuestMutation.isPending ? "Generating..." : "New Quest"}
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="relative z-10 px-6 pb-24 space-y-6">
+        {/* Active Quests */}
+        <div>
+          <h2 className="text-xl font-semibold text-abyss-ethereal mb-4">Active Quests</h2>
+          {activeQuests.length === 0 ? (
+            <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
+              <CardContent className="p-6 text-center">
+                <i className="fas fa-scroll text-4xl text-abyss-amber/50 mb-4"></i>
+                <p className="text-abyss-ethereal/70">No active quests</p>
+                <p className="text-sm text-abyss-ethereal/50 mt-2">
+                  Generate a new quest to begin your journey
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {activeQuests.map((quest: any) => (
+                <Card key={quest.id} className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-abyss-teal/50 rounded-full flex items-center justify-center">
+                          <i className={`${getLayerIcon(quest.layer)} text-sm text-abyss-amber`}></i>
+                        </div>
+                        <div>
+                          <h3 className="text-abyss-ethereal font-medium">{quest.title}</h3>
+                          <p className="text-xs text-abyss-amber">{getLayerName(quest.layer)}</p>
+                        </div>
+                      </div>
+                      <Badge className={`${getDifficultyColor(quest.difficulty)} text-white`}>
+                        {quest.difficulty}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-abyss-ethereal/80 mb-3">{quest.description}</p>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-abyss-ethereal/70">Progress</span>
+                        <span className="text-sm text-abyss-ethereal/70">
+                          {quest.progress}/{quest.maxProgress}
+                        </span>
+                      </div>
+                      <Progress 
+                        value={(quest.progress / quest.maxProgress) * 100} 
+                        className="h-2"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center space-x-1">
+                        <i className="fas fa-coins text-abyss-amber text-sm"></i>
+                        <span className="text-sm text-abyss-amber">{quest.xpReward} XP</span>
+                      </div>
+                      {quest.expiresAt && (
+                        <span className="text-xs text-abyss-ethereal/50">
+                          Expires: {new Date(quest.expiresAt).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Completed Quests */}
+        {completedQuests.length > 0 && (
+          <div>
+            <h2 className="text-xl font-semibold text-abyss-ethereal mb-4">Completed Quests</h2>
+            <div className="space-y-4">
+              {completedQuests.slice(0, 5).map((quest: any) => (
+                <Card key={quest.id} className="bg-abyss-purple/20 backdrop-blur-sm border-abyss-teal/20 opacity-70">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-500/30 rounded-full flex items-center justify-center">
+                          <i className="fas fa-check text-sm text-green-400"></i>
+                        </div>
+                        <div>
+                          <h3 className="text-abyss-ethereal font-medium">{quest.title}</h3>
+                          <p className="text-xs text-abyss-amber">{getLayerName(quest.layer)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <i className="fas fa-coins text-abyss-amber text-sm"></i>
+                        <span className="text-sm text-abyss-amber">{quest.xpReward} XP</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <BottomNavigation />
+    </div>
+  );
+}

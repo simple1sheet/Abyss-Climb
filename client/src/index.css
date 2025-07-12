@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(220, 31%, 8%);
+  --foreground: hsl(202, 84%, 95%);
+  --muted: hsl(217, 33%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --popover: hsl(217, 33%, 17%);
+  --popover-foreground: hsl(202, 84%, 95%);
+  --card: hsl(217, 33%, 17%);
+  --card-foreground: hsl(202, 84%, 95%);
+  --border: hsl(215, 30%, 25%);
+  --input: hsl(215, 30%, 25%);
+  --primary: hsl(39, 100%, 50%);
+  --primary-foreground: hsl(217, 33%, 17%);
+  --secondary: hsl(217, 33%, 17%);
+  --secondary-foreground: hsl(202, 84%, 95%);
+  --accent: hsl(217, 33%, 17%);
+  --accent-foreground: hsl(202, 84%, 95%);
+  --destructive: hsl(0, 62%, 50%);
+  --destructive-foreground: hsl(202, 84%, 95%);
+  --ring: hsl(39, 100%, 50%);
+  --radius: 0.5rem;
+
+  /* Made in Abyss specific colors */
+  --abyss-dark: hsl(220, 31%, 8%);
+  --abyss-purple: hsl(250, 45%, 25%);
+  --abyss-teal: hsl(196, 48%, 22%);
+  --abyss-brown: hsl(25, 50%, 35%);
+  --abyss-amber: hsl(39, 100%, 50%);
+  --abyss-ethereal: hsl(202, 84%, 95%);
+  --layer-1: hsl(82, 35%, 30%);
+  --layer-2: hsl(120, 25%, 25%);
+  --layer-3: hsl(25, 50%, 35%);
+  --layer-4: hsl(45, 70%, 45%);
+  --layer-5: hsl(205, 50%, 50%);
+  --layer-6: hsl(250, 45%, 45%);
+  --layer-7: hsl(0, 50%, 35%);
+}
+
+.dark {
+  --background: hsl(220, 31%, 8%);
+  --foreground: hsl(202, 84%, 95%);
+  --muted: hsl(217, 33%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --popover: hsl(217, 33%, 17%);
+  --popover-foreground: hsl(202, 84%, 95%);
+  --card: hsl(217, 33%, 17%);
+  --card-foreground: hsl(202, 84%, 95%);
+  --border: hsl(215, 30%, 25%);
+  --input: hsl(215, 30%, 25%);
+  --primary: hsl(39, 100%, 50%);
+  --primary-foreground: hsl(217, 33%, 17%);
+  --secondary: hsl(217, 33%, 17%);
+  --secondary-foreground: hsl(202, 84%, 95%);
+  --accent: hsl(217, 33%, 17%);
+  --accent-foreground: hsl(202, 84%, 95%);
+  --destructive: hsl(0, 62%, 50%);
+  --destructive-foreground: hsl(202, 84%, 95%);
+  --ring: hsl(39, 100%, 50%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background: linear-gradient(180deg, var(--abyss-dark) 0%, var(--abyss-purple) 100%);
+    color: var(--abyss-ethereal);
+    min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .abyss-glow {
+    box-shadow: 0 0 20px rgba(255, 176, 0, 0.3);
+  }
+  
+  .layer-glow {
+    box-shadow: 0 0 15px rgba(26, 74, 92, 0.5);
+  }
+  
+  .whistle-glow {
+    filter: drop-shadow(0 0 8px rgba(255, 176, 0, 0.6));
+  }
+  
+  .floating-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .depth-layer {
+    position: relative;
+    z-index: 10;
+  }
+  
+  .depth-layer::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, transparent, rgba(255, 176, 0, 0.1), transparent);
+    border-radius: inherit;
+    z-index: -1;
+  }
+  
+  .bg-abyss-gradient {
+    background: linear-gradient(180deg, var(--abyss-dark) 0%, var(--abyss-purple) 100%);
+  }
+  
+  .bg-layer-gradient {
+    background: linear-gradient(135deg, var(--abyss-teal) 0%, var(--abyss-purple) 100%);
+  }
+  
+  .text-abyss-dark { color: var(--abyss-dark); }
+  .text-abyss-purple { color: var(--abyss-purple); }
+  .text-abyss-teal { color: var(--abyss-teal); }
+  .text-abyss-brown { color: var(--abyss-brown); }
+  .text-abyss-amber { color: var(--abyss-amber); }
+  .text-abyss-ethereal { color: var(--abyss-ethereal); }
+  
+  .bg-abyss-dark { background-color: var(--abyss-dark); }
+  .bg-abyss-purple { background-color: var(--abyss-purple); }
+  .bg-abyss-teal { background-color: var(--abyss-teal); }
+  .bg-abyss-brown { background-color: var(--abyss-brown); }
+  .bg-abyss-amber { background-color: var(--abyss-amber); }
+  .bg-abyss-ethereal { background-color: var(--abyss-ethereal); }
+  
+  .border-abyss-amber { border-color: var(--abyss-amber); }
+  .border-abyss-teal { border-color: var(--abyss-teal); }
+  .border-abyss-purple { border-color: var(--abyss-purple); }
+  
+  .bg-layer-1 { background-color: var(--layer-1); }
+  .bg-layer-2 { background-color: var(--layer-2); }
+  .bg-layer-3 { background-color: var(--layer-3); }
+  .bg-layer-4 { background-color: var(--layer-4); }
+  .bg-layer-5 { background-color: var(--layer-5); }
+  .bg-layer-6 { background-color: var(--layer-6); }
+  .bg-layer-7 { background-color: var(--layer-7); }
+}
