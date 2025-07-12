@@ -23,21 +23,19 @@ Preferred communication style: Simple, everyday language.
 - **Mobile-responsive UI** with Made in Abyss-inspired dark fantasy theme and immersive animations
 
 ### ✓ Enhanced Features (Latest Updates - January 2025)
-- **Redesigned Skill System**: Complete migration from XP-based to grade-based progression
-- **5 Main Skill Categories**: Grip & Handwork, Body & Power, Balance & Flow, Mind & Strategy, Skill Challenges
-- **Accordion-style Skills UI**: Collapsible panels for organized skill display with completion counts and max grades
-- **Grade-based Whistle Progression**: Whistle levels advance based on highest climbing grade achieved
+- **XP-Based Layer Progression**: Replaced quest-based layer advancement with XP thresholds (Layer 1: 0 XP to Layer 7: 12,000 XP)
+- **Automatic Layer Advancement**: Players advance layers automatically when reaching XP thresholds
+- **Varied Daily Quest System**: 15 unique daily quest templates including "Morning Warm-Up", "Crimp Master", "Flash Attempt", etc.
+- **Long-term Layer Quests**: Special high-XP quests for each layer (300-3000 XP) with extended durations (14-70 days)
+- **Duplicate Prevention**: Smart system prevents duplicate daily quests and ensures quest variety
+- **Quest Adaptation**: Daily quests automatically adapt to user's skill level and current layer
+- **Mixed Quest Types**: Fun, light daily quests (50-140 XP) plus challenging layer quests for progression
+- **Comprehensive Quest Tracking**: Quests track by grade, style, wall angle, and location requirements
+- **Fallback AI Generation**: When all templates are exhausted, system falls back to AI-generated quests
+- **Real-time XP Progress**: Progress bars show exact XP needed for next layer advancement
+- **Grade-based Whistle System**: Whistle levels still advance based on highest climbing grade achieved
 - **Independent Quest Management**: Complete or discard quests outside of climbing sessions
-- **Dual Action Buttons**: Always-visible Complete and Discard buttons for all active quests
-- **Real-time Skill Tracking**: Skills update automatically based on boulder problems completed
-- **Enhanced Progress Display**: Shows original category, completion count, and max grade for each skill
-- **Daily Quest Limit System**: Maximum 3 active quests per day with automatic daily reset
-- **Smart Quest Generation**: Blocks quest generation when daily limit is reached with informative messaging
-- **UI Enhancements**: Daily quest counter display and disabled button states for better UX
-- **AI-Generated Quests**: Practical, trackable quests based on user's current skill level and progress
-- **Dual Daily Limits**: 3 quest generations AND 3 quest completions per day
-- **Smart Quest Scaling**: AI quests adapt to user's whistle level and weakest skills
-- **Practical Quest Descriptions**: Clear, measurable goals like "Complete 4 overhang problems graded V3-V5"
+- **Enhanced Progress Display**: Shows XP progress, total XP, and layer advancement status
 
 ### ✓ Technical Implementation
 - **Database**: PostgreSQL with Drizzle ORM, all tables created and configured
