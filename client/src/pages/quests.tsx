@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
 import BottomNavigation from "@/components/BottomNavigation";
+import { CheckCircle, X } from "lucide-react";
 
 export default function Quests() {
   const [, setLocation] = useLocation();
@@ -36,6 +37,53 @@ export default function Quests() {
       toast({
         title: "Error",
         description: "Failed to generate quest. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const completeQuest = useMutation({
+    mutationFn: async (questId: number) => {
+      return await apiRequest({
+        url: `/api/quests/${questId}/complete`,
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({
+        title: "Quest Completed!",
+        description: "Quest completed successfully and removed from active quests.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to complete quest. Try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const discardQuest = useMutation({
+    mutationFn: async (questId: number) => {
+      return await apiRequest({
+        url: `/api/quests/${questId}/discard`,
+        method: "POST",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      toast({
+        title: "Quest Discarded",
+        description: "The quest has been removed from your active quests.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to discard quest. Try again later.",
         variant: "destructive",
       });
     },
@@ -159,15 +207,38 @@ export default function Quests() {
                       />
                     </div>
                     <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center space-x-1">
-                        <i className="fas fa-coins text-abyss-amber text-sm"></i>
-                        <span className="text-sm text-abyss-amber">{quest.xpReward} XP</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
+                          <i className="fas fa-coins text-abyss-amber text-sm"></i>
+                          <span className="text-sm text-abyss-amber">{quest.xpReward} XP</span>
+                        </div>
+                        {quest.expiresAt && (
+                          <span className="text-xs text-abyss-ethereal/50">
+                            Expires: {new Date(quest.expiresAt).toLocaleDateString()}
+                          </span>
+                        )}
                       </div>
-                      {quest.expiresAt && (
-                        <span className="text-xs text-abyss-ethereal/50">
-                          Expires: {new Date(quest.expiresAt).toLocaleDateString()}
-                        </span>
-                      )}
+                    </div>
+                    <div className="flex items-center justify-end space-x-2 mt-3">
+                      <Button
+                        onClick={() => completeQuest.mutate(quest.id)}
+                        disabled={completeQuest.isPending}
+                        size="sm"
+                        className="bg-green-500/20 text-green-300 hover:bg-green-500/30 border-green-500/50"
+                        title="Complete Quest"
+                      >
+                        <CheckCircle className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={() => discardQuest.mutate(quest.id)}
+                        disabled={discardQuest.isPending}
+                        size="sm"
+                        variant="outline"
+                        className="text-red-400 hover:text-red-300 border-red-400/50 hover:border-red-300/50"
+                        title="Discard Quest"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
