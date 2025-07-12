@@ -27,7 +27,7 @@ export default function Session() {
       const response = await apiRequest("POST", "/api/sessions", {
         sessionType: data.sessionType,
         location: data.location,
-        startTime: new Date(),
+        startTime: new Date().toISOString(),
       });
       return response.json();
     },
@@ -50,7 +50,7 @@ export default function Session() {
   const endSessionMutation = useMutation({
     mutationFn: async (sessionId: number) => {
       const response = await apiRequest("PATCH", `/api/sessions/${sessionId}`, {
-        endTime: new Date(),
+        endTime: new Date().toISOString(),
       });
       return response.json();
     },

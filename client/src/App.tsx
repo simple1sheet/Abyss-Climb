@@ -11,7 +11,6 @@ import Session from "@/pages/session";
 import Quests from "@/pages/quests";
 import Progress from "@/pages/progress";
 import Profile from "@/pages/profile";
-import Skills from "@/pages/skills";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,7 +26,6 @@ function Router() {
           <Route path="/quests" component={Quests} />
           <Route path="/progress" component={Progress} />
           <Route path="/profile" component={Profile} />
-          <Route path="/skills" component={Skills} />
         </>
       )}
       <Route component={NotFound} />
