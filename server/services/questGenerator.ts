@@ -194,15 +194,15 @@ export class QuestGenerator {
     // First, check if we need to generate a long-term layer quest
     await this.generateLayerQuestIfNeeded(userId, currentLayer);
 
-    // Then generate a daily quest
-    await this.generateDailyQuest(userId, currentLayer, userSkills);
+    // Primary method: AI-generated quests for variety
+    await this.generateAIQuest(userId, currentLayer, userSkills);
   }
 
   private async generateLayerQuestIfNeeded(userId: string, currentLayer: number): Promise<void> {
     // Check if user already has an active layer quest for this layer
     const existingLayerQuests = await storage.getUserQuests(userId, "active");
     const hasActiveLayerQuest = existingLayerQuests.some(
-      quest => quest.type === "layer" && quest.layer === currentLayer
+      quest => quest.questType === "layer" && quest.layer === currentLayer
     );
 
     if (!hasActiveLayerQuest) {
@@ -212,18 +212,17 @@ export class QuestGenerator {
           userId,
           title: layerTemplate.title,
           description: layerTemplate.description,
-          type: "layer",
+          questType: "layer",
           status: "active",
           xpReward: layerTemplate.xpReward,
           maxProgress: layerTemplate.requirements.count,
           progress: 0,
-          targetValue: layerTemplate.requirements.count,
-          currentProgress: 0,
           layer: currentLayer,
-          targetGradeRange: layerTemplate.requirements.gradeRange,
+          requirements: layerTemplate.requirements,
           difficulty: layerTemplate.difficulty,
+          difficultyRating: layerTemplate.difficulty === "extreme" ? 9 : 7,
+          generatedByAi: false,
           expiresAt: new Date(Date.now() + layerTemplate.duration * 24 * 60 * 60 * 1000),
-          generatedAt: new Date(),
         };
 
         await storage.createQuest(quest);
@@ -234,7 +233,7 @@ export class QuestGenerator {
   private async generateDailyQuest(userId: string, currentLayer: number, userSkills: any[]): Promise<void> {
     // Get existing active daily quests to avoid duplicates
     const existingQuests = await storage.getUserQuests(userId, "active");
-    const existingDailyQuests = existingQuests.filter(quest => quest.type === "daily");
+    const existingDailyQuests = existingQuests.filter(quest => quest.questType === "daily");
     const usedTitles = existingDailyQuests.map(quest => quest.title);
 
     // Filter available templates to avoid duplicates
@@ -308,27 +307,34 @@ export class QuestGenerator {
 
   private async generateAIQuest(userId: string, currentLayer: number, userSkills: any[]): Promise<void> {
     try {
-      const whistleLevel = 1; // You might want to get this from user
-      const aiQuest = await generateQuest(userSkills, currentLayer, whistleLevel);
+      const user = await storage.getUser(userId);
+      const whistleLevel = user?.whistleLevel || 1;
+      
+      // Get recent grades for better AI context
+      const recentSessions = await storage.getUserClimbingSessions(userId, 5);
+      const recentGrades: string[] = [];
+      for (const session of recentSessions) {
+        const problems = await storage.getBoulderProblemsForSession(session.id);
+        recentGrades.push(...problems.map(p => p.grade));
+      }
+      
+      const aiQuest = await generateQuest(currentLayer, whistleLevel, userSkills, recentGrades);
       
       const quest: InsertQuest = {
         userId,
         title: aiQuest.title,
         description: aiQuest.description,
-        type: "daily",
+        questType: "daily",
         status: "active",
         xpReward: aiQuest.xpReward,
         maxProgress: aiQuest.requirements.count,
         progress: 0,
-        targetValue: aiQuest.requirements.count,
-        currentProgress: 0,
         layer: currentLayer,
-        targetGrade: aiQuest.requirements.grade,
-        targetStyle: aiQuest.requirements.style,
-        targetGradeRange: aiQuest.requirements.gradeRange,
+        requirements: aiQuest.requirements,
         difficulty: aiQuest.difficulty,
+        difficultyRating: aiQuest.difficultyRating,
+        generatedByAi: true,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        generatedAt: new Date(),
       };
 
       await storage.createQuest(quest);
@@ -388,7 +394,7 @@ export class QuestGenerator {
   async checkSessionQuests(userId: string, sessionId: number): Promise<void> {
     const activeQuests = await storage.getUserQuests(userId, "active");
     const sessionQuests = activeQuests.filter(quest => 
-      quest.type === "session" || quest.description.includes("session")
+      quest.questType === "session" || quest.description.includes("session")
     );
     
     for (const quest of sessionQuests) {
@@ -419,17 +425,17 @@ export class QuestGenerator {
       userId,
       title: "Daily Boulder Challenge",
       description: "Complete 3 boulder problems to earn experience",
-      type: "daily",
+      questType: "daily",
       status: "active",
       xpReward: 100,
       maxProgress: 3,
       progress: 0,
-      targetValue: 3,
-      currentProgress: 0,
       layer,
+      requirements: { type: "problems", count: 3 },
       difficulty: "medium",
+      difficultyRating: 5,
+      generatedByAi: false,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      generatedAt: new Date(),
     };
 
     await storage.createQuest(fallbackQuest);

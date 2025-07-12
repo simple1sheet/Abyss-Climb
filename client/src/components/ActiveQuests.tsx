@@ -217,6 +217,11 @@ export default function ActiveQuests() {
                           {quest.difficulty}
                         </Badge>
                         <span className="text-xs text-abyss-amber">{quest.xpReward} XP</span>
+                        {quest.questType === "layer" && (
+                          <Badge className="bg-purple-500/20 text-purple-300">
+                            Layer Quest
+                          </Badge>
+                        )}
                         {quest.expiresAt && (
                           <span className="text-xs text-abyss-ethereal/60">
                             <Clock className="h-3 w-3 inline mr-1" />
@@ -227,10 +232,10 @@ export default function ActiveQuests() {
                       <div className="mb-2">
                         <div className="flex items-center justify-between text-xs text-abyss-ethereal/70 mb-1">
                           <span>Progress</span>
-                          <span>{quest.currentProgress || 0}/{quest.targetValue}</span>
+                          <span>{quest.progress || 0}/{quest.maxProgress}</span>
                         </div>
                         <Progress 
-                          value={((quest.currentProgress || 0) / quest.targetValue) * 100} 
+                          value={((quest.progress || 0) / quest.maxProgress) * 100} 
                           className="h-2 bg-abyss-dark/60"
                         />
                       </div>
