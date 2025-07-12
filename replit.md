@@ -25,13 +25,14 @@ Preferred communication style: Simple, everyday language.
 ### ✓ Enhanced Features (Latest Updates - January 2025)
 - **XP-Based Layer Progression**: Replaced quest-based layer advancement with XP thresholds (Layer 1: 0 XP to Layer 7: 12,000 XP)
 - **Automatic Layer Advancement**: Players advance layers automatically when reaching XP thresholds
-- **Varied Daily Quest System**: 15 unique daily quest templates including "Morning Warm-Up", "Crimp Master", "Flash Attempt", etc.
-- **Long-term Layer Quests**: Special high-XP quests for each layer (300-3000 XP) with extended durations (14-70 days)
-- **Duplicate Prevention**: Smart system prevents duplicate daily quests and ensures quest variety
+- **Pool-Based Quest System**: 15 unique daily quest templates with proper randomization and duplicate prevention
+- **Smart Duplicate Prevention**: Prevents both active and recently completed quest duplicates for maximum variety
+- **One-Time Layer Quests**: Special high-XP quests for each layer (300-3000 XP) generated only once per layer
+- **Proper Random Selection**: Uses crypto-quality randomization to ensure different quests each time
 - **Quest Adaptation**: Daily quests automatically adapt to user's skill level and current layer
 - **Mixed Quest Types**: Fun, light daily quests (50-140 XP) plus challenging layer quests for progression
 - **Comprehensive Quest Tracking**: Quests track by grade, style, wall angle, and location requirements
-- **Fallback AI Generation**: When all templates are exhausted, system falls back to AI-generated quests
+- **Fallback AI Generation**: When all template pool is exhausted, system falls back to AI-generated quests
 - **Real-time XP Progress**: Progress bars show exact XP needed for next layer advancement
 - **Grade-based Whistle System**: Whistle levels still advance based on highest climbing grade achieved
 - **Independent Quest Management**: Complete or discard quests outside of climbing sessions

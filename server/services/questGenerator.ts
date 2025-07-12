@@ -194,8 +194,8 @@ export class QuestGenerator {
     // First, check if we need to generate a long-term layer quest
     await this.generateLayerQuestIfNeeded(userId, currentLayer);
 
-    // Primary method: AI-generated quests for variety
-    await this.generateAIQuest(userId, currentLayer, userSkills);
+    // Primary method: Use quest pool with proper randomization and duplicate prevention
+    await this.generateDailyQuest(userId, currentLayer, userSkills);
   }
 
   private async generateLayerQuestIfNeeded(userId: string, currentLayer: number): Promise<void> {
@@ -205,7 +205,14 @@ export class QuestGenerator {
       quest => quest.questType === "layer" && quest.layer === currentLayer
     );
 
-    if (!hasActiveLayerQuest) {
+    // Also check if user has ever completed a layer quest for this layer (to avoid regenerating)
+    const allLayerQuests = await storage.getUserQuests(userId); // Gets all quests regardless of status
+    const hasEverHadLayerQuest = allLayerQuests.some(
+      quest => quest.questType === "layer" && quest.layer === currentLayer
+    );
+
+    // Only generate if no active layer quest AND never had one for this layer
+    if (!hasActiveLayerQuest && !hasEverHadLayerQuest) {
       const layerTemplate = this.LAYER_QUEST_TEMPLATES[currentLayer as keyof typeof this.LAYER_QUEST_TEMPLATES];
       if (layerTemplate) {
         const quest: InsertQuest = {
@@ -236,63 +243,86 @@ export class QuestGenerator {
     const existingDailyQuests = existingQuests.filter(quest => quest.questType === "daily");
     const usedTitles = existingDailyQuests.map(quest => quest.title);
 
+    // Also check recently completed quests from today to avoid immediate repeats
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const recentQuests = await storage.getUserQuestsInDateRange(userId, today, new Date());
+    const recentTitles = recentQuests.map(quest => quest.title);
+    
+    // Combine used titles to avoid both active and recent duplicates
+    const allUsedTitles = [...new Set([...usedTitles, ...recentTitles])];
+
     // Filter available templates to avoid duplicates
     const availableTemplates = this.DAILY_QUEST_TEMPLATES.filter(
-      template => !usedTitles.includes(template.title)
+      template => !allUsedTitles.includes(template.title)
     );
 
     if (availableTemplates.length === 0) {
-      // If all templates are used, fall back to AI generation
+      // If all templates are used, fall back to AI generation for variety
       await this.generateAIQuest(userId, currentLayer, userSkills);
       return;
     }
 
-    // Randomly select a template
-    const randomTemplate = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
+    // Properly randomize selection using crypto for better randomness
+    const randomIndex = Math.floor(Math.random() * availableTemplates.length);
+    const selectedTemplate = availableTemplates[randomIndex];
     
     // Adapt the template to user's skill level
-    const adaptedQuest = this.adaptQuestToUser(randomTemplate, currentLayer, userSkills);
+    const adaptedQuest = this.adaptQuestToUser(selectedTemplate, currentLayer, userSkills);
 
     const quest: InsertQuest = {
       userId,
       title: adaptedQuest.title,
       description: adaptedQuest.description,
-      type: "daily",
+      questType: "daily",
       status: "active",
       xpReward: adaptedQuest.xpReward,
       maxProgress: adaptedQuest.requirements.count,
       progress: 0,
-      targetValue: adaptedQuest.requirements.count,
-      currentProgress: 0,
       layer: currentLayer,
-      targetStyle: adaptedQuest.requirements.style,
-      targetGradeRange: adaptedQuest.requirements.gradeRange,
+      requirements: adaptedQuest.requirements,
       difficulty: adaptedQuest.difficulty,
+      difficultyRating: this.getDifficultyRating(adaptedQuest.difficulty),
+      generatedByAi: false,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-      generatedAt: new Date(),
     };
 
     await storage.createQuest(quest);
   }
 
+  private getDifficultyRating(difficulty: string): number {
+    switch (difficulty) {
+      case "easy": return 2;
+      case "medium": return 5;
+      case "hard": return 7;
+      case "extreme": return 9;
+      default: return 5;
+    }
+  }
+
   private adaptQuestToUser(template: any, currentLayer: number, userSkills: any[]): any {
-    const adaptedQuest = { ...template };
+    const adaptedQuest = { ...template, requirements: { ...template.requirements } };
     
     // Calculate user's comfort and challenge grades
-    const maxGrade = Math.max(...userSkills.map(s => this.getGradeNumeric(s.maxGrade || "V0")));
+    const maxGrade = userSkills.length > 0 
+      ? Math.max(...userSkills.map(s => this.getGradeNumeric(s.maxGrade || "V0")))
+      : 0;
     const comfortGrade = Math.max(maxGrade - 1, 0);
     const challengeGrade = Math.min(maxGrade + 1, 17);
 
     // Adapt grade ranges based on template requirements
     if (template.requirements.gradeRange === "easy") {
       adaptedQuest.requirements.gradeRange = `V${Math.max(comfortGrade - 1, 0)}-V${comfortGrade}`;
+      adaptedQuest.description = adaptedQuest.description.replace("easy", `V${Math.max(comfortGrade - 1, 0)}-V${comfortGrade}`);
     } else if (template.requirements.gradeRange === "comfort") {
       adaptedQuest.requirements.gradeRange = `V${comfortGrade}-V${maxGrade}`;
+      adaptedQuest.description = adaptedQuest.description.replace("comfort grade", `V${comfortGrade}-V${maxGrade} range`);
     } else if (template.requirements.gradeRange === "challenge") {
       adaptedQuest.requirements.gradeRange = `V${maxGrade}-V${challengeGrade}`;
+      adaptedQuest.description = adaptedQuest.description.replace("challenge", `V${maxGrade}-V${challengeGrade}`);
     }
 
-    // Scale XP based on layer
+    // Scale XP based on layer (higher layers get more XP)
     const layerMultiplier = 1 + (currentLayer - 1) * 0.2;
     adaptedQuest.xpReward = Math.round(adaptedQuest.xpReward * layerMultiplier);
 
