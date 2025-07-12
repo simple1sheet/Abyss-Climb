@@ -100,12 +100,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const session = await storage.updateClimbingSession(sessionId, updates);
       
-      // Check session-based quests when session is completed
+      // Set status to completed when session ends
       if (updates.endTime) {
-        const userId = req.user.claims.sub;
-        // Set status to completed when session ends
         updates.status = "completed";
-        await questGenerator.checkSessionQuests(userId, sessionId);
       }
       
       res.json(session);
@@ -128,9 +125,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const category = gradeConverter.getSkillCategoryForStyle(problem.style);
         await storage.upsertUserSkill(userId, problem.style, problem.grade, category);
       }
-      
-      // Update quest progress
-      await questGenerator.updateQuestProgress(userId, problem.grade, problem.style || undefined);
       
       res.json(problem);
     } catch (error) {

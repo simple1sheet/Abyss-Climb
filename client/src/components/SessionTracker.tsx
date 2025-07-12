@@ -49,7 +49,6 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "problems"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       toast({
         title: "Problem Added",
         description: "Your climb has been logged!",
