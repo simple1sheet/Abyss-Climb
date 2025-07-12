@@ -31,6 +31,9 @@ Preferred communication style: Simple, everyday language.
 - **Dual Action Buttons**: Always-visible Complete and Discard buttons for all active quests
 - **Real-time Skill Tracking**: Skills update automatically based on boulder problems completed
 - **Enhanced Progress Display**: Shows original category, completion count, and max grade for each skill
+- **Daily Quest Limit System**: Maximum 3 active quests per day with automatic daily reset
+- **Smart Quest Generation**: Blocks quest generation when daily limit is reached with informative messaging
+- **UI Enhancements**: Daily quest counter display and disabled button states for better UX
 
 ### ✓ Technical Implementation
 - **Database**: PostgreSQL with Drizzle ORM, all tables created and configured

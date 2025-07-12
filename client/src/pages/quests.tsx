@@ -21,24 +21,37 @@ export default function Quests() {
     enabled: !!user,
   });
 
+  const { data: dailyCount } = useQuery({
+    queryKey: ["/api/quests/daily-count"],
+    enabled: !!user,
+  });
+
   const generateQuestMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/quests/generate", {});
-      return response.json();
+      return await apiRequest("POST", "/api/quests/generate", {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       toast({
         title: "Quest Generated",
         description: "A new quest has been added to your journey!",
       });
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to generate quest. Please try again.",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      if (error.response?.status === 400 && error.response?.data?.limitReached) {
+        toast({
+          title: "Daily Quest Limit Reached",
+          description: "You've reached your daily limit of 3 quests. Come back tomorrow!",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to generate quest. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -48,6 +61,7 @@ export default function Quests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Quest Completed!",
@@ -69,6 +83,7 @@ export default function Quests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       toast({
         title: "Quest Discarded",
         description: "The quest has been removed from your active quests.",
@@ -140,12 +155,20 @@ export default function Quests() {
             >
               <i className="fas fa-arrow-left text-xl"></i>
             </button>
-            <h1 className="text-lg font-semibold text-abyss-ethereal">Quests</h1>
+            <div>
+              <h1 className="text-lg font-semibold text-abyss-ethereal">Quests</h1>
+              {dailyCount && (
+                <p className="text-sm text-abyss-ethereal/60">
+                  Daily: {dailyCount.dailyCount}/{dailyCount.maxDaily}
+                </p>
+              )}
+            </div>
           </div>
           <Button
             onClick={() => generateQuestMutation.mutate()}
-            className="bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold"
-            disabled={generateQuestMutation.isPending}
+            className="bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold disabled:opacity-50"
+            disabled={generateQuestMutation.isPending || (dailyCount?.limitReached)}
+            title={dailyCount?.limitReached ? "Daily quest limit reached. Come back tomorrow!" : "Generate new quest"}
           >
             <i className="fas fa-plus mr-2"></i>
             {generateQuestMutation.isPending ? "Generating..." : "New Quest"}
@@ -164,7 +187,9 @@ export default function Quests() {
                 <i className="fas fa-scroll text-4xl text-abyss-amber/50 mb-4"></i>
                 <p className="text-abyss-ethereal/70">No active quests</p>
                 <p className="text-sm text-abyss-ethereal/50 mt-2">
-                  Generate a new quest to begin your journey
+                  {dailyCount?.limitReached 
+                    ? "Daily quest limit reached. Come back tomorrow!" 
+                    : "Generate a new quest to begin your journey"}
                 </p>
               </CardContent>
             </Card>

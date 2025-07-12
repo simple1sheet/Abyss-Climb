@@ -18,23 +18,37 @@ export default function ActiveQuests() {
     enabled: !!user,
   });
 
+  const { data: dailyCount } = useQuery({
+    queryKey: ["/api/quests/daily-count"],
+    enabled: !!user,
+  });
+
   const generateQuest = useMutation({
     mutationFn: async () => {
       return await apiRequest("POST", "/api/quests/generate", {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       toast({
         title: "New Quest Generated!",
         description: "A new quest has been added to your active quests.",
       });
     },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to generate quest. Try again later.",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      if (error.response?.status === 400 && error.response?.data?.limitReached) {
+        toast({
+          title: "Daily Quest Limit Reached",
+          description: "You've reached your daily limit of 3 quests. Come back tomorrow!",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to generate quest. Try again later.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -44,6 +58,7 @@ export default function ActiveQuests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Quest Completed!",
@@ -58,6 +73,7 @@ export default function ActiveQuests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       toast({
         title: "Quest Discarded",
         description: "The quest has been removed from your active quests.",
@@ -124,13 +140,21 @@ export default function ActiveQuests() {
       <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-abyss-ethereal">Active Quests</h2>
+            <div>
+              <h2 className="text-xl font-semibold text-abyss-ethereal">Active Quests</h2>
+              {dailyCount && (
+                <p className="text-sm text-abyss-ethereal/60 mt-1">
+                  Daily quests: {dailyCount.dailyCount}/{dailyCount.maxDaily}
+                </p>
+              )}
+            </div>
             <div className="flex items-center space-x-2">
               <Button
                 onClick={() => generateQuest.mutate()}
-                disabled={generateQuest.isPending}
+                disabled={generateQuest.isPending || (dailyCount?.limitReached)}
                 size="sm"
-                className="bg-abyss-amber/20 text-abyss-amber hover:bg-abyss-amber/30 border-abyss-amber/50"
+                className="bg-abyss-amber/20 text-abyss-amber hover:bg-abyss-amber/30 border-abyss-amber/50 disabled:opacity-50"
+                title={dailyCount?.limitReached ? "Daily quest limit reached. Come back tomorrow!" : "Generate new quest"}
               >
                 {generateQuest.isPending ? (
                   <Clock className="h-4 w-4 animate-spin" />
@@ -148,7 +172,11 @@ export default function ActiveQuests() {
               <div className="text-center py-8 text-abyss-ethereal/70">
                 <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p className="mb-2">No active quests</p>
-                <p className="text-sm">Click the + button to generate a new quest</p>
+                <p className="text-sm">
+                  {dailyCount?.limitReached 
+                    ? "Daily quest limit reached. Come back tomorrow!" 
+                    : "Click the + button to generate a new quest"}
+                </p>
               </div>
             ) : (
               quests.map((quest: any) => (

@@ -19,7 +19,7 @@ import {
   type InsertAchievement,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte, sql } from "drizzle-orm";
+import { eq, desc, and, gte, lte, lt, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -39,6 +39,7 @@ export interface IStorage {
   // Quest operations
   createQuest(quest: InsertQuest): Promise<Quest>;
   getUserQuests(userId: string, status?: string): Promise<Quest[]>;
+  getUserQuestsInDateRange(userId: string, startDate: Date, endDate: Date): Promise<Quest[]>;
   updateQuest(id: number, updates: Partial<Quest>): Promise<Quest>;
   
   // Skill operations
@@ -197,6 +198,20 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(quests)
       .where(whereClause)
+      .orderBy(desc(quests.createdAt));
+  }
+
+  async getUserQuestsInDateRange(userId: string, startDate: Date, endDate: Date): Promise<Quest[]> {
+    return await db
+      .select()
+      .from(quests)
+      .where(
+        and(
+          eq(quests.userId, userId),
+          gte(quests.createdAt, startDate),
+          lt(quests.createdAt, endDate)
+        )
+      )
       .orderBy(desc(quests.createdAt));
   }
 

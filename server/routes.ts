@@ -5,7 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
 import { analyzeClimbingProgress } from "./services/openai";
-import { insertClimbingSessionSchema, insertBoulderProblemSchema } from "@shared/schema";
+import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -140,9 +140,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/quests/daily-count', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get today's date range
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const dailyQuests = await storage.getUserQuestsInDateRange(userId, today, tomorrow);
+      const activeDailyQuests = dailyQuests.filter((q: Quest) => q.status === 'active');
+      
+      res.json({
+        dailyCount: activeDailyQuests.length,
+        maxDaily: 3,
+        limitReached: activeDailyQuests.length >= 3
+      });
+    } catch (error) {
+      console.error("Error fetching daily quest count:", error);
+      res.status(500).json({ message: "Failed to fetch daily quest count" });
+    }
+  });
+
   app.post('/api/quests/generate', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      
+      // Check daily quest limit (3 per day)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const dailyQuests = await storage.getUserQuestsInDateRange(userId, today, tomorrow);
+      const activeDailyQuests = dailyQuests.filter((q: Quest) => q.status === 'active');
+      
+      if (activeDailyQuests.length >= 3) {
+        return res.status(400).json({ 
+          message: "Daily quest limit reached. Come back tomorrow!",
+          limitReached: true,
+          questCount: activeDailyQuests.length
+        });
+      }
+      
       await questGenerator.generateQuestForUser(userId);
       res.json({ message: "Quest generated successfully" });
     } catch (error) {
