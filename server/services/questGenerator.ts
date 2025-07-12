@@ -1,5 +1,6 @@
 import { storage } from "../storage";
 import { InsertQuest } from "../../shared/schema";
+import { generateQuest } from "./openai";
 
 export class QuestGenerator {
   private readonly LAYER_CONFIGS = {
@@ -93,45 +94,42 @@ export class QuestGenerator {
     const user = await storage.getUser(userId);
     if (!user) throw new Error("User not found");
 
-    const activeQuests = await storage.getUserQuests(userId, "active");
-    const layerConfig = this.LAYER_CONFIGS[user.currentLayer as keyof typeof this.LAYER_CONFIGS];
-    
-    // Don't generate more quests if user has max active quests for their layer
-    if (activeQuests.length >= layerConfig.maxQuests) {
-      return;
-    }
-
-    // Get user skills to determine quest type
     const userSkills = await storage.getUserSkills(userId);
-    const hasSkillQuest = activeQuests.some(q => q.questType === "daily");
+    const layer = user.currentLayer || 1;
+    const whistleLevel = user.whistleLevel || 0;
     
-    let questData;
-    let questType = "layer";
-    
-    // 70% chance to generate a daily skill-focused quest if user doesn't have one
-    if (!hasSkillQuest && userSkills.length > 0 && Math.random() < 0.7) {
-      questData = this.generateDailySkillQuest(userSkills);
-      questType = "daily";
-    } else {
-      // Generate layer quest
-      questData = this.generateLayerQuest(user.currentLayer || 1, layerConfig);
-      questType = "layer";
+    // Get user's recent grades from last 10 boulder problems
+    const recentSessions = await storage.getUserClimbingSessions(userId, 5);
+    const recentGrades: string[] = [];
+    for (const session of recentSessions) {
+      const problems = await storage.getBoulderProblemsForSession(session.id);
+      recentGrades.push(...problems.map(p => p.grade));
     }
+    
+    try {
+      // Use AI to generate practical quest
+      const aiQuest = await generateQuest(layer, whistleLevel, userSkills, recentGrades);
+      
+      const quest: InsertQuest = {
+        userId,
+        title: aiQuest.title,
+        description: aiQuest.description,
+        layer,
+        difficulty: aiQuest.difficulty,
+        difficultyRating: aiQuest.difficultyRating,
+        xpReward: aiQuest.xpReward,
+        requirements: aiQuest.requirements,
+        maxProgress: aiQuest.requirements.count,
+        questType: "daily",
+        generatedByAi: true,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      };
 
-    const quest: InsertQuest = {
-      userId,
-      title: questData.title,
-      description: questData.description,
-      layer: user.currentLayer || 1,
-      difficulty: questData.difficulty,
-      xpReward: questData.xpReward,
-      requirements: questData.requirements,
-      maxProgress: questData.requirements.count || 1,
-      questType,
-      expiresAt: new Date(Date.now() + (questType === "daily" ? 24 : 7 * 24) * 60 * 60 * 1000),
-    };
-
-    await storage.createQuest(quest);
+      await storage.createQuest(quest);
+    } catch (error) {
+      console.error("Error generating AI quest:", error);
+      await this.generateFallbackQuest(userId, layer);
+    }
   }
 
   private generateDailySkillQuest(userSkills: any[]): any {
@@ -171,15 +169,17 @@ export class QuestGenerator {
   private async generateFallbackQuest(userId: string, layer: number): Promise<void> {
     const fallbackQuest: InsertQuest = {
       userId,
-      title: "Cave Raider's Challenge",
-      description: "Complete 3 boulder problems of any grade",
+      title: "Complete 3 Boulder Problems",
+      description: "Complete 3 boulder problems of any grade to earn experience",
       layer,
       difficulty: "easy",
-      xpReward: 50,
+      difficultyRating: 2,
+      xpReward: 75,
       requirements: { type: "problems", count: 3 },
       maxProgress: 3,
-      questType: "layer",
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      questType: "daily",
+      generatedByAi: false,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     };
 
     await storage.createQuest(fallbackQuest);

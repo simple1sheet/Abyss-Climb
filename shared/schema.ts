@@ -79,12 +79,14 @@ export const quests = pgTable("quests", {
   description: text("description").notNull(),
   layer: integer("layer").notNull(), // 1-7
   difficulty: varchar("difficulty").notNull(),
+  difficultyRating: integer("difficulty_rating").default(1), // 1-10 numeric rating
   xpReward: integer("xp_reward").notNull(),
   requirements: jsonb("requirements").notNull(), // JSON object with quest requirements
-  status: varchar("status").default("active"), // active, completed, failed
+  status: varchar("status").default("active"), // active, completed, failed, discarded
   progress: integer("progress").default(0),
   maxProgress: integer("max_progress").notNull(),
   questType: varchar("quest_type").default("daily"), // daily, weekly, layer
+  generatedByAi: boolean("generated_by_ai").default(true),
   expiresAt: timestamp("expires_at"),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),

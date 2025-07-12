@@ -164,6 +164,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/quests/completion-count', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const completedToday = await storage.getUserCompletedQuestsToday(userId);
+      
+      res.json({
+        completedToday: completedToday.length,
+        maxCompletions: 3,
+        completionLimitReached: completedToday.length >= 3
+      });
+    } catch (error) {
+      console.error("Error fetching completion count:", error);
+      res.status(500).json({ message: "Failed to fetch completion count" });
+    }
+  });
+
   app.post('/api/quests/generate', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -197,6 +213,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const questId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
+      
+      // Check daily completion limit (3 per day)
+      const completedToday = await storage.getUserCompletedQuestsToday(userId);
+      if (completedToday.length >= 3) {
+        return res.status(400).json({ 
+          message: "Daily completion limit reached. You can only complete 3 quests per day!",
+          completionLimitReached: true,
+          questCount: completedToday.length
+        });
+      }
       
       const quest = await storage.updateQuest(questId, {
         status: "completed",

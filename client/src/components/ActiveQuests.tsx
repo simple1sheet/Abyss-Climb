@@ -23,6 +23,11 @@ export default function ActiveQuests() {
     enabled: !!user,
   });
 
+  const { data: completionCount } = useQuery({
+    queryKey: ["/api/quests/completion-count"],
+    enabled: !!user,
+  });
+
   const generateQuest = useMutation({
     mutationFn: async () => {
       return await apiRequest("POST", "/api/quests/generate", {});
@@ -59,11 +64,27 @@ export default function ActiveQuests() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "Quest Completed!",
         description: "Quest completed successfully and removed from active quests.",
       });
+    },
+    onError: (error: any) => {
+      if (error.response?.status === 400 && error.response?.data?.completionLimitReached) {
+        toast({
+          title: "Daily Completion Limit Reached",
+          description: "You can only complete 3 quests per day. Come back tomorrow!",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to complete quest. Try again later.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -142,11 +163,14 @@ export default function ActiveQuests() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-xl font-semibold text-abyss-ethereal">Active Quests</h2>
-              {dailyCount && (
-                <p className="text-sm text-abyss-ethereal/60 mt-1">
-                  Daily quests: {dailyCount.dailyCount}/{dailyCount.maxDaily}
-                </p>
-              )}
+              <div className="text-sm text-abyss-ethereal/60 mt-1 space-y-1">
+                {dailyCount && (
+                  <p>Daily quests: {dailyCount.dailyCount}/{dailyCount.maxDaily}</p>
+                )}
+                {completionCount && (
+                  <p>Completed today: {completionCount.completedToday}/{completionCount.maxCompletions}</p>
+                )}
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <Button
@@ -214,10 +238,10 @@ export default function ActiveQuests() {
                     <div className="flex items-center space-x-2 ml-4">
                       <Button
                         onClick={() => completeQuest.mutate(quest.id)}
-                        disabled={completeQuest.isPending}
+                        disabled={completeQuest.isPending || (completionCount?.completionLimitReached)}
                         size="sm"
-                        className="bg-green-500/20 text-green-300 hover:bg-green-500/30 border-green-500/50"
-                        title="Complete Quest"
+                        className="bg-green-500/20 text-green-300 hover:bg-green-500/30 border-green-500/50 disabled:opacity-50"
+                        title={completionCount?.completionLimitReached ? "Daily completion limit reached. Come back tomorrow!" : "Complete Quest"}
                       >
                         <CheckCircle className="h-4 w-4" />
                       </Button>

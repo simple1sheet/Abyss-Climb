@@ -40,6 +40,7 @@ export interface IStorage {
   createQuest(quest: InsertQuest): Promise<Quest>;
   getUserQuests(userId: string, status?: string): Promise<Quest[]>;
   getUserQuestsInDateRange(userId: string, startDate: Date, endDate: Date): Promise<Quest[]>;
+  getUserCompletedQuestsToday(userId: string): Promise<Quest[]>;
   updateQuest(id: number, updates: Partial<Quest>): Promise<Quest>;
   
   // Skill operations
@@ -213,6 +214,26 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(quests.createdAt));
+  }
+
+  async getUserCompletedQuestsToday(userId: string): Promise<Quest[]> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    return await db
+      .select()
+      .from(quests)
+      .where(
+        and(
+          eq(quests.userId, userId),
+          eq(quests.status, "completed"),
+          gte(quests.completedAt, today),
+          lt(quests.completedAt, tomorrow)
+        )
+      )
+      .orderBy(desc(quests.completedAt));
   }
 
   async updateQuest(id: number, updates: Partial<Quest>): Promise<Quest> {

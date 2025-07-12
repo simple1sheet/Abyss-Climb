@@ -5,10 +5,20 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 
 });
 
+// Helper function to convert grade to numeric value
+function getGradeNumeric(grade: string): number {
+  if (!grade || grade === "V0") return 0;
+  const match = grade.match(/V(\d+)/);
+  if (match) {
+    return parseInt(match[1], 10);
+  }
+  return 0;
+}
+
 export async function generateQuest(
   layer: number,
-  userLevel: number,
-  climbingStyle: string,
+  whistleLevel: number,
+  userSkills: any[],
   recentGrades: string[]
 ): Promise<{
   title: string;
@@ -18,46 +28,62 @@ export async function generateQuest(
     count: number;
     grade?: string;
     style?: string;
+    gradeRange?: string;
   };
   xpReward: number;
   difficulty: string;
+  difficultyRating: number;
 }> {
-  const prompt = `Generate a climbing quest for a Made in Abyss-themed app. 
+  const maxGrade = Math.max(...userSkills.map(s => getGradeNumeric(s.maxGrade || "V0")));
+  const challengeGrade = Math.min(maxGrade + 1, 17); // Don't exceed V17
+  const comfortGrade = Math.max(maxGrade - 1, 0); // Don't go below V0
   
-  Context:
-  - Layer: ${layer} (1-7, where 1 is easiest and 7 is legendary)
-  - User Level: ${userLevel}
-  - Preferred Climbing Style: ${climbingStyle}
-  - Recent Grades: ${recentGrades.join(", ")}
-  
-  Layer themes:
-  - Layer 1: Edge of the Abyss (Beginner - V0-V2)
-  - Layer 2: Forest of Temptation (Intermediate - V3-V5)
-  - Layer 3: Great Fault (Advanced - V6-V8)
-  - Layer 4: Goblets of Giants (Expert - V9-V11)
-  - Layer 5: Sea of Corpses (Elite - V12-V14)
-  - Layer 6: Capital of the Unreturned (Master - V15+)
-  - Layer 7: Final Maelstrom (Legendary - Project grades)
-  
-  Generate a quest with:
-  - A mystical title related to the layer theme
-  - An engaging description that feels like an adventure
-  - Specific climbing requirements (number of problems, grade, style)
-  - Appropriate XP reward (50-500 based on difficulty)
-  - Difficulty level (easy, medium, hard, extreme)
-  
-  Respond with JSON in this format:
+  const weakestSkills = userSkills
+    .filter(s => s.totalProblems < 5)
+    .map(s => s.skillType)
+    .slice(0, 3);
+
+  const prompt = `Generate a PRACTICAL climbing quest with clear, trackable goals. NO mystical themes - use direct, actionable language.
+
+  User Profile:
+  - Current Layer: ${layer}/7
+  - Whistle Level: ${whistleLevel} (0=Bell, 1=Red, 2=Blue, 3=Moon, 4=Black, 5=White)
+  - Highest Grade: V${maxGrade}
+  - Challenge Grade: V${challengeGrade}
+  - Comfort Grade: V${comfortGrade}
+  - Weakest Skills: ${weakestSkills.join(", ") || "None identified"}
+  - Recent Grades: ${recentGrades.join(", ") || "None"}
+
+  Grade Scale: V0-V17 (V0=Beginner, V3-V5=Intermediate, V6-V8=Advanced, V9+=Expert)
+
+  Quest Types to Generate:
+  1. GRADE PROGRESSION: "Complete 2 boulder problems graded V${challengeGrade}"
+  2. SKILL DEVELOPMENT: "Complete 3 problems focusing on [${weakestSkills[0] || 'balance'}]"
+  3. VOLUME TRAINING: "Complete 5 problems in the V${comfortGrade}-V${maxGrade} range"
+  4. TECHNIQUE SPECIFIC: "Complete 3 overhang problems" or "Complete 2 slab routes"
+  5. OUTDOOR CHALLENGE: "Complete 2 outdoor boulder problems"
+
+  Requirements:
+  - Use PRACTICAL language: "Complete X problems graded VY" NOT "Conquer the mystical stones"
+  - Include specific grades (V0-V17) or grade ranges (V3-V5)
+  - Make it trackable and measurable
+  - Scale difficulty to user's current ability
+  - XP rewards: 50-150 for comfort zone, 200-350 for challenges, 400-500 for breakthroughs
+
+  Respond with JSON:
   {
-    "title": "string",
-    "description": "string", 
+    "title": "Practical title (no mystical themes)",
+    "description": "Clear, trackable description",
     "requirements": {
-      "type": "problems|routes|style",
+      "type": "problems|routes|style|grade_range",
       "count": number,
-      "grade": "string (optional)",
-      "style": "string (optional)"
+      "grade": "VX (optional single grade)",
+      "gradeRange": "VX-VY (optional range)",
+      "style": "overhangs|slabs|crimps|dynos|outdoor (optional)"
     },
     "xpReward": number,
-    "difficulty": "string"
+    "difficulty": "easy|medium|hard|extreme",
+    "difficultyRating": number (1-10)
   }`;
 
   try {
@@ -66,7 +92,7 @@ export async function generateQuest(
       messages: [
         {
           role: "system",
-          content: "You are a quest generator for a Made in Abyss-themed climbing app. Generate engaging, balanced quests that match the user's skill level and the mystical atmosphere of the anime."
+          content: "You are a practical climbing quest generator. Create clear, trackable climbing goals that match the user's skill level. No mystical themes - use direct, actionable language."
         },
         {
           role: "user",

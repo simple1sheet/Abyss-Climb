@@ -34,6 +34,10 @@ Preferred communication style: Simple, everyday language.
 - **Daily Quest Limit System**: Maximum 3 active quests per day with automatic daily reset
 - **Smart Quest Generation**: Blocks quest generation when daily limit is reached with informative messaging
 - **UI Enhancements**: Daily quest counter display and disabled button states for better UX
+- **AI-Generated Quests**: Practical, trackable quests based on user's current skill level and progress
+- **Dual Daily Limits**: 3 quest generations AND 3 quest completions per day
+- **Smart Quest Scaling**: AI quests adapt to user's whistle level and weakest skills
+- **Practical Quest Descriptions**: Clear, measurable goals like "Complete 4 overhang problems graded V3-V5"
 
 ### ✓ Technical Implementation
 - **Database**: PostgreSQL with Drizzle ORM, all tables created and configured
