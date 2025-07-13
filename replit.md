@@ -14,20 +14,21 @@ Preferred communication style: Simple, everyday language.
 
 ### ✓ Layer Quest System Implementation (Latest - January 2025)
 - **Database Schema**: Created layerQuests table with proper structure for layer-specific quest tracking
-- **Predefined Layer Quests**: Implemented 7 unique layer quests themed to each layer:
+- **Predefined Layer Quests**: Implemented 7 unique layer quests themed to each layer with escalating difficulty:
   - Layer 1 (Edge of Abyss): Send 3 V2+ problems (150 XP)
   - Layer 2 (Forest of Temptation): Complete 3 overhang problems in one session (200 XP)
   - Layer 3 (Great Fault): Send 5 V4+ problems (300 XP)
-  - Layer 4 (Goblets of Giants): Complete 10 problems with diverse grip types (400 XP)
-  - Layer 5 (Sea of Corpses): Send 3 V5+ problems (500 XP)
-  - Layer 6 (Capital of Unreturned): Complete 15 problems across 3 sessions (750 XP)
-  - Layer 7 (Final Maelstrom): Send 1 V6+ problem (1000 XP)
+  - Layer 4 (Goblets of Giants): Send 8 V4+ problems using all 4 grip types (600 XP)
+  - Layer 5 (Sea of Corpses): Send 5 V5+ problems with 2 overhangs and 2 technical across sessions (800 XP)
+  - Layer 6 (Capital of Unreturned): Send 25 V4+ problems across 5 sessions with 10 styles and 3 outdoor (1200 XP)
+  - Layer 7 (Final Maelstrom): Send 3 V6+ problems including 1 V7+ overhang and perfect session (1500 XP)
 - **Layer Quest UI Component**: Added LayerQuest component with progress tracking, completion buttons, and layer advancement
 - **Dual Requirements System**: Users must complete both XP thresholds AND layer quests to advance
 - **API Endpoints**: Layer quest management with progress tracking and completion
 - **Real-time Updates**: Proper cache invalidation and XP tracking for immediate UI updates
 - **Fixed Quest Display**: Only layer quests appear in Layer UI, daily/weekly quests excluded
 - **XP System Integration**: Layer quest completion awards XP and updates user progression
+- **Enhanced Difficulty Scaling**: Later layers (4-7) feature dramatically increased challenge requirements and XP rewards
 
 ### ✓ Multi-Platform Deployment & Developer Tools (January 2025)
 - **APK Export Capabilities**: Complete Capacitor integration for Android APK generation with automated build scripts

@@ -82,95 +82,161 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
   {
     layer: 4,
     title: "Goblets of Giants",
-    description: "Complete 10 problems using diverse grip types (crimps, slopers, pinches) to show your adaptability.",
-    xpReward: 400,
-    maxProgress: 10,
+    description: "Send 8 problems V4+ using all 4 grip types (crimps, jugs, slopers, pinches) to prove your technical mastery.",
+    xpReward: 600,
+    maxProgress: 8,
     checkProgress: async (userId: string, currentProgress: number) => {
       const sessions = await storage.getUserClimbingSessions(userId);
-      let diverseProblems = 0;
+      let validProblems = 0;
       const usedGripTypes = new Set<string>();
       
       for (const session of sessions) {
         const problems = await storage.getBoulderProblemsForSession(session.id);
-        problems.filter(p => p.completed && p.holdType).forEach(p => {
-          if (p.holdType && ['crimps', 'slopers', 'pinches'].includes(p.holdType.toLowerCase())) {
+        problems.filter(p => 
+          p.completed && 
+          p.holdType &&
+          storage.getGradeNumericValue(p.grade) >= 4
+        ).forEach(p => {
+          if (p.holdType && ['crimps', 'jugs', 'slopers', 'pinches'].includes(p.holdType.toLowerCase())) {
             usedGripTypes.add(p.holdType.toLowerCase());
-            diverseProblems++;
+            validProblems++;
           }
         });
       }
       
-      // Only count if at least 2 different grip types were used
-      return usedGripTypes.size >= 2 ? Math.min(diverseProblems, 10) : 0;
+      // Must use all 4 grip types and complete 8 problems
+      return usedGripTypes.size >= 4 ? Math.min(validProblems, 8) : 0;
     }
   },
   {
     layer: 5,
     title: "Sea of Corpses",
-    description: "Send 3 problems graded V5 or higher to demonstrate your elite climbing ability.",
-    xpReward: 500,
-    maxProgress: 3,
+    description: "Send 5 problems V5+ including at least 2 overhangs and 2 technical problems in different sessions.",
+    xpReward: 800,
+    maxProgress: 5,
     checkProgress: async (userId: string, currentProgress: number) => {
       const sessions = await storage.getUserClimbingSessions(userId);
-      let completedProblems = 0;
+      let totalProblems = 0;
+      let overhangCount = 0;
+      let technicalCount = 0;
+      const sessionsWithProblems = new Set<number>();
       
       for (const session of sessions) {
         const problems = await storage.getBoulderProblemsForSession(session.id);
-        completedProblems += problems.filter(p => 
+        const validProblems = problems.filter(p => 
           p.completed && 
           storage.getGradeNumericValue(p.grade) >= 5
-        ).length;
+        );
+        
+        if (validProblems.length > 0) {
+          sessionsWithProblems.add(session.id);
+          totalProblems += validProblems.length;
+          
+          overhangCount += validProblems.filter(p => 
+            p.wallAngle === 'overhang' || p.style?.toLowerCase().includes('overhang')
+          ).length;
+          
+          technicalCount += validProblems.filter(p => 
+            p.style?.toLowerCase().includes('technical') || 
+            p.style?.toLowerCase().includes('balance') ||
+            p.style?.toLowerCase().includes('coordination')
+          ).length;
+        }
       }
       
-      return Math.min(completedProblems, 3);
+      // Must have at least 2 sessions, 2 overhangs, 2 technical, and 5 total problems
+      return (sessionsWithProblems.size >= 2 && overhangCount >= 2 && technicalCount >= 2) 
+        ? Math.min(totalProblems, 5) : 0;
     }
   },
   {
     layer: 6,
     title: "Capital of the Unreturned",
-    description: "Complete 15 problems across 3 different sessions to prove your consistency at advanced levels.",
-    xpReward: 750,
-    maxProgress: 1,
+    description: "Send 25 problems V4+ across 5 sessions including 10 different styles and 3 outdoor problems.",
+    xpReward: 1200,
+    maxProgress: 25,
     checkProgress: async (userId: string, currentProgress: number) => {
       const sessions = await storage.getUserClimbingSessions(userId);
-      let validSessions = 0;
       let totalProblems = 0;
+      let outdoorProblems = 0;
+      const usedStyles = new Set<string>();
+      const validSessions = new Set<number>();
       
       for (const session of sessions) {
         const problems = await storage.getBoulderProblemsForSession(session.id);
-        const completedProblems = problems.filter(p => p.completed).length;
-        totalProblems += completedProblems;
+        const validProblems = problems.filter(p => 
+          p.completed && 
+          storage.getGradeNumericValue(p.grade) >= 4
+        );
         
-        if (completedProblems >= 1) {
-          validSessions++;
+        if (validProblems.length > 0) {
+          validSessions.add(session.id);
+          totalProblems += validProblems.length;
+          
+          // Count outdoor problems
+          if (session.sessionType === 'outdoor') {
+            outdoorProblems += validProblems.length;
+          }
+          
+          // Track unique styles
+          validProblems.forEach(p => {
+            if (p.style) {
+              p.style.split(',').forEach(style => {
+                usedStyles.add(style.trim().toLowerCase());
+              });
+            }
+          });
         }
       }
       
-      return (validSessions >= 3 && totalProblems >= 15) ? 1 : 0;
+      // Must have 5 sessions, 10 styles, 3 outdoor problems, and 25 total problems
+      return (validSessions.size >= 5 && usedStyles.size >= 10 && outdoorProblems >= 3) 
+        ? Math.min(totalProblems, 25) : 0;
     }
   },
   {
     layer: 7,
     title: "Final Maelstrom",
-    description: "Send 1 problem graded V6 or higher to conquer the ultimate challenge of the Abyss.",
-    xpReward: 1000,
-    maxProgress: 1,
+    description: "Send 3 problems V6+ including 1 V7+ overhang and complete a perfect session (5+ problems, no failures).",
+    xpReward: 1500,
+    maxProgress: 3,
     checkProgress: async (userId: string, currentProgress: number) => {
       const sessions = await storage.getUserClimbingSessions(userId);
+      let v6PlusProblems = 0;
+      let v7PlusOverhang = false;
+      let hasPerfectSession = false;
       
       for (const session of sessions) {
         const problems = await storage.getBoulderProblemsForSession(session.id);
-        const highGradeProblems = problems.filter(p => 
+        
+        // Check for V6+ problems
+        const v6Plus = problems.filter(p => 
           p.completed && 
           storage.getGradeNumericValue(p.grade) >= 6
         );
+        v6PlusProblems += v6Plus.length;
         
-        if (highGradeProblems.length >= 1) {
-          return 1;
+        // Check for V7+ overhang
+        const v7PlusOverhangs = problems.filter(p => 
+          p.completed && 
+          storage.getGradeNumericValue(p.grade) >= 7 &&
+          (p.wallAngle === 'overhang' || p.style?.toLowerCase().includes('overhang'))
+        );
+        if (v7PlusOverhangs.length > 0) {
+          v7PlusOverhang = true;
+        }
+        
+        // Check for perfect session (5+ completed, no failures)
+        const completedProblems = problems.filter(p => p.completed);
+        const failedProblems = problems.filter(p => !p.completed && p.attempts > 0);
+        if (completedProblems.length >= 5 && failedProblems.length === 0) {
+          hasPerfectSession = true;
         }
       }
       
-      return 0;
+      // Must have 3 V6+ problems, 1 V7+ overhang, and 1 perfect session
+      return (v6PlusProblems >= 3 && v7PlusOverhang && hasPerfectSession) 
+        ? 3 : Math.min(v6PlusProblems, 3);
     }
   }
 ];
