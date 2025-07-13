@@ -72,7 +72,7 @@ function Session() {
                 <SessionControls />
               </ErrorBoundary>
               <ErrorBoundary>
-                <SessionTracker />
+                <SessionTracker sessionId={activeSession.id} />
               </ErrorBoundary>
             </div>
           ) : (
