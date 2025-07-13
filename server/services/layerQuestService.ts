@@ -3,7 +3,6 @@ import { LayerQuest, InsertLayerQuest } from "@shared/schema";
 
 export interface LayerQuestDefinition {
   layer: number;
-  questId: string;
   title: string;
   description: string;
   xpReward: number;
@@ -15,7 +14,6 @@ export interface LayerQuestDefinition {
 export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
   {
     layer: 1,
-    questId: "edge_of_abyss",
     title: "Edge of the Abyss",
     description: "Send 3 boulder problems graded V2 or higher to prove your readiness for the depths ahead.",
     xpReward: 150,
@@ -38,7 +36,6 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
   },
   {
     layer: 2,
-    questId: "forest_of_temptation",
     title: "Forest of Temptation",
     description: "Complete 3 overhang problems in a single session to master the challenging angles ahead.",
     xpReward: 200,
@@ -63,7 +60,6 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
   },
   {
     layer: 3,
-    questId: "great_fault",
     title: "Great Fault",
     description: "Send 5 problems graded V4 or higher to prove your technical mastery.",
     xpReward: 300,
@@ -85,7 +81,6 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
   },
   {
     layer: 4,
-    questId: "goblets_of_giants",
     title: "Goblets of Giants",
     description: "Complete 10 problems using diverse grip types (crimps, slopers, pinches) to show your adaptability.",
     xpReward: 400,
@@ -111,7 +106,6 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
   },
   {
     layer: 5,
-    questId: "sea_of_corpses",
     title: "Sea of Corpses",
     description: "Send 3 problems graded V5 or higher to demonstrate your elite climbing ability.",
     xpReward: 500,
@@ -133,7 +127,6 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
   },
   {
     layer: 6,
-    questId: "capital_of_the_unreturned",
     title: "Capital of the Unreturned",
     description: "Complete 15 problems across 3 different sessions to prove your consistency at advanced levels.",
     xpReward: 750,
@@ -158,7 +151,6 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
   },
   {
     layer: 7,
-    questId: "final_maelstrom",
     title: "Final Maelstrom",
     description: "Send 1 problem graded V6 or higher to conquer the ultimate challenge of the Abyss.",
     xpReward: 1000,
@@ -196,7 +188,6 @@ export class LayerQuestService {
     const layerQuest: InsertLayerQuest = {
       userId,
       layer,
-      questId: definition.questId,
       title: definition.title,
       description: definition.description,
       xpReward: definition.xpReward,

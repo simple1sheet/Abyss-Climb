@@ -188,7 +188,6 @@ export const layerQuests = pgTable("layer_quests", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
   layer: integer("layer").notNull(), // 1-7 for each layer
-  questId: varchar("quest_id").notNull(), // unique identifier for the quest
   title: varchar("title").notNull(),
   description: text("description").notNull(),
   xpReward: integer("xp_reward").default(0),

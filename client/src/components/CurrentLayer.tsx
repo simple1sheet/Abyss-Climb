@@ -11,11 +11,6 @@ import { LayerQuest } from "./LayerQuest";
 export default function CurrentLayer() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  
-  const { data: quests } = useQuery({
-    queryKey: ["/api/quests"],
-    enabled: !!user,
-  });
 
   const { data: layerProgress } = useQuery({
     queryKey: ["/api/layer-progress"],
@@ -46,10 +41,10 @@ export default function CurrentLayer() {
   const progressToNextLayer = layerProgress?.progressToNextLayer || 0;
   const xpProgress = layerProgress?.layerProgress || 0;
   
-  // Calculate active quests for display
-  const layerQuests = quests?.filter((quest: any) => 
-    quest.status === 'active' && quest.layer === currentLayer
-  ) || [];
+  // Remove this - layer quests are now handled by LayerQuest component
+  // const layerQuests = quests?.filter((quest: any) => 
+  //   quest.status === 'active' && quest.layer === currentLayer
+  // ) || [];
   
   const IconComponent = layerInfo.icon;
 
@@ -109,28 +104,7 @@ export default function CurrentLayer() {
               }}
             />
           </div>
-          
-          {layerQuests.length > 0 && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium text-abyss-ethereal mb-2">Current Layer Quests</h4>
-              <div className="space-y-2">
-                {layerQuests.slice(0, 3).map((quest: any) => (
-                  <div key={quest.id} className="bg-abyss-dark/40 border border-abyss-teal/10 rounded p-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-abyss-ethereal">{quest.title}</span>
-                      <span className="text-xs text-abyss-amber">
-                        {quest.progress}/{quest.maxProgress}
-                      </span>
-                    </div>
-                    <Progress 
-                      value={(quest.progress / quest.maxProgress) * 100} 
-                      className="h-1 mt-1"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
         </CardContent>
       </Card>
     </section>

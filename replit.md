@@ -4,7 +4,7 @@
 
 Abyss Climber is a full-stack web application that gamifies rock climbing progress tracking. Built with a "Made in Abyss" anime theme, it allows users to log climbing sessions, track boulder problems, complete quests, and progress through different "layers" of difficulty. The app combines climbing data with RPG-style elements like experience points, achievements, and a whistle-based level system.
 
-**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Comprehensive multi-platform deployment capabilities with APK export via Capacitor for Android, developer tools for data management, and enhanced PWA support for mobile web experience - now provides complete native app functionality with one-click APK generation and development utilities.
+**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Complete layer quest system implementation with predefined quests for each layer, proper database schema, and UI integration - users must complete both XP thresholds AND layer-specific quests to advance through the 7 layers of the Abyss.
 
 ## User Preferences
 
@@ -12,7 +12,24 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Multi-Platform Deployment & Developer Tools (Latest - January 2025)
+### ✓ Layer Quest System Implementation (Latest - January 2025)
+- **Database Schema**: Created layerQuests table with proper structure for layer-specific quest tracking
+- **Predefined Layer Quests**: Implemented 7 unique layer quests themed to each layer:
+  - Layer 1 (Edge of Abyss): Send 3 V2+ problems (150 XP)
+  - Layer 2 (Forest of Temptation): Complete 3 overhang problems in one session (200 XP)
+  - Layer 3 (Great Fault): Send 5 V4+ problems (300 XP)
+  - Layer 4 (Goblets of Giants): Complete 10 problems with diverse grip types (400 XP)
+  - Layer 5 (Sea of Corpses): Send 3 V5+ problems (500 XP)
+  - Layer 6 (Capital of Unreturned): Complete 15 problems across 3 sessions (750 XP)
+  - Layer 7 (Final Maelstrom): Send 1 V6+ problem (1000 XP)
+- **Layer Quest UI Component**: Added LayerQuest component with progress tracking, completion buttons, and layer advancement
+- **Dual Requirements System**: Users must complete both XP thresholds AND layer quests to advance
+- **API Endpoints**: Layer quest management with progress tracking and completion
+- **Real-time Updates**: Proper cache invalidation and XP tracking for immediate UI updates
+- **Fixed Quest Display**: Only layer quests appear in Layer UI, daily/weekly quests excluded
+- **XP System Integration**: Layer quest completion awards XP and updates user progression
+
+### ✓ Multi-Platform Deployment & Developer Tools (January 2025)
 - **APK Export Capabilities**: Complete Capacitor integration for Android APK generation with automated build scripts
 - **Developer Reset Tools**: Development-only data reset functionality with secure user authentication and environment checks
 - **Enhanced PWA Support**: Progressive Web App manifest with native app shortcuts, theme colors, and mobile optimization
