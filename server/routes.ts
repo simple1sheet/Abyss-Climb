@@ -70,6 +70,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/whistle-progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const progressStats = await storage.getWhistleProgressStats(userId);
+      res.json(progressStats);
+    } catch (error) {
+      console.error("Error fetching whistle progress:", error);
+      res.status(500).json({ message: "Failed to fetch whistle progress" });
+    }
+  });
+
   app.patch('/api/user/grade-system', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

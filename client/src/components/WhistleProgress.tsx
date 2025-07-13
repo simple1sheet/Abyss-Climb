@@ -8,14 +8,22 @@ import { useQuery } from "@tanstack/react-query";
 import { Sparkles, Award, Target, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
+import { gradeConverter } from "@/utils/gradeConverter";
 
 export default function WhistleProgress() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [openCategories, setOpenCategories] = useState<string[]>([]);
+  const { gradeSystem } = useGradeSystem();
   
   const { data: skills } = useQuery({
     queryKey: ["/api/skills"],
+    enabled: !!user,
+  });
+
+  const { data: whistleStats } = useQuery({
+    queryKey: ["/api/whistle-progress"],
     enabled: !!user,
   });
 
@@ -173,12 +181,32 @@ export default function WhistleProgress() {
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-abyss-amber">{user.currentLayer || 1}</div>
-              <div className="text-sm text-abyss-ethereal/70">Current Layer</div>
+              <div className="text-2xl font-bold text-abyss-amber">
+                {whistleStats?.averageGradePast7Days 
+                  ? gradeConverter.convertGrade(whistleStats.averageGradePast7Days, 'V-Scale', gradeSystem)
+                  : gradeConverter.convertGrade("V0", 'V-Scale', gradeSystem)
+                }
+              </div>
+              <div className="text-sm text-abyss-ethereal/70">📊 Avg Grade (7d)</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-abyss-teal">{skills?.length || 0}</div>
-              <div className="text-sm text-abyss-ethereal/70">Skills Tracked</div>
+              <div className="text-2xl font-bold text-abyss-teal">
+                {whistleStats?.questsCompletedToday || 0} / {whistleStats?.maxDailyQuests || 3}
+              </div>
+              <div className="text-sm text-abyss-ethereal/70">🏆 Quests Today</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center">
+              <div className="text-sm font-bold text-abyss-purple leading-tight">
+                {whistleStats?.topSkillCategory || "Grip & Handwork"}
+              </div>
+              <div className="text-sm text-abyss-ethereal/70">🔥 Top Skill</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-abyss-amber">{whistleStats?.sessionsThisWeek || 0}</div>
+              <div className="text-sm text-abyss-ethereal/70">🧗 Sessions/Week</div>
             </div>
           </div>
 

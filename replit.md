@@ -4,7 +4,7 @@
 
 Abyss Climber is a full-stack web application that gamifies rock climbing progress tracking. Built with a "Made in Abyss" anime theme, it allows users to log climbing sessions, track boulder problems, complete quests, and progress through different "layers" of difficulty. The app combines climbing data with RPG-style elements like experience points, achievements, and a whistle-based level system.
 
-**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Complete grade system conversion feature implemented - users can now change their preferred grade system (V-Scale, Fontainebleau, German) in profile settings and have it apply throughout the entire application.
+**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Enhanced Whistle Progress dashboard with meaningful statistics - now shows average grade (7 days), quest completion progress, top skill category, and weekly session count, all dynamically calculated from real user data.
 
 ## User Preferences
 
@@ -12,7 +12,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Complete Grade System Conversion Feature (Latest - January 2025)
+### ✓ Enhanced Whistle Progress Dashboard (Latest - January 2025)
+- **Meaningful Statistics**: Replaced "Current Layer" and "Skills Tracked" with dynamic, actionable stats
+- **Average Grade (7 Days)**: Shows user's average climbing grade from completed problems in past 7 days
+- **Quest Progress Today**: Real-time display of daily quest completion (e.g., "2 / 3 Quests Completed")
+- **Top Skill Category**: Dynamically identifies user's strongest skill category based on skill distribution
+- **Weekly Session Count**: Tracks total climbing sessions logged in the past 7 days
+- **Grade System Integration**: Average grade displays in user's preferred grade system (V-Scale, Font, German)
+- **Compact Layout**: Clean, scannable design with emojis and proper spacing for quick information consumption
+- **Database Optimization**: Efficient queries for recent session data and quest completion tracking
+- **Real-time Updates**: All statistics update automatically when new sessions/quests are logged
+- **API Endpoint**: New `/api/whistle-progress` endpoint providing comprehensive progress statistics
+
+### ✓ Complete Grade System Conversion Feature (January 2025)
 - **Database Schema Update**: Added `preferredGradeSystem` field to users table with default "V-Scale"
 - **Grade System Context**: Implemented app-wide grade system state management with useGradeSystem hook
 - **Profile Settings**: Added functional dropdown in profile page to change preferred grade system

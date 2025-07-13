@@ -77,6 +77,15 @@ export interface IStorage {
     progressToNextLayer: number;
     layerProgress: number;
   }>;
+
+  // Whistle progress operations
+  getWhistleProgressStats(userId: string): Promise<{
+    averageGradePast7Days: string;
+    questsCompletedToday: number;
+    maxDailyQuests: number;
+    topSkillCategory: string;
+    sessionsThisWeek: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -599,6 +608,116 @@ export class DatabaseStorage implements IStorage {
       nextLayerXP,
       progressToNextLayer,
       layerProgress,
+    };
+  }
+
+  // Whistle progress operations
+  async getWhistleProgressStats(userId: string): Promise<{
+    averageGradePast7Days: string;
+    questsCompletedToday: number;
+    maxDailyQuests: number;
+    topSkillCategory: string;
+    sessionsThisWeek: number;
+  }> {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // Get average grade from past 7 days
+    const recentSessions = await db
+      .select()
+      .from(climbingSessions)
+      .where(
+        and(
+          eq(climbingSessions.userId, userId),
+          gte(climbingSessions.createdAt, sevenDaysAgo)
+        )
+      );
+
+    const sessionIds = recentSessions.map(session => session.id);
+    let averageGrade = "V0";
+    
+    if (sessionIds.length > 0) {
+      // Get all problems from recent sessions
+      const recentProblems = [];
+      for (const sessionId of sessionIds) {
+        const problems = await db
+          .select()
+          .from(boulderProblems)
+          .where(
+            and(
+              eq(boulderProblems.sessionId, sessionId),
+              eq(boulderProblems.completed, true)
+            )
+          );
+        recentProblems.push(...problems);
+      }
+
+      if (recentProblems.length > 0) {
+        const gradeNums = recentProblems.map(p => this.getGradeNumericValue(p.grade));
+        const avgGradeNum = gradeNums.reduce((a, b) => a + b, 0) / gradeNums.length;
+        averageGrade = `V${Math.round(avgGradeNum)}`;
+      }
+    }
+
+    // Get quests completed today
+    const questsToday = await db
+      .select()
+      .from(quests)
+      .where(
+        and(
+          eq(quests.userId, userId),
+          gte(quests.createdAt, startOfToday),
+          eq(quests.status, 'completed')
+        )
+      );
+
+    // Get sessions this week
+    const sessionsThisWeek = await db
+      .select()
+      .from(climbingSessions)
+      .where(
+        and(
+          eq(climbingSessions.userId, userId),
+          gte(climbingSessions.createdAt, startOfWeek)
+        )
+      );
+
+    // Get top skill category
+    const userSkills = await this.getUserSkills(userId);
+    const categoryCounts = {
+      'Grip & Handwork': 0,
+      'Body & Power': 0,
+      'Balance & Flow': 0,
+      'Mind & Strategy': 0,
+      'Skill Challenges': 0
+    };
+
+    userSkills.forEach(skill => {
+      const skillType = skill.skillType.toLowerCase();
+      if (['jugs', 'crimps', 'endurance', 'pinches', 'slopers', 'pockets', 'underclings', 'gaston'].includes(skillType)) {
+        categoryCounts['Grip & Handwork']++;
+      } else if (['strength', 'dynos', 'mantles', 'campus', 'lockoffs', 'core', 'roofs'].includes(skillType)) {
+        categoryCounts['Body & Power']++;
+      } else if (['movement', 'balance', 'flexibility', 'stemming', 'flagging', 'heel_hooks', 'toe_hooks'].includes(skillType)) {
+        categoryCounts['Balance & Flow']++;
+      } else if (['slabs', 'technical', 'reading', 'sequencing', 'risk_management', 'mental_game'].includes(skillType)) {
+        categoryCounts['Mind & Strategy']++;
+      } else {
+        categoryCounts['Skill Challenges']++;
+      }
+    });
+
+    const topSkillCategory = Object.entries(categoryCounts)
+      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'Grip & Handwork';
+
+    return {
+      averageGradePast7Days: averageGrade,
+      questsCompletedToday: questsToday.length,
+      maxDailyQuests: 3, // Standard max daily quests
+      topSkillCategory,
+      sessionsThisWeek: sessionsThisWeek.length
     };
   }
 }
