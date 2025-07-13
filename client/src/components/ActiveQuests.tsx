@@ -15,7 +15,7 @@ export default function ActiveQuests() {
   const queryClient = useQueryClient();
   
   const { data: quests, isLoading: isLoadingQuests } = useQuery({
-    queryKey: ["/api/quests", { status: "active" }],
+    queryKey: ["/api/quests?status=active"],
     enabled: !!user,
   });
 
@@ -34,6 +34,7 @@ export default function ActiveQuests() {
       return await apiRequest("POST", "/api/quests/generate", {});
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       toast({
@@ -63,6 +64,7 @@ export default function ActiveQuests() {
       return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
@@ -94,6 +96,7 @@ export default function ActiveQuests() {
       return await apiRequest("POST", `/api/quests/${questId}/discard`, {});
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       toast({
