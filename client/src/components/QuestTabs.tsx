@@ -81,6 +81,7 @@ export default function QuestTabs() {
       return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
     onSuccess: () => {
+      // Invalidate all quest-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -112,6 +113,7 @@ export default function QuestTabs() {
       return await apiRequest("POST", `/api/quests/${questId}/discard`, {});
     },
     onSuccess: () => {
+      // Invalidate all quest-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       toast({
         title: "Quest Discarded",
@@ -132,6 +134,7 @@ export default function QuestTabs() {
       return await apiRequest("POST", `/api/quests/generate`, { questType });
     },
     onSuccess: () => {
+      // Invalidate all quest-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       toast({
         title: "Quest Generated",
@@ -169,33 +172,56 @@ export default function QuestTabs() {
     return '∞';
   };
 
+  const getDifficultyConfig = (difficulty: string) => {
+    switch (difficulty) {
+      case 'easy':
+        return { baseXP: 80, color: 'bg-green-500/20 text-green-400 border-green-500/30', emoji: '🟢' };
+      case 'medium':
+        return { baseXP: 120, color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', emoji: '🟡' };
+      case 'hard':
+        return { baseXP: 180, color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', emoji: '🟠' };
+      case 'extreme':
+        return { baseXP: 250, color: 'bg-red-500/20 text-red-400 border-red-500/30', emoji: '🔴' };
+      default:
+        return { baseXP: 120, color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', emoji: '🟡' };
+    }
+  };
+
   const calculateFinalXP = (quest: Quest) => {
-    const baseXP = quest.baseXP || 100;
-    let multiplier = 1;
+    const difficultyConfig = getDifficultyConfig(quest.difficulty);
+    let baseXP = difficultyConfig.baseXP;
     
-    if (quest.questType === 'daily') {
-      multiplier = 1 + (quest.gradeDiff * 0.3);
-    } else if (quest.questType === 'weekly') {
-      multiplier = 1 + (quest.gradeDiff * 0.4);
+    // Apply quest type multipliers
+    if (quest.questType === 'weekly') {
+      baseXP = Math.round(baseXP * 1.5);
     } else if (quest.questType === 'layer') {
-      multiplier = 1 + (quest.layerIndex * 0.5) + (quest.gradeDiff * 0.5);
+      baseXP = Math.round(baseXP * (1.5 + (quest.layerIndex || 0) * 0.3));
     }
     
-    return Math.round(baseXP * multiplier);
+    return baseXP;
   };
 
   const renderQuestCard = (quest: Quest, canComplete: boolean = true) => {
     const progressPercentage = quest.maxProgress > 0 ? (quest.progress / quest.maxProgress) * 100 : 0;
     const finalXP = calculateFinalXP(quest);
+    const difficultyConfig = getDifficultyConfig(quest.difficulty);
     
     return (
       <Card key={quest.id} className="bg-abyss-dark/60 border-abyss-teal/20 hover:border-abyss-teal/40 transition-all duration-300">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <CardTitle className="text-abyss-ethereal text-base font-semibold">
-                {quest.title}
-              </CardTitle>
+              <div className="flex items-center gap-2 mb-1">
+                <CardTitle className="text-abyss-ethereal text-base font-semibold">
+                  {quest.title}
+                </CardTitle>
+                <Badge 
+                  variant="outline" 
+                  className={`${difficultyConfig.color} text-xs`}
+                >
+                  {difficultyConfig.emoji} {quest.difficulty}
+                </Badge>
+              </div>
               <p className="text-abyss-ethereal/70 text-sm mt-1">
                 {quest.description}
               </p>
@@ -276,10 +302,13 @@ export default function QuestTabs() {
       );
     }
 
-    if (!quests || quests.length === 0) {
-      const maxQuests = questType === 'layer' ? 1 : 3;
-      const canGenerate = questType === 'layer' || (quests?.length || 0) < maxQuests;
-      
+    const activeQuests = quests?.filter(q => q.status === 'active') || [];
+    const completionLimitReached = completionData?.completionLimitReached || false;
+    const canComplete = !completionLimitReached;
+    const maxQuests = questType === 'layer' ? 1 : 3;
+    const canGenerate = activeQuests.length < maxQuests;
+
+    if (activeQuests.length === 0) {
       return (
         <div className="text-center py-8">
           <div className="text-abyss-ethereal/70 mb-4">
@@ -300,13 +329,9 @@ export default function QuestTabs() {
       );
     }
 
-    const canComplete = questType === 'layer' || (completionData?.completedToday || 0) < 3;
-    const maxQuests = questType === 'layer' ? 1 : 3;
-    const canGenerate = questType === 'layer' || quests.length < maxQuests;
-
     return (
       <div className="space-y-4">
-        {quests.map(quest => renderQuestCard(quest, canComplete))}
+        {activeQuests.map(quest => renderQuestCard(quest, canComplete))}
         
         {canGenerate && (
           <Card className="bg-abyss-dark/40 border-abyss-teal/10 border-dashed">
@@ -318,7 +343,7 @@ export default function QuestTabs() {
                 className="border-abyss-teal/30 text-abyss-teal hover:bg-abyss-teal/10"
               >
                 <Zap className="w-4 h-4 mr-2" />
-                Generate {questType.charAt(0).toUpperCase() + questType.slice(1)} Quest
+                Generate New {questType.charAt(0).toUpperCase() + questType.slice(1)} Quest
               </Button>
             </CardContent>
           </Card>
@@ -328,74 +353,91 @@ export default function QuestTabs() {
   };
 
   return (
-    <div className="w-full">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-abyss-dark/60 border-abyss-teal/20">
-          <TabsTrigger 
-            value="daily" 
-            className="data-[state=active]:bg-abyss-teal data-[state=active]:text-abyss-dark"
-          >
-            Daily Quests
-          </TabsTrigger>
-          <TabsTrigger 
-            value="weekly"
-            className="data-[state=active]:bg-abyss-purple data-[state=active]:text-abyss-ethereal"
-          >
-            Weekly Quests
-          </TabsTrigger>
-          <TabsTrigger 
-            value="layer"
-            className="data-[state=active]:bg-abyss-amber data-[state=active]:text-abyss-dark"
-          >
-            Layer Quest
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="daily" className="mt-4">
-          <div className="mb-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-abyss-ethereal text-lg font-semibold">Daily Quests</h3>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="grid w-full grid-cols-3 mb-6 bg-abyss-dark/60 border-abyss-teal/20">
+        <TabsTrigger 
+          value="daily" 
+          className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 data-[state=active]:border-blue-500/30"
+        >
+          Daily
+        </TabsTrigger>
+        <TabsTrigger 
+          value="weekly" 
+          className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 data-[state=active]:border-purple-500/30"
+        >
+          Weekly
+        </TabsTrigger>
+        <TabsTrigger 
+          value="layer" 
+          className="data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400 data-[state=active]:border-amber-500/30"
+        >
+          Layer
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="daily">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold text-abyss-ethereal">Daily Quests</h2>
+              <p className="text-abyss-ethereal/70 text-sm">
+                Complete up to 3 daily quests
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
               <Badge variant="outline" className="border-blue-500/30 text-blue-400">
-                {dailyCompletionData?.completedToday || 0} / 3 completed today
+                Active: {dailyQuests?.filter(q => q.status === 'active').length || 0} / 3
+              </Badge>
+              <Badge variant="outline" className="border-green-500/30 text-green-400">
+                Completed: {dailyCompletionData?.completedToday || 0} / 3
               </Badge>
             </div>
-            <p className="text-abyss-ethereal/70 text-sm mt-1">
-              Complete up to 3 daily quests. Reset at midnight.
-            </p>
           </div>
-          {renderQuestList(dailyQuests, 'daily', isLoadingDaily, dailyCompletionData)}
-        </TabsContent>
-        
-        <TabsContent value="weekly" className="mt-4">
-          <div className="mb-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-abyss-ethereal text-lg font-semibold">Weekly Quests</h3>
+          
+          {renderQuestList(dailyQuests || [], 'daily', isLoadingDaily, dailyCompletionData)}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="weekly">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold text-abyss-ethereal">Weekly Quests</h2>
+              <p className="text-abyss-ethereal/70 text-sm">
+                Complete up to 3 weekly quests
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
               <Badge variant="outline" className="border-purple-500/30 text-purple-400">
-                {weeklyCompletionData?.completedThisWeek || 0} / 3 completed this week
+                Active: {weeklyQuests?.filter(q => q.status === 'active').length || 0} / 3
+              </Badge>
+              <Badge variant="outline" className="border-green-500/30 text-green-400">
+                Completed: {weeklyCompletionData?.completedThisWeek || 0} / 3
               </Badge>
             </div>
-            <p className="text-abyss-ethereal/70 text-sm mt-1">
-              Complete up to 3 weekly quests. Reset every Monday at midnight.
-            </p>
           </div>
-          {renderQuestList(weeklyQuests, 'weekly', isLoadingWeekly, weeklyCompletionData)}
-        </TabsContent>
-        
-        <TabsContent value="layer" className="mt-4">
-          <div className="mb-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-abyss-ethereal text-lg font-semibold">Layer Quest</h3>
-              <Badge variant="outline" className="border-amber-500/30 text-amber-400">
-                Layer {user?.currentLayer || 1} Challenge
-              </Badge>
+          
+          {renderQuestList(weeklyQuests || [], 'weekly', isLoadingWeekly, weeklyCompletionData)}
+        </div>
+      </TabsContent>
+
+      <TabsContent value="layer">
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold text-abyss-ethereal">Layer Quests</h2>
+              <p className="text-abyss-ethereal/70 text-sm">
+                Long-term challenges for your current layer
+              </p>
             </div>
-            <p className="text-abyss-ethereal/70 text-sm mt-1">
-              Complete the layer-specific challenge. Cannot be discarded.
-            </p>
+            <Badge variant="outline" className="border-amber-500/30 text-amber-400">
+              Layer {user?.currentLayer || 1}
+            </Badge>
           </div>
-          {renderQuestList(layerQuests, 'layer', isLoadingLayer, null)}
-        </TabsContent>
-      </Tabs>
-    </div>
+          
+          {renderQuestList(layerQuests || [], 'layer', isLoadingLayer, null)}
+        </div>
+      </TabsContent>
+    </Tabs>
   );
 }
