@@ -6,13 +6,12 @@ import { useQuery } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
 import { useLocation } from "wouter";
 import { LAYER_CONFIG, getLayerInfo } from "@/utils/layerConfig";
-import { Quest, toQuestArray, getActiveLayerQuests } from "@/types/quest";
 
 export default function CurrentLayer() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   
-  const { data: questsResponse } = useQuery<Quest[]>({
+  const { data: quests } = useQuery({
     queryKey: ["/api/quests"],
     enabled: !!user,
   });
@@ -46,8 +45,10 @@ export default function CurrentLayer() {
   const progressToNextLayer = layerProgress?.progressToNextLayer || 0;
   const xpProgress = layerProgress?.layerProgress || 0;
   
-  // Calculate active quests for display using the robust helper function
-  const layerQuests = getActiveLayerQuests(questsResponse, currentLayer);
+  // Calculate active quests for display
+  const layerQuests = quests?.filter((quest: any) => 
+    quest.status === 'active' && quest.layer === currentLayer
+  ) || [];
   
   const IconComponent = layerInfo.icon;
 
@@ -101,7 +102,7 @@ export default function CurrentLayer() {
             <div className="mt-4">
               <h4 className="text-sm font-medium text-abyss-ethereal mb-2">Current Layer Quests</h4>
               <div className="space-y-2">
-                {layerQuests.slice(0, 3).map((quest: Quest) => (
+                {layerQuests.slice(0, 3).map((quest: any) => (
                   <div key={quest.id} className="bg-abyss-dark/40 border border-abyss-teal/10 rounded p-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-abyss-ethereal">{quest.title}</span>
@@ -110,7 +111,7 @@ export default function CurrentLayer() {
                       </span>
                     </div>
                     <Progress 
-                      value={quest.maxProgress > 0 ? (quest.progress / quest.maxProgress) * 100 : 0} 
+                      value={(quest.progress / quest.maxProgress) * 100} 
                       className="h-1 mt-1"
                     />
                   </div>

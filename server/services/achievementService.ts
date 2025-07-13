@@ -321,8 +321,8 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
 
   // Advanced Achievements
   {
-    id: "layer_delver",
-    title: "Layer Delver",
+    id: "layer_explorer",
+    title: "Layer Explorer",
     description: "Reach Layer 3 of the Abyss",
     icon: "compass",
     category: "Master",
@@ -351,14 +351,14 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     checkCondition: (user, stats) => stats.currentLayer >= 7,
   },
   {
-    id: "xp_hoarder",
-    title: "XP Hoarder",
-    description: "Earn 5000 total XP",
+    id: "xp_collector",
+    title: "XP Collector",
+    description: "Earn 1000 total XP",
     icon: "star",
     category: "Master",
     xpReward: 200,
     type: "progression",
-    checkCondition: (user, stats) => user.totalXP >= 5000,
+    checkCondition: (user, stats) => user.totalXP >= 1000,
   },
   {
     id: "xp_master",
@@ -512,14 +512,10 @@ export class AchievementService {
         return Math.min(100, (stats.gradeSystemChanges / 1) * 100);
       
       // Advanced achievements
-      case "layer_delver":
-        return Math.min(100, (stats.currentLayer / 3) * 100);
       case "abyss_challenger":
         return Math.min(100, (stats.currentLayer / 5) * 100);
       case "final_maelstrom":
         return Math.min(100, (stats.currentLayer / 7) * 100);
-      case "xp_hoarder":
-        return Math.min(100, (user.totalXP / 5000) * 100);
       case "xp_master":
         return Math.min(100, (user.totalXP / 10000) * 100);
       case "session_streaker":

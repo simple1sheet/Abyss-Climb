@@ -1,14 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { AuthController } from "./controllers/authController";
-import { StatsController } from "./controllers/statsController";
-import { SessionController } from "./controllers/sessionController";
-import { QuestController } from "./controllers/questController";
-import { ProblemController } from "./controllers/problemController";
-import { asyncHandler, errorHandler } from "./utils/errorHandler";
-import { validateBody, validateParams, validateQuery, commonSchemas } from "./middleware/validation";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
 import { xpCalculator } from "./services/xpCalculator";
@@ -26,106 +19,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, asyncHandler(AuthController.getCurrentUser));
-  app.patch('/api/user/grade-system', isAuthenticated, 
-    validateBody(commonSchemas.gradeSystemBody), 
-    asyncHandler(AuthController.updateGradeSystem)
-  );
-
-  // Statistics routes
-  app.get('/api/user/stats', isAuthenticated, asyncHandler(StatsController.getUserStats));
-  app.get('/api/layer-progress', isAuthenticated, asyncHandler(StatsController.getLayerProgress));
-  app.get('/api/whistle-progress', isAuthenticated, asyncHandler(StatsController.getWhistleProgress));
-  app.get('/api/enhanced-progress', isAuthenticated, asyncHandler(StatsController.getEnhancedProgress));
-
-  // Session routes
-  app.post('/api/sessions', isAuthenticated, 
-    validateBody(insertClimbingSessionSchema), 
-    asyncHandler(SessionController.createSession)
-  );
-  app.get('/api/sessions', isAuthenticated, 
-    validateQuery(commonSchemas.paginationQuery), 
-    asyncHandler(SessionController.getUserSessions)
-  );
-  app.get('/api/sessions/active', isAuthenticated, asyncHandler(SessionController.getActiveSession));
-  app.get('/api/sessions/:id', isAuthenticated, 
-    validateParams(commonSchemas.idParam), 
-    asyncHandler(SessionController.getSessionById)
-  );
-  app.patch('/api/sessions/:id', isAuthenticated, 
-    validateParams(commonSchemas.idParam), 
-    asyncHandler(SessionController.updateSession)
-  );
-  app.patch('/api/sessions/:id/pause', isAuthenticated, 
-    validateParams(commonSchemas.idParam), 
-    asyncHandler(SessionController.pauseSession)
-  );
-  app.patch('/api/sessions/:id/resume', isAuthenticated, 
-    validateParams(commonSchemas.idParam), 
-    asyncHandler(SessionController.resumeSession)
-  );
-
-  // Quest routes
-  app.post('/api/quests/generate', isAuthenticated, asyncHandler(QuestController.generateQuest));
-  app.get('/api/quests', isAuthenticated, 
-    validateQuery(commonSchemas.questStatusQuery), 
-    asyncHandler(QuestController.getUserQuests)
-  );
-  app.get('/api/quests/daily-count', isAuthenticated, asyncHandler(QuestController.getDailyCount));
-  app.get('/api/quests/completion-count', isAuthenticated, asyncHandler(QuestController.getCompletionCount));
-  app.patch('/api/quests/:id/complete', isAuthenticated, 
-    validateParams(commonSchemas.idParam), 
-    asyncHandler(QuestController.completeQuest)
-  );
-  app.patch('/api/quests/:id/discard', isAuthenticated, 
-    validateParams(commonSchemas.idParam), 
-    asyncHandler(QuestController.discardQuest)
-  );
-
-  // Problem routes
-  app.post('/api/problems', isAuthenticated, 
-    validateBody(insertBoulderProblemSchema), 
-    asyncHandler(ProblemController.createProblem)
-  );
-  app.get('/api/problems/session/:sessionId', isAuthenticated, 
-    validateParams(commonSchemas.idParam.extend({ sessionId: commonSchemas.idParam.shape.id })), 
-    asyncHandler(ProblemController.getSessionProblems)
-  );
-  app.patch('/api/problems/:id', isAuthenticated, 
-    validateParams(commonSchemas.idParam), 
-    asyncHandler(ProblemController.updateProblem)
-  );
-  app.delete('/api/problems/:id', isAuthenticated, 
-    validateParams(commonSchemas.idParam), 
-    asyncHandler(ProblemController.deleteProblem)
-  );
-
-  // Skills routes
-  app.get('/api/skills', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const skills = await storage.getUserSkills(userId);
-      res.json(skills);
+      const user = await storage.getUser(userId);
+      res.json(user);
     } catch (error) {
-      console.error("Error fetching skills:", error);
-      res.status(500).json({ message: "Failed to fetch skills" });
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // Achievements routes
-  app.get('/api/achievements', isAuthenticated, async (req: any, res) => {
+  // User stats
+  app.get('/api/user/stats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const achievements = await storage.getUserAchievements(userId);
-      res.json(achievements);
+      const stats = await storage.getUserStats(userId);
+      res.json(stats);
     } catch (error) {
-      console.error("Error fetching achievements:", error);
-      res.status(500).json({ message: "Failed to fetch achievements" });
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ message: "Failed to fetch user stats" });
     }
   });
 
-  // Workouts routes
-  app.post('/api/workouts/generate', isAuthenticated, async (req: any, res) => {
+  // Update user grade system
+  app.patch('/api/user/grade-system', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { gradeSystem } = req.body;
+      
+      if (!gradeSystem || !['V-Scale', 'Font', 'German'].includes(gradeSystem)) {
+        return res.status(400).json({ message: "Invalid grade system" });
+      }
+      
+      const updatedUser = await storage.updateUserGradeSystem(userId, gradeSystem);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user grade system:", error);
+      res.status(500).json({ message: "Failed to update grade system" });
+    }
+  });
+
+  app.get('/api/layer-progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const progressInfo = await storage.getLayerProgressInfo(userId);
+      res.json(progressInfo);
+    } catch (error) {
+      console.error("Error fetching layer progress:", error);
+      res.status(500).json({ message: "Failed to fetch layer progress" });
+    }
+  });
+
+  app.get('/api/whistle-progress', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const progressStats = await storage.getWhistleProgressStats(userId);
