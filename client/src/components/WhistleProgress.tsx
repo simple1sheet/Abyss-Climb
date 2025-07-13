@@ -2,13 +2,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, Award, Target, ChevronDown, ChevronRight } from "lucide-react";
+import { Sparkles, Award, Target, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { useState } from "react";
+import { useLocation } from "wouter";
 
 export default function WhistleProgress() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const [openCategories, setOpenCategories] = useState<string[]>([]);
   
   const { data: skills } = useQuery({
@@ -177,6 +180,17 @@ export default function WhistleProgress() {
               <div className="text-2xl font-bold text-abyss-teal">{skills?.length || 0}</div>
               <div className="text-sm text-abyss-ethereal/70">Skills Tracked</div>
             </div>
+          </div>
+
+          <div className="mb-4">
+            <Button 
+              onClick={() => setLocation("/whistles")}
+              variant="outline"
+              className="w-full bg-abyss-dark/30 border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/20 hover:border-abyss-teal/50"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              View All Whistles
+            </Button>
           </div>
 
           {skills && skills.length > 0 && (

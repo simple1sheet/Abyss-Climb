@@ -86,6 +86,7 @@ Preferred communication style: Simple, everyday language.
 - **Streamlined Navigation**: Progress tab with AI assistant in bottom navigation, Layers overview accessible via "View All Layers" button on home page
 - **Comprehensive Layer Overview**: Dedicated screen showing all 7 layers with completion status and XP requirements, accessible from home page
 - **Progressive Layer Difficulty**: Significantly increased XP requirements for each layer (Layer 2: 800 XP, Layer 3: 2,500 XP, Layer 4: 5,500 XP, Layer 5: 10,000 XP, Layer 6: 18,000 XP, Layer 7: 35,000 XP)
+- **Whistle Progression Overview**: Dedicated screen showing all 5 whistle levels with progression requirements and privileges, accessible via "View All Whistles" button on home page
 
 ### ✓ Enhanced Profile Experience (January 2025)
 - **Comprehensive Achievement System**: 20+ unique achievements across 4 categories (Explorer, Climber, Master, Special) with icons, descriptions, and XP rewards
