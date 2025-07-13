@@ -45,10 +45,7 @@ export default function WorkoutSession({ workout, onComplete }: WorkoutSessionPr
 
   const completeWorkoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest({
-        url: `/api/workouts/${workout.id}/complete`,
-        method: 'POST',
-      });
+      return await apiRequest('POST', `/api/workouts/${workout.id}/complete`);
     },
     onSuccess: (data) => {
       setIsCompleted(true);

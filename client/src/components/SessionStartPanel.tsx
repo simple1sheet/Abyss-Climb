@@ -21,17 +21,13 @@ export default function SessionStartPanel() {
 
   const createClimbingSessionMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest({
-        url: '/api/sessions',
-        method: 'POST',
-        body: {
-          sessionType: 'indoor',
-          location: 'Local Gym',
-          duration: 60,
-          notes: '',
-          startTime: new Date(),
-          status: 'active'
-        },
+      return await apiRequest('POST', '/api/sessions', {
+        sessionType: 'indoor',
+        location: 'Local Gym',
+        duration: 60,
+        notes: '',
+        startTime: new Date(),
+        status: 'active'
       });
     },
     onSuccess: (session) => {

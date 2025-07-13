@@ -22,6 +22,11 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Runtime check to ensure method is a string
+  if (typeof method !== 'string') {
+    throw new Error(`apiRequest expects method to be a string, got ${typeof method}. Usage: apiRequest('POST', '/api/endpoint', data)`);
+  }
+  
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},

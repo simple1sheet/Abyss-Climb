@@ -38,10 +38,7 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
 
   const generateWorkoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest({
-        url: '/api/workouts/generate',
-        method: 'POST',
-      });
+      return await apiRequest('POST', '/api/workouts/generate');
     },
     onSuccess: (data) => {
       setGeneratedWorkout(data);
@@ -61,11 +58,7 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
 
   const startWorkoutMutation = useMutation({
     mutationFn: async (workoutData: GeneratedWorkout) => {
-      return await apiRequest({
-        url: '/api/workouts',
-        method: 'POST',
-        body: workoutData,
-      });
+      return await apiRequest('POST', '/api/workouts', workoutData);
     },
     onSuccess: (data) => {
       onWorkoutGenerated(data);
