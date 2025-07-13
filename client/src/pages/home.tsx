@@ -8,6 +8,7 @@ import RecentSessions from "@/components/RecentSessions";
 import StatsOverview from "@/components/StatsOverview";
 import BottomNavigation from "@/components/BottomNavigation";
 import SessionIndicator from "@/components/SessionIndicator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Home() {
   const { user } = useAuth();
@@ -16,6 +17,11 @@ export default function Home() {
     queryKey: ["/api/user/stats"],
     enabled: !!user,
   });
+
+  const getInitials = (name?: string) => {
+    if (!name) return "CR"; // Cave Raider
+    return name.split(" ").map(n => n[0]?.toUpperCase()).join("").slice(0, 2) || "CR";
+  };
 
   return (
     <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
@@ -29,11 +35,17 @@ export default function Home() {
       <header className="relative z-20 px-6 pt-12 pb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <img 
-              src={user?.profileImageUrl || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&h=100"}
-              alt="Climber Profile" 
-              className="w-12 h-12 rounded-full object-cover border-2 border-abyss-amber abyss-glow"
-            />
+            <Avatar className="w-12 h-12 border-2 border-abyss-amber abyss-glow">
+              <AvatarImage 
+                src={user?.profileImageUrl}
+                alt="Climber Profile"
+                className="object-cover"
+                key={user?.profileImageUrl} // Force re-render when image changes
+              />
+              <AvatarFallback className="bg-abyss-purple/50 text-abyss-ethereal font-semibold">
+                {getInitials(`${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Cave Raider")}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <h1 className="text-lg font-semibold text-abyss-ethereal">
                 {user?.firstName || "Cave Raider"}
