@@ -36,7 +36,7 @@ export function useSession() {
         location: data.location,
         startTime: new Date().toISOString(),
       });
-      return response.json();
+      return response;
     },
     onSuccess: (session) => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions/active"] });
@@ -75,7 +75,7 @@ export function useSession() {
         endTime: new Date().toISOString(),
         status: "completed",
       });
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions/active"] });
@@ -98,7 +98,7 @@ export function useSession() {
   const pauseSessionMutation = useMutation({
     mutationFn: async (sessionId: number) => {
       const response = await apiRequest("POST", `/api/sessions/${sessionId}/pause`);
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions/active"] });
@@ -119,7 +119,7 @@ export function useSession() {
   const resumeSessionMutation = useMutation({
     mutationFn: async (sessionId: number) => {
       const response = await apiRequest("POST", `/api/sessions/${sessionId}/resume`);
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions/active"] });
