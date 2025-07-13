@@ -6,6 +6,11 @@ import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
 import { analyzeClimbingProgress } from "./services/openai";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import express from "express";
+import { log } from "./vite";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -475,32 +480,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Profile picture upload
-  app.post("/api/user/profile-image", isAuthenticated, async (req, res) => {
+  // Configure multer for file uploads
+  const storage_multer = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(process.cwd(), 'uploads', 'profile-pictures');
+      // Ensure directory exists
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      // Create unique filename with user ID and timestamp
+      const userId = req.user?.claims?.sub;
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      cb(null, `profile-${userId}-${uniqueSuffix}${ext}`);
+    }
+  });
+
+  const upload = multer({
+    storage: storage_multer,
+    fileFilter: (req, file, cb) => {
+      // Accept images only
+      if (!file.mimetype.startsWith('image/')) {
+        return cb(new Error('Only image files are allowed!'));
+      }
+      // Accept common image formats
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return cb(new Error('Only JPEG, PNG, GIF, and WebP images are allowed!'));
+      }
+      cb(null, true);
+    },
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+  });
+
+  // Serve uploaded profile images
+  app.use('/uploads/profile-pictures', express.static(path.join(process.cwd(), 'uploads', 'profile-pictures')));
+
+  // Profile picture upload endpoint
+  app.post("/api/user/profile-image", isAuthenticated, upload.single('profileImage'), async (req, res) => {
     try {
       const userId = req.user?.claims?.sub;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      // In a real implementation, you would:
-      // 1. Use multer to handle file upload
-      // 2. Upload to cloud storage (AWS S3, Cloudinary, etc.)
-      // 3. Save the URL to the database
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Get current user to check if they have an existing profile image
+      const currentUser = await storage.getUser(userId);
       
-      // For this demo, we'll simulate different profile pictures based on user ID
-      const profileImages = [
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-        "https://images.unsplash.com/photo-1494790108755-2616b612b765?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
-      ];
+      // Delete old profile image if it exists and is not a default/external image
+      if (currentUser?.profileImageUrl && currentUser.profileImageUrl.includes('/uploads/profile-pictures/')) {
+        const oldImagePath = path.join(process.cwd(), currentUser.profileImageUrl.replace('/uploads/profile-pictures/', 'uploads/profile-pictures/'));
+        if (fs.existsSync(oldImagePath)) {
+          try {
+            fs.unlinkSync(oldImagePath);
+          } catch (deleteError) {
+            console.warn('Failed to delete old profile image:', deleteError);
+          }
+        }
+      }
+
+      // Create URL for the uploaded image
+      const profileImageUrl = `/uploads/profile-pictures/${req.file.filename}`;
       
-      // Generate a consistent but different image for each upload attempt
-      const imageIndex = (Date.now() + userId.length) % profileImages.length;
-      const profileImageUrl = profileImages[imageIndex];
-      
+      // Update user with new profile image URL
       const updatedUser = await storage.upsertUser({
         id: userId,
         profileImageUrl,
@@ -512,8 +563,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: updatedUser,
       });
     } catch (error) {
-      log(`Error updating profile picture: ${error}`, "error");
+      // Clean up uploaded file if database update fails
+      if (req.file && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (cleanupError) {
+          console.warn('Failed to clean up uploaded file:', cleanupError);
+        }
+      }
+      
+      console.error("Error updating profile picture:", error);
       res.status(500).json({ message: "Failed to update profile picture" });
+    }
+  });
+
+  // Remove profile picture endpoint
+  app.delete("/api/user/profile-image", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const currentUser = await storage.getUser(userId);
+      
+      // Delete the profile image file if it exists locally
+      if (currentUser?.profileImageUrl && currentUser.profileImageUrl.includes('/uploads/profile-pictures/')) {
+        const imagePath = path.join(process.cwd(), currentUser.profileImageUrl.replace('/uploads/profile-pictures/', 'uploads/profile-pictures/'));
+        if (fs.existsSync(imagePath)) {
+          try {
+            fs.unlinkSync(imagePath);
+          } catch (deleteError) {
+            console.warn('Failed to delete profile image file:', deleteError);
+          }
+        }
+      }
+
+      // Update user to remove profile image URL
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        profileImageUrl: null,
+      });
+
+      res.json({ 
+        message: "Profile picture removed successfully",
+        user: updatedUser,
+      });
+    } catch (error) {
+      console.error("Error removing profile picture:", error);
+      res.status(500).json({ message: "Failed to remove profile picture" });
     }
   });
 
