@@ -840,12 +840,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recentActivity: recentSessions.length,
       };
 
+      console.log("Generating workout with user stats:", userStats);
       const workoutData = await generateWorkout(userStats);
+      console.log("Generated workout data:", workoutData);
+      
+      // Ensure we always return a valid workout object
+      if (!workoutData || typeof workoutData !== 'object') {
+        console.error("Invalid workout data received, using fallback");
+        const fallbackWorkout = {
+          workoutType: 'combo',
+          title: 'Basic Climbing Workout',
+          description: 'A general workout routine for climbers.',
+          duration: 20,
+          intensity: 'medium',
+          intensityRating: 5,
+          targetAreas: ['general'],
+          exercises: [
+            {
+              name: 'Warm-up Stretches',
+              description: 'Light stretching to prepare for activity',
+              duration: '5 minutes',
+              targetArea: 'general'
+            },
+            {
+              name: 'Basic Strength Training',
+              description: 'Core and upper body exercises',
+              duration: '15 minutes',
+              targetArea: 'strength'
+            }
+          ],
+          xpReward: 50,
+          generationReason: 'Fallback workout due to generation error.'
+        };
+        return res.json(fallbackWorkout);
+      }
       
       res.json(workoutData);
     } catch (error) {
       console.error("Error generating workout:", error);
-      res.status(500).json({ message: "Failed to generate workout" });
+      
+      // Return fallback workout instead of error
+      const fallbackWorkout = {
+        workoutType: 'combo',
+        title: 'Basic Climbing Workout',
+        description: 'A general workout routine for climbers.',
+        duration: 20,
+        intensity: 'medium',
+        intensityRating: 5,
+        targetAreas: ['general'],
+        exercises: [
+          {
+            name: 'Warm-up Stretches',
+            description: 'Light stretching to prepare for activity',
+            duration: '5 minutes',
+            targetArea: 'general'
+          },
+          {
+            name: 'Basic Strength Training',
+            description: 'Core and upper body exercises',
+            duration: '15 minutes',
+            targetArea: 'strength'
+          }
+        ],
+        xpReward: 50,
+        generationReason: 'Fallback workout due to server error.'
+      };
+      res.json(fallbackWorkout);
     }
   });
 
