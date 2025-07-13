@@ -108,16 +108,18 @@ export default function DeveloperTools() {
                     Confirm Data Reset
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will permanently delete all of your climbing data including:
-                    <ul className="list-disc pl-6 mt-2 space-y-1">
-                      <li>All climbing sessions and boulder problems</li>
-                      <li>Quest progress and achievements</li>
-                      <li>Skill levels and XP progress</li>
-                      <li>Workout history and sessions</li>
-                      <li>Profile settings and preferences</li>
-                    </ul>
-                    <br />
-                    <strong className="text-red-500">This action cannot be undone.</strong>
+                    <div>
+                      This will permanently delete all of your climbing data including:
+                      <ul className="list-disc pl-6 mt-2 space-y-1">
+                        <li>All climbing sessions and boulder problems</li>
+                        <li>Quest progress and achievements</li>
+                        <li>Skill levels and XP progress</li>
+                        <li>Workout history and sessions</li>
+                        <li>Profile settings and preferences</li>
+                      </ul>
+                      <br />
+                      <strong className="text-red-500">This action cannot be undone.</strong>
+                    </div>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -22,7 +22,7 @@ import {
   type InsertWorkoutSession,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, gte, lte, lt, sql } from "drizzle-orm";
+import { eq, desc, and, or, gte, lte, lt, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -1086,13 +1086,19 @@ export class DatabaseStorage implements IStorage {
   // Developer operations
   async resetUserData(userId: string): Promise<void> {
     // Delete all user data in the correct order (due to foreign key constraints)
+    
+    // Get all session IDs for this user first
+    const userSessions = await db.select({ id: climbingSessions.id })
+      .from(climbingSessions)
+      .where(eq(climbingSessions.userId, userId));
+    
+    const sessionIds = userSessions.map(session => session.id);
+    
     // Delete boulder problems first (they reference climbing sessions)
-    await db.delete(boulderProblems)
-      .where(eq(boulderProblems.sessionId, 
-        db.select({ id: climbingSessions.id })
-          .from(climbingSessions)
-          .where(eq(climbingSessions.userId, userId))
-      ));
+    if (sessionIds.length > 0) {
+      await db.delete(boulderProblems)
+        .where(inArray(boulderProblems.sessionId, sessionIds));
+    }
     
     // Delete climbing sessions
     await db.delete(climbingSessions)
