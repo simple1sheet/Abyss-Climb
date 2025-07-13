@@ -20,20 +20,37 @@ export default function ProgressPage() {
     enabled: !!user,
   });
 
+  const { data: skills } = useQuery({
+    queryKey: ["/api/skills"],
+    enabled: !!user,
+  });
+
   const { data: analysis } = useQuery({
     queryKey: ["/api/analysis/progress"],
     enabled: !!user,
   });
 
-  const getWhistleLevel = (whistleLevel: number) => {
-    const levels = {
-      1: { name: "Red Whistle", color: "bg-red-500" },
-      2: { name: "Blue Whistle", color: "bg-blue-500" },
-      3: { name: "Moon Whistle", color: "bg-purple-500" },
-      4: { name: "Black Whistle", color: "bg-gray-800" },
-      5: { name: "White Whistle", color: "bg-white" },
-    };
-    return levels[whistleLevel as keyof typeof levels] || levels[1];
+  // Grade-based whistle system
+  const getWhistleFromGrade = (highestGrade: string) => {
+    const gradeNum = parseInt(highestGrade.replace('V', '')) || 0;
+    
+    if (gradeNum >= 9) return { level: 5, name: "White Whistle", color: "text-white", title: "Legendary Delver" };
+    if (gradeNum >= 7) return { level: 4, name: "Black Whistle", color: "text-gray-800", title: "Expert Delver" };
+    if (gradeNum >= 5) return { level: 3, name: "Moon Whistle", color: "text-yellow-400", title: "Senior Delver" };
+    if (gradeNum >= 3) return { level: 2, name: "Blue Whistle", color: "text-blue-400", title: "Apprentice Delver" };
+    if (gradeNum >= 1) return { level: 1, name: "Red Whistle", color: "text-red-400", title: "Cave Raider" };
+    return { level: 0, name: "Bell Whistle", color: "text-gray-400", title: "Novice" };
+  };
+
+  const getNextWhistleGoal = (currentGrade: string) => {
+    const gradeNum = parseInt(currentGrade.replace('V', '')) || 0;
+    
+    if (gradeNum >= 9) return null; // Already at max
+    if (gradeNum >= 7) return { grade: "V9", whistle: "White Whistle" };
+    if (gradeNum >= 5) return { grade: "V7", whistle: "Black Whistle" };
+    if (gradeNum >= 3) return { grade: "V5", whistle: "Moon Whistle" };
+    if (gradeNum >= 1) return { grade: "V3", whistle: "Blue Whistle" };
+    return { grade: "V1", whistle: "Red Whistle" };
   };
 
   const getLayerName = (layer: number) => {
@@ -49,7 +66,20 @@ export default function ProgressPage() {
     return names[layer as keyof typeof names] || "Unknown Layer";
   };
 
-  const whistleInfo = getWhistleLevel(enhancedProgress?.whistleLevel || 1);
+  // Calculate highest grade from skills
+  const getHighestGrade = (): string => {
+    if (!skills || skills.length === 0) return "V0";
+    let highest = 0;
+    for (const skill of skills) {
+      const gradeNum = parseInt(skill.maxGrade?.replace('V', '') || '0');
+      if (gradeNum > highest) highest = gradeNum;
+    }
+    return `V${highest}`;
+  };
+
+  const highestGrade = getHighestGrade();
+  const whistleInfo = getWhistleFromGrade(highestGrade);
+  const nextGoal = getNextWhistleGoal(highestGrade);
   const currentLayer = user?.currentLayer || 1;
 
   const formatDate = (date: Date | string | undefined) => {
@@ -87,60 +117,53 @@ export default function ProgressPage() {
 
       {/* Main Content */}
       <div className="relative z-10 px-6 pb-24 space-y-6">
-        {/* Enhanced Whistle Level */}
+        {/* Grade-Based Whistle Level */}
         <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
           <CardHeader>
             <CardTitle className="text-abyss-ethereal flex items-center space-x-3">
               <div className="whistle-glow">
-                <Award className="text-2xl text-abyss-amber" />
+                <Award className={`text-2xl ${whistleInfo.color}`} />
               </div>
-              <span>{enhancedProgress?.whistleName || "Red Whistle"}</span>
+              <div>
+                <span>{whistleInfo.name}</span>
+                <div className="text-sm text-abyss-ethereal/70 font-normal">{whistleInfo.title}</div>
+              </div>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-abyss-ethereal/80">Level {enhancedProgress?.whistleLevel || 1}</span>
-              <span className="text-abyss-amber font-medium">{enhancedProgress?.currentXP || 0} XP</span>
-            </div>
-            <Progress value={Math.min(enhancedProgress?.whistleProgress || 0, 100)} className="h-3" />
-            <div className="flex justify-between text-xs text-abyss-ethereal/60">
-              <span>Current XP: {enhancedProgress?.currentXP || 0}</span>
-              <span>Next Level: {enhancedProgress?.nextLevelXP || 500} XP</span>
+              <span className="text-abyss-ethereal/80">🧗 Highest Grade Reached</span>
+              <span className="text-abyss-amber font-medium">
+                {gradeConverter.convertGrade(highestGrade, 'V-Scale', gradeSystem)}
+              </span>
             </div>
             
-            {/* XP Breakdown Tooltip */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="bg-abyss-dark/40 rounded-lg p-3 cursor-help">
-                    <div className="text-sm text-abyss-ethereal">
-                      <div className="flex justify-between">
-                        <span>Weekly XP:</span>
-                        <span className="text-abyss-amber">{enhancedProgress?.xpBreakdown.weeklyXP || 0}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Problems:</span>
-                        <span className="text-abyss-amber">{enhancedProgress?.xpBreakdown.problemsSolved || 0}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Avg Grade:</span>
-                        <span className="text-abyss-amber">
-                          {enhancedProgress?.xpBreakdown.averageGrade 
-                            ? gradeConverter.convertGrade(enhancedProgress.xpBreakdown.averageGrade, 'V-Scale', gradeSystem)
-                            : gradeConverter.convertGrade("V0", 'V-Scale', gradeSystem)
-                          }
-                        </span>
-                      </div>
-                    </div>
+            {nextGoal && (
+              <div className="bg-abyss-dark/40 rounded-lg p-3">
+                <div className="text-sm text-abyss-ethereal">
+                  <div className="flex items-center justify-between">
+                    <span>🎯 Next Goal:</span>
+                    <span className="text-abyss-amber font-medium">
+                      {gradeConverter.convertGrade(nextGoal.grade, 'V-Scale', gradeSystem)}
+                    </span>
                   </div>
-                </TooltipTrigger>
-                <TooltipContent className="bg-abyss-dark border-abyss-teal/30">
-                  <p className="text-abyss-ethereal">
-                    You gained {enhancedProgress?.xpBreakdown.weeklyXP || 0} XP from solving {enhancedProgress?.xpBreakdown.problemsSolved || 0} problems this week.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  <div className="text-xs text-abyss-ethereal/70 mt-1">
+                    Climb {gradeConverter.convertGrade(nextGoal.grade, 'V-Scale', gradeSystem)} to reach {nextGoal.whistle}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {!nextGoal && (
+              <div className="bg-abyss-dark/40 rounded-lg p-3">
+                <div className="text-sm text-abyss-ethereal text-center">
+                  <div className="text-abyss-amber font-medium">🏆 Maximum Whistle Achieved!</div>
+                  <div className="text-xs text-abyss-ethereal/70 mt-1">
+                    You've reached the legendary White Whistle status
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
