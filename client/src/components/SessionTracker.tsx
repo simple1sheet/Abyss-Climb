@@ -67,8 +67,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       attempts: number;
       notes?: string;
     }) => {
-      const response = await apiRequest("POST", "/api/problems", problemData);
-      return response.json();
+      return await apiRequest("POST", "/api/problems", problemData);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "problems"] });
