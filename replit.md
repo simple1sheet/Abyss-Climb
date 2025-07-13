@@ -85,6 +85,7 @@ Preferred communication style: Simple, everyday language.
 - **Decoupled Quest System**: Quest completion is entirely manual - no automatic progress tracking from session activities
 - **Dual Navigation System**: Both Progress (AI assistant) and Layers (overview) tabs available in bottom navigation
 - **Comprehensive Layer Overview**: Dedicated screen showing all 7 layers with completion status and XP requirements
+- **Combined Navigation**: Progress tab with AI analysis and Layers tab with overview both available in bottom navigation
 
 ### ✓ Enhanced Profile Experience (January 2025)
 - **Comprehensive Achievement System**: 20+ unique achievements across 4 categories (Explorer, Climber, Master, Special) with icons, descriptions, and XP rewards
