@@ -31,10 +31,13 @@ export class QuestController {
       const status = req.query.status as string;
       
       const quests = await storage.getUserQuests(userId, status);
-      sendResponse.success(res, quests);
+      
+      // Ensure we always return an array
+      const questArray = Array.isArray(quests) ? quests : [];
+      res.json(questArray);
     } catch (error) {
       console.error("Error fetching quests:", error);
-      throw new APIError("Failed to fetch quests", 500);
+      res.status(500).json({ message: "Failed to fetch quests", data: [] });
     }
   }
 

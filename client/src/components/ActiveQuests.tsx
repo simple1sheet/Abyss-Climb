@@ -4,21 +4,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, X, Plus, Clock, Target } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { CheckCircle, X, Plus, Clock, Target } from "lucide-react";
+import { Quest, toQuestArray } from "@/types/quest";
+import { useQuests, useQuestMutations } from "@/hooks/useQuests";
+import { gradeConverter } from "@/utils/gradeConverter";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
 
 function ActiveQuests() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { gradeSystem } = useGradeSystem();
   
-  const { data: quests, isLoading: isLoadingQuests } = useQuery({
-    queryKey: ["/api/quests?status=active"],
-    enabled: !!user,
-  });
+  // Use the robust quest hook with proper array handling
+  const { quests: activeQuests, isLoading: isLoadingQuests } = useQuests('active');
 
   const { data: dailyCount, isLoading: isLoadingDailyCount } = useQuery({
     queryKey: ["/api/quests/daily-count"],
@@ -30,83 +29,16 @@ function ActiveQuests() {
     enabled: !!user,
   });
 
-  const generateQuest = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", "/api/quests/generate", {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
-      toast({
-        title: "New Quest Generated!",
-        description: "A new quest has been added to your active quests.",
-      });
-    },
-    onError: (error: any) => {
-      if (error.response?.status === 400 && error.response?.data?.limitReached) {
-        toast({
-          title: "Daily Quest Limit Reached",
-          description: "You've reached your daily limit of 3 quests. Come back tomorrow!",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to generate quest. Try again later.",
-          variant: "destructive",
-        });
-      }
-    },
-  });
+  // Use the robust quest mutation hooks
+  const { generateQuest, completeQuest, discardQuest } = useQuestMutations();
 
-  const completeQuest = useMutation({
-    mutationFn: async (questId: number) => {
-      return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
-      toast({
-        title: "Quest Completed!",
-        description: "Quest completed successfully and removed from active quests.",
-      });
-    },
-    onError: (error: any) => {
-      if (error.response?.status === 400 && error.response?.data?.completionLimitReached) {
-        toast({
-          title: "Daily Completion Limit Reached",
-          description: "You can only complete 3 quests per day. Come back tomorrow!",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to complete quest. Try again later.",
-          variant: "destructive",
-        });
-      }
-    },
-  });
-
-  const discardQuest = useMutation({
-    mutationFn: async (questId: number) => {
-      return await apiRequest("POST", `/api/quests/${questId}/discard`, {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
-      toast({
-        title: "Quest Discarded",
-        description: "The quest has been removed from your active quests.",
-      });
-    },
-  });
+  // Helper function to convert grade mentions in quest descriptions
+  const convertGradesInText = (text: string): string => {
+    // Match V-scale grades in the format "V0", "V1", etc.
+    return text.replace(/V(\d+)/g, (match) => {
+      return gradeConverter.convertGrade(match, 'V-Scale', gradeSystem);
+    });
+  };
 
   const getLayerName = (layer: number): string => {
     const layerNames = {
@@ -204,13 +136,15 @@ function ActiveQuests() {
                   <Plus className="h-4 w-4" />
                 )}
               </Button>
-              <span className="text-sm text-abyss-amber">{getLayerName(user.currentLayer || 1)}</span>
-              <Target className="h-4 w-4 text-abyss-amber" />
+              <div className="flex items-center space-x-1">
+                <span className="text-sm text-abyss-amber">{getLayerName(user.currentLayer || 1)}</span>
+                <Target className="h-4 w-4 text-abyss-amber" />
+              </div>
             </div>
           </div>
           
           <div className="space-y-4">
-            {!quests || quests.length === 0 ? (
+            {!activeQuests || activeQuests.length === 0 ? (
               <div className="text-center py-8 text-abyss-ethereal/70">
                 <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p className="mb-2">No active quests</p>
@@ -221,7 +155,7 @@ function ActiveQuests() {
                 </p>
               </div>
             ) : (
-              quests.map((quest: any) => (
+              activeQuests.map((quest: Quest) => (
                 <div
                   key={quest.id}
                   className="bg-abyss-dark/40 border border-abyss-teal/20 rounded-lg p-4 relic-shimmer"
@@ -229,36 +163,21 @@ function ActiveQuests() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <h3 className="font-semibold text-abyss-ethereal mb-1">{quest.title}</h3>
-                      <p className="text-sm text-abyss-ethereal/80 mb-2">{quest.description}</p>
+                      <p className="text-sm text-abyss-ethereal/80 mb-2">{convertGradesInText(quest.description)}</p>
                       <div className="flex items-center space-x-2 mb-2">
                         <Badge className={getDifficultyColor(quest.difficulty)}>
                           {quest.difficulty}
                         </Badge>
+                        <span className="text-xs text-abyss-amber">{getLayerName(quest.layer)}</span>
                         <span className="text-xs text-abyss-amber">{quest.xpReward} XP</span>
-                        {quest.questType === "layer" && (
-                          <Badge className="bg-purple-500/20 text-purple-300">
-                            Layer Quest
-                          </Badge>
-                        )}
                         {quest.expiresAt && (
                           <span className="text-xs text-abyss-ethereal/60">
-                            <Clock className="h-3 w-3 inline mr-1" />
-                            {getTimeRemaining(quest.expiresAt)}
+                            {getTimeRemaining(quest.expiresAt.toString())}
                           </span>
                         )}
                       </div>
-                      <div className="mb-2">
-                        <div className="flex items-center justify-between text-xs text-abyss-ethereal/70 mb-1">
-                          <span>Progress</span>
-                          <span>{quest.progress || 0}/{quest.maxProgress}</span>
-                        </div>
-                        <Progress 
-                          value={((quest.progress || 0) / quest.maxProgress) * 100} 
-                          className="h-2 bg-abyss-dark/60"
-                        />
-                      </div>
                     </div>
-                    <div className="flex items-center space-x-2 ml-4">
+                    <div className="flex items-center space-x-2">
                       <Button
                         onClick={() => completeQuest.mutate(quest.id)}
                         disabled={completeQuest.isPending || (completionCount?.completionLimitReached)}
@@ -280,6 +199,16 @@ function ActiveQuests() {
                       </Button>
                     </div>
                   </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-abyss-ethereal/60">Progress</span>
+                      <span className="text-abyss-amber">{quest.progress}/{quest.maxProgress}</span>
+                    </div>
+                    <Progress 
+                      value={quest.maxProgress > 0 ? (quest.progress / quest.maxProgress) * 100 : 0} 
+                      className="h-2"
+                    />
+                  </div>
                 </div>
               ))
             )}
@@ -290,4 +219,4 @@ function ActiveQuests() {
   );
 }
 
-export default React.memo(ActiveQuests);
+export default ActiveQuests;
