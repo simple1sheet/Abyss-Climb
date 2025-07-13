@@ -529,7 +529,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      console.log('Upload request received for user:', userId);
+      console.log('Request file:', req.file);
+      console.log('Request body:', req.body);
+
       if (!req.file) {
+        console.error('No file found in request');
         return res.status(400).json({ message: "No file uploaded" });
       }
 

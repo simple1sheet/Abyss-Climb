@@ -35,11 +35,18 @@ export default function ProfilePictureUpload({
       const formData = new FormData();
       formData.append('profileImage', file);
       
-      const response = await apiRequest("POST", "/api/user/profile-image", formData, {
-        headers: {
-          // Don't set Content-Type header, let browser set it with boundary
-        }
+      // Use fetch directly for FormData uploads instead of apiRequest
+      const response = await fetch("/api/user/profile-image", {
+        method: "POST",
+        body: formData,
+        credentials: 'include' // Include cookies for authentication
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Upload failed');
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {
@@ -100,7 +107,12 @@ export default function ProfilePictureUpload({
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+
+    console.log('File selected:', file.name, file.type, file.size);
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -133,18 +145,30 @@ export default function ProfilePictureUpload({
       return;
     }
 
+    console.log('File validation passed, setting selected file');
     setSelectedFile(file);
 
     // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
+      console.log('Preview created');
       setPreviewUrl(e.target?.result as string);
     };
     reader.readAsDataURL(file);
   };
 
   const handleUpload = () => {
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      console.error('No file selected for upload');
+      toast({
+        title: "No File Selected",
+        description: "Please select a file before uploading.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log('Starting upload for file:', selectedFile.name, selectedFile.type, selectedFile.size);
     uploadMutation.mutate(selectedFile);
   };
 
@@ -237,14 +261,14 @@ export default function ProfilePictureUpload({
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-sm text-abyss-ethereal">Profile Picture</p>
-                <div className="flex space-x-2">
+                <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
                   <Button
                     onClick={() => fileInputRef.current?.click()}
                     variant="outline"
                     size="sm"
-                    className="border-abyss-amber/30 text-abyss-amber hover:bg-abyss-amber/10"
+                    className="border-abyss-amber/30 text-abyss-amber hover:bg-abyss-amber/10 flex-1 sm:flex-initial"
                     disabled={uploadMutation.isPending || removeMutation.isPending}
                   >
                     <Camera className="h-4 w-4 mr-2" />
@@ -256,7 +280,7 @@ export default function ProfilePictureUpload({
                       onClick={handleRemove}
                       variant="outline"
                       size="sm"
-                      className="border-red-500/30 text-red-500 hover:bg-red-500/10"
+                      className="border-red-500/30 text-red-500 hover:bg-red-500/10 hover:border-red-500/50 flex-1 sm:flex-initial"
                       disabled={uploadMutation.isPending || removeMutation.isPending}
                     >
                       {removeMutation.isPending ? (
