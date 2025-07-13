@@ -11,7 +11,7 @@ import SessionControls from "@/components/SessionControls";
 
 export default function Session() {
   const { user } = useAuth();
-  const { activeSession, createSessionMutation } = useSession();
+  const { activeSession, createSessionMutation, isLoadingSession } = useSession();
   
   const [sessionType, setSessionType] = useState<"indoor" | "outdoor" | "">("");
   const [location, setLocationValue] = useState("");
@@ -27,6 +27,18 @@ export default function Session() {
     setSessionType("");
     setLocationValue("");
   };
+
+  // Show loading state while checking for active session
+  if (isLoadingSession) {
+    return (
+      <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-abyss-amber mx-auto"></div>
+          <p className="text-abyss-ethereal/70 mt-2">Loading session...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -53,7 +65,12 @@ export default function Session() {
 
       {/* Main Content */}
       <div className="relative z-10 px-6 pb-24">
-        {!activeSession ? (
+        {activeSession ? (
+          <div className="space-y-6">
+            <SessionControls />
+            <SessionTracker sessionId={activeSession.id} />
+          </div>
+        ) : (
           <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 mb-6">
             <CardHeader>
               <CardTitle className="text-abyss-ethereal">Session Details</CardTitle>
@@ -91,11 +108,6 @@ export default function Session() {
               </Button>
             </CardContent>
           </Card>
-        ) : (
-          <div className="space-y-6">
-            <SessionControls />
-            <SessionTracker sessionId={activeSession.id} />
-          </div>
         )}
       </div>
     </div>

@@ -91,6 +91,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get active session (must come before /:id route)
+  app.get('/api/sessions/active', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const activeSession = await storage.getActiveSession(userId);
+      res.json(activeSession || null);
+    } catch (error) {
+      console.error("Error fetching active session:", error);
+      res.status(500).json({ message: "Failed to fetch active session" });
+    }
+  });
+
   app.get('/api/sessions/:id', isAuthenticated, async (req: any, res) => {
     try {
       const sessionId = parseInt(req.params.id);
@@ -212,18 +224,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching problems:", error);
       res.status(500).json({ message: "Failed to fetch problems" });
-    }
-  });
-
-  // Get active session
-  app.get('/api/sessions/active', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const activeSession = await storage.getActiveSession(userId);
-      res.json(activeSession || null);
-    } catch (error) {
-      console.error("Error fetching active session:", error);
-      res.status(500).json({ message: "Failed to fetch active session" });
     }
   });
 

@@ -47,20 +47,25 @@ export function useSession() {
       setLocation("/session");
     },
     onError: (error: any) => {
-      const errorData = error?.response?.data || error;
-      if (errorData.activeSession) {
-        toast({
-          title: "Active Session Found",
-          description: "You already have an active session. Resuming...",
-        });
-        setLocation("/session");
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to start session. Please try again.",
-          variant: "destructive",
-        });
+      console.error("Session creation error:", error);
+      let errorMessage = "Failed to start session. Please try again.";
+      
+      try {
+        const errorData = typeof error === 'string' ? JSON.parse(error) : error;
+        if (errorData.message && errorData.message.includes("active session")) {
+          errorMessage = "You already have an active session.";
+          // Force refresh the active session query
+          queryClient.invalidateQueries({ queryKey: ["/api/sessions/active"] });
+        }
+      } catch (e) {
+        // Keep default error message
       }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     },
   });
 
