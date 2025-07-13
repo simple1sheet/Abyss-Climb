@@ -41,6 +41,12 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
       return await apiRequest('POST', '/api/workouts/generate');
     },
     onSuccess: (data) => {
+      // Development-time check for missing workoutType
+      if (import.meta.env.DEV && !data.workoutType) {
+        console.error('Development Error: Generated workout missing workoutType:', data);
+        throw new Error('Generated workout is missing required workoutType field');
+      }
+      
       setGeneratedWorkout(data);
       toast({
         title: "Workout Generated!",
@@ -190,28 +196,28 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="p-2 bg-abyss-teal/20 rounded-lg">
-                      {getWorkoutIcon(generatedWorkout.workoutType)}
+                      {getWorkoutIcon(generatedWorkout.workoutType || 'combo')}
                     </div>
                     <div>
-                      <CardTitle className="text-abyss-ethereal">{generatedWorkout.title}</CardTitle>
-                      <p className={`text-sm font-medium ${getWorkoutTypeColor(generatedWorkout.workoutType)}`}>
-                        {generatedWorkout.workoutType.toUpperCase()} WORKOUT
+                      <CardTitle className="text-abyss-ethereal">{generatedWorkout.title || 'Personalized Workout'}</CardTitle>
+                      <p className={`text-sm font-medium ${getWorkoutTypeColor(generatedWorkout.workoutType || 'combo')}`}>
+                        {(generatedWorkout.workoutType || 'combo').toUpperCase()} WORKOUT
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Badge className={`${getIntensityColor(generatedWorkout.intensity)} text-white`}>
-                      {generatedWorkout.intensity.toUpperCase()}
+                    <Badge className={`${getIntensityColor(generatedWorkout.intensity || 'medium')} text-white`}>
+                      {(generatedWorkout.intensity || 'medium').toUpperCase()}
                     </Badge>
                     <Badge variant="outline" className="text-abyss-amber border-abyss-amber">
-                      {generatedWorkout.xpReward} XP
+                      {generatedWorkout.xpReward || 50} XP
                     </Badge>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <p className="text-abyss-muted">{generatedWorkout.description}</p>
+                  <p className="text-abyss-muted">{generatedWorkout.description || 'A customized workout based on your climbing profile.'}</p>
                   
                   {/* AI Recommendation */}
                   <div className="bg-abyss-dark/50 p-4 rounded-lg border border-abyss-teal/20">
@@ -219,7 +225,7 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
                       <Brain className="w-5 h-5 text-abyss-teal mt-0.5" />
                       <div>
                         <p className="text-sm font-medium text-abyss-ethereal">AI Recommendation</p>
-                        <p className="text-sm text-abyss-muted mt-1">{generatedWorkout.generationReason}</p>
+                        <p className="text-sm text-abyss-muted mt-1">{generatedWorkout.generationReason || 'Generated based on your climbing profile.'}</p>
                       </div>
                     </div>
                   </div>
@@ -228,11 +234,11 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-abyss-dark/50 p-3 rounded-lg">
                       <p className="text-sm text-abyss-muted">Duration</p>
-                      <p className="text-lg font-semibold text-abyss-ethereal">{generatedWorkout.duration} min</p>
+                      <p className="text-lg font-semibold text-abyss-ethereal">{generatedWorkout.duration || 20} min</p>
                     </div>
                     <div className="bg-abyss-dark/50 p-3 rounded-lg">
                       <p className="text-sm text-abyss-muted">Exercises</p>
-                      <p className="text-lg font-semibold text-abyss-ethereal">{generatedWorkout.exercises.length}</p>
+                      <p className="text-lg font-semibold text-abyss-ethereal">{generatedWorkout.exercises?.length || 0}</p>
                     </div>
                   </div>
 
@@ -240,7 +246,7 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
                   <div>
                     <p className="text-sm font-medium text-abyss-ethereal mb-2">Target Areas</p>
                     <div className="flex flex-wrap gap-2">
-                      {generatedWorkout.targetAreas.map((area, index) => (
+                      {(generatedWorkout.targetAreas || ['general']).map((area, index) => (
                         <Badge key={index} variant="outline" className="text-abyss-teal border-abyss-teal">
                           {area}
                         </Badge>
@@ -252,15 +258,15 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
                   <div>
                     <p className="text-sm font-medium text-abyss-ethereal mb-2">Exercises</p>
                     <div className="space-y-2">
-                      {generatedWorkout.exercises.slice(0, 3).map((exercise, index) => (
+                      {(generatedWorkout.exercises || []).slice(0, 3).map((exercise, index) => (
                         <div key={index} className="flex items-center justify-between p-2 bg-abyss-dark/50 rounded">
-                          <span className="text-sm text-abyss-ethereal">{exercise.name}</span>
-                          <span className="text-xs text-abyss-muted">{exercise.duration}</span>
+                          <span className="text-sm text-abyss-ethereal">{exercise.name || 'Exercise'}</span>
+                          <span className="text-xs text-abyss-muted">{exercise.duration || '1 min'}</span>
                         </div>
                       ))}
-                      {generatedWorkout.exercises.length > 3 && (
+                      {(generatedWorkout.exercises || []).length > 3 && (
                         <p className="text-xs text-abyss-muted text-center">
-                          +{generatedWorkout.exercises.length - 3} more exercises
+                          +{(generatedWorkout.exercises || []).length - 3} more exercises
                         </p>
                       )}
                     </div>

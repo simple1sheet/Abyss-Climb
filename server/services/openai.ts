@@ -256,8 +256,51 @@ export async function generateWorkout(
       response_format: { type: "json_object" },
     });
 
-    return JSON.parse(response.choices[0].message.content!);
+    const workoutData = JSON.parse(response.choices[0].message.content!);
+    
+    // Ensure workoutType is always present and valid
+    if (!workoutData.workoutType || !['stretching', 'meditation', 'strength', 'combo'].includes(workoutData.workoutType)) {
+      workoutData.workoutType = 'combo'; // Default fallback
+    }
+    
+    // Ensure other required fields have defaults
+    workoutData.title = workoutData.title || 'Personalized Workout';
+    workoutData.description = workoutData.description || 'A customized workout based on your climbing profile.';
+    workoutData.duration = workoutData.duration || 20;
+    workoutData.intensity = workoutData.intensity || 'medium';
+    workoutData.intensityRating = workoutData.intensityRating || 5;
+    workoutData.targetAreas = workoutData.targetAreas || ['general'];
+    workoutData.exercises = workoutData.exercises || [];
+    workoutData.xpReward = workoutData.xpReward || 50;
+    workoutData.generationReason = workoutData.generationReason || 'Generated based on your climbing profile.';
+    
+    return workoutData;
   } catch (error) {
-    throw new Error("Failed to generate workout: " + (error as Error).message);
+    // Return a fallback workout if OpenAI fails
+    return {
+      workoutType: 'combo',
+      title: 'Basic Climbing Workout',
+      description: 'A general workout routine for climbers.',
+      duration: 20,
+      intensity: 'medium',
+      intensityRating: 5,
+      targetAreas: ['general'],
+      exercises: [
+        {
+          name: 'Warm-up Stretches',
+          description: 'Light stretching to prepare for activity',
+          duration: '5 minutes',
+          targetArea: 'general'
+        },
+        {
+          name: 'Basic Strength Training',
+          description: 'Core and upper body exercises',
+          duration: '15 minutes',
+          targetArea: 'strength'
+        }
+      ],
+      xpReward: 50,
+      generationReason: 'Fallback workout generated due to service unavailability.'
+    };
   }
 }
