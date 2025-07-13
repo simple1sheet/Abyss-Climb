@@ -4,7 +4,7 @@
 
 Abyss Climber is a full-stack web application that gamifies rock climbing progress tracking. Built with a "Made in Abyss" anime theme, it allows users to log climbing sessions, track boulder problems, complete quests, and progress through different "layers" of difficulty. The app combines climbing data with RPG-style elements like experience points, achievements, and a whistle-based level system.
 
-**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Comprehensive multi-platform deployment capabilities with APK export via Capacitor for Android, developer tools for data management, and enhanced PWA support for mobile web experience - now provides complete native app functionality with one-click APK generation and development utilities.
+**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Comprehensive quest system overhaul with automatic generation, proper limits (3 daily, 3 weekly, 1 layer quest), substantial weekly challenges, and integrated UI navigation - now provides balanced quest progression with rate limiting and enhanced user experience.
 
 ## User Preferences
 
@@ -12,7 +12,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Multi-Platform Deployment & Developer Tools (Latest - January 2025)
+### ✓ Quest System Overhaul & Rate Limiting (Latest - January 2025)
+- **Fixed Quest Generation Logic**: Implemented proper rate limiting with 1-minute cooldown to prevent infinite quest generation
+- **Quest Count Enforcement**: Strict enforcement of 3 daily, 3 weekly, and 1 layer quest limits with robust filtering
+- **Enhanced Weekly Quest Templates**: 8 substantial weekly challenges requiring multiple sessions (15-25 problems each)
+- **Improved Quest UI Integration**: Added seamless navigation with back buttons and proper cache management (30s staleTime)
+- **Backend Quest Tracking**: Proper timestamp-based quest generation with cooldown mechanisms
+- **Quest Completion Optimization**: Fixed completion logic to handle all quest types with proper XP multipliers
+- **Database Connection Stability**: Improved error handling for database connection issues
+- **Cache Management**: Added query caching to prevent excessive API requests and improve performance
+
+### ✓ Multi-Platform Deployment & Developer Tools (January 2025)
 - **APK Export Capabilities**: Complete Capacitor integration for Android APK generation with automated build scripts
 - **Developer Reset Tools**: Development-only data reset functionality with secure user authentication and environment checks
 - **Enhanced PWA Support**: Progressive Web App manifest with native app shortcuts, theme colors, and mobile optimization

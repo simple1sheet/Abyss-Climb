@@ -14,48 +14,69 @@ import fs from "fs";
 import express from "express";
 import { log } from "./vite";
 
-// Auto-generate quests function
+// Rate limiting for quest generation
+const questGenerationCooldown = new Map<string, number>();
+
+// Auto-generate quests function with improved logic and rate limiting
 async function autoGenerateQuests(userId: string) {
   try {
+    const now = Date.now();
+    const lastGeneration = questGenerationCooldown.get(userId) || 0;
+    const cooldownPeriod = 60000; // 1 minute cooldown
+    
+    // Skip if cooldown period hasn't passed
+    if (now - lastGeneration < cooldownPeriod) {
+      return;
+    }
+    
+    questGenerationCooldown.set(userId, now);
+    
     const user = await storage.getUser(userId);
     if (!user) return;
     
-    const now = new Date();
-    
-    // Check and generate daily quests (up to 3)
+    // Check and generate daily quests (up to 3 active per day)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     const dailyQuests = await storage.getUserQuestsInDateRange(userId, today, tomorrow);
-    const activeDailyQuests = dailyQuests.filter(q => q.status === 'active' && q.questType === 'daily');
+    const activeDailyQuests = dailyQuests.filter(q => q.questType === 'daily' && (q.status === 'active' || q.status === 'completed'));
     
     const dailyQuestsToGenerate = Math.max(0, 3 - activeDailyQuests.length);
-    for (let i = 0; i < dailyQuestsToGenerate; i++) {
-      try {
-        await questGenerator.generateQuestForUser(userId, 'daily');
-      } catch (error) {
-        console.error(`Error generating daily quest ${i+1}:`, error);
+    if (dailyQuestsToGenerate > 0) {
+      console.log(`Generating ${dailyQuestsToGenerate} daily quests for user ${userId}`);
+      for (let i = 0; i < dailyQuestsToGenerate; i++) {
+        try {
+          await questGenerator.generateQuestForUser(userId, 'daily');
+        } catch (error) {
+          console.error(`Error generating daily quest ${i+1}:`, error);
+        }
       }
     }
     
-    // Check and generate weekly quests (up to 3)
+    // Check and generate weekly quests (up to 3 active per week)
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+    
     const weeklyQuests = await storage.getUserQuestsThisWeek(userId);
-    const activeWeeklyQuests = weeklyQuests.filter(q => q.status === 'active' && q.questType === 'weekly');
+    const activeWeeklyQuests = weeklyQuests.filter(q => q.questType === 'weekly' && (q.status === 'active' || q.status === 'completed'));
     
     const weeklyQuestsToGenerate = Math.max(0, 3 - activeWeeklyQuests.length);
-    for (let i = 0; i < weeklyQuestsToGenerate; i++) {
-      try {
-        await questGenerator.generateQuestForUser(userId, 'weekly');
-      } catch (error) {
-        console.error(`Error generating weekly quest ${i+1}:`, error);
+    if (weeklyQuestsToGenerate > 0) {
+      console.log(`Generating ${weeklyQuestsToGenerate} weekly quests for user ${userId}`);
+      for (let i = 0; i < weeklyQuestsToGenerate; i++) {
+        try {
+          await questGenerator.generateQuestForUser(userId, 'weekly');
+        } catch (error) {
+          console.error(`Error generating weekly quest ${i+1}:`, error);
+        }
       }
     }
     
     // Check and generate layer quest (only 1 per layer)
     const layerQuests = await storage.getUserQuests(userId, 'active', 'layer');
-    const progressInfo = await storage.getLayerProgressInfo(userId);
     
     if (layerQuests.length === 0) {
       try {

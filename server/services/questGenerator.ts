@@ -685,40 +685,52 @@ export class QuestGenerator {
   private async generateWeeklyQuest(userId: string, currentLayer: number, userSkills: any[]): Promise<void> {
     const weeklyTemplates = [
       {
-        title: "Weekly Endurance Challenge",
-        description: "Complete 15 boulder problems throughout the week",
+        title: "Weekly Volume Challenge",
+        description: "Complete 25 boulder problems throughout the week to build endurance and consistency",
         difficulty: "medium",
-        requirements: { type: "problems", count: 15, gradeRange: "comfort" }
+        requirements: { type: "problems", count: 25, gradeRange: "comfort" }
       },
       {
-        title: "Weekly Technique Focus",
-        description: "Master 8 problems using crimps and pinches",
-        difficulty: "medium",
-        requirements: { type: "problems", count: 8, style: "crimps_pinches", gradeRange: "comfort" }
-      },
-      {
-        title: "Weekly Strength Builder",
-        description: "Complete 12 overhang problems to build upper body strength",
+        title: "Weekly Technique Mastery",
+        description: "Master challenging holds by completing 15 problems using crimps, pinches, and slopers",
         difficulty: "hard",
-        requirements: { type: "problems", count: 12, wallAngle: "overhang", gradeRange: "comfort" }
+        requirements: { type: "problems", count: 15, style: "technical_holds", gradeRange: "comfort" }
       },
       {
-        title: "Weekly Variety Pack",
-        description: "Complete problems in 5 different climbing styles",
+        title: "Weekly Strength Development",
+        description: "Build power by completing 18 overhang problems across multiple sessions",
+        difficulty: "hard",
+        requirements: { type: "problems", count: 18, wallAngle: "overhang", gradeRange: "comfort" }
+      },
+      {
+        title: "Weekly Style Exploration",
+        description: "Expand your climbing vocabulary by completing problems in 6 different climbing styles",
         difficulty: "medium",
-        requirements: { type: "variety", count: 5, gradeRange: "comfort" }
+        requirements: { type: "variety", count: 6, gradeRange: "comfort" }
       },
       {
-        title: "Weekly Consistency Challenge",
-        description: "Complete at least 3 problems each day for 5 days",
+        title: "Weekly Session Consistency",
+        description: "Maintain consistency by completing at least 4 problems in each of 5 different sessions",
         difficulty: "easy",
-        requirements: { type: "consistency", count: 5, dailyMin: 3, gradeRange: "comfort" }
+        requirements: { type: "consistency", count: 5, dailyMin: 4, gradeRange: "comfort" }
       },
       {
-        title: "Weekly Grade Push",
-        description: "Push your limits by completing 6 problems at your challenge grade",
+        title: "Weekly Grade Progression",
+        description: "Push your limits by completing 12 problems at your challenge grade over multiple sessions",
         difficulty: "hard",
-        requirements: { type: "problems", count: 6, gradeRange: "challenge" }
+        requirements: { type: "problems", count: 12, gradeRange: "challenge" }
+      },
+      {
+        title: "Weekly Endurance Builder",
+        description: "Build stamina by completing 20 problems with less than 5 attempts each",
+        difficulty: "medium",
+        requirements: { type: "problems", count: 20, maxAttempts: 5, gradeRange: "comfort" }
+      },
+      {
+        title: "Weekly Mental Game",
+        description: "Develop focus by completing 10 problems after visualizing the sequence first",
+        difficulty: "medium",
+        requirements: { type: "visualization", count: 10, gradeRange: "comfort" }
       }
     ];
 

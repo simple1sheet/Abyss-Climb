@@ -44,23 +44,26 @@ export default function QuestTabs() {
     localStorage.setItem('questActiveTab', activeTab);
   }, [activeTab]);
 
-  // Fetch quests by type
+  // Fetch quests by type with staleTime to prevent excessive requests
   const { data: dailyQuests, isLoading: isLoadingDaily } = useQuery({
     queryKey: ["/api/quests", "daily"],
     queryFn: () => apiRequest("GET", "/api/quests?type=daily"),
     enabled: !!user,
+    staleTime: 30000, // Cache for 30 seconds
   });
 
   const { data: weeklyQuests, isLoading: isLoadingWeekly } = useQuery({
     queryKey: ["/api/quests", "weekly"],
     queryFn: () => apiRequest("GET", "/api/quests?type=weekly"),
     enabled: !!user,
+    staleTime: 30000,
   });
 
   const { data: layerQuests, isLoading: isLoadingLayer } = useQuery({
     queryKey: ["/api/quests", "layer"],
     queryFn: () => apiRequest("GET", "/api/quests?type=layer"),
     enabled: !!user,
+    staleTime: 30000,
   });
 
   // Quest completion limit checks
@@ -68,12 +71,14 @@ export default function QuestTabs() {
     queryKey: ["/api/quests/completion-count", "daily"],
     queryFn: () => apiRequest("GET", "/api/quests/completion-count?type=daily"),
     enabled: !!user,
+    staleTime: 30000,
   });
 
   const { data: weeklyCompletionData } = useQuery({
     queryKey: ["/api/quests/completion-count", "weekly"],
     queryFn: () => apiRequest("GET", "/api/quests/completion-count?type=weekly"),
     enabled: !!user,
+    staleTime: 30000,
   });
 
   const completeQuest = useMutation({
