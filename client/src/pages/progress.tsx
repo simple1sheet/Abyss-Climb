@@ -220,7 +220,13 @@ export default function ProgressPage() {
                 <div className="text-2xl font-bold text-abyss-amber">
                   🧗 {enhancedProgress?.enhancedStats.totalSessions || 0}
                 </div>
-                <div className="text-sm text-abyss-ethereal/70">Total Sessions</div>
+                <div className="text-sm text-abyss-ethereal/70">Climbing Sessions</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-abyss-amber">
+                  💪 {enhancedProgress?.enhancedStats.totalWorkouts || 0}
+                </div>
+                <div className="text-sm text-abyss-ethereal/70">Home Workouts</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-abyss-amber">
@@ -251,12 +257,6 @@ export default function ProgressPage() {
                   }
                 </div>
                 <div className="text-sm text-abyss-ethereal/70">Avg Grade (7d)</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-abyss-amber">
-                  🔁 {enhancedProgress?.enhancedStats.sessionConsistency || 0}
-                </div>
-                <div className="text-sm text-abyss-ethereal/70">Sessions/Week</div>
               </div>
             </div>
           </CardContent>

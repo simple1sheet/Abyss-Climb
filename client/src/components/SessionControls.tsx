@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
+import { useLocation } from "wouter";
 
 function SessionControls() {
   const { activeSession, formatDuration, pauseSessionMutation, endSessionMutation, resumeSessionMutation } = useSession();

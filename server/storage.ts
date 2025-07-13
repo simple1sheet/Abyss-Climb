@@ -113,6 +113,7 @@ export interface IStorage {
     enhancedStats: {
       totalSessions: number;
       totalProblems: number;
+      totalWorkouts: number;
       weeklyTime: number;
       bestGrade: string;
       averageGrade7d: string;
@@ -537,6 +538,7 @@ export class DatabaseStorage implements IStorage {
     highestGradeNumeric: number;
     firstAttemptSuccesses: number;
     skillCategoriesCompleted: number;
+    totalWorkouts: number;
     weeklyStats: {
       problems: number;
       xp: number;
@@ -548,11 +550,20 @@ export class DatabaseStorage implements IStorage {
       throw new Error("User not found");
     }
 
-    // Get total sessions
-    const totalSessions = await db
+    // Get total climbing sessions
+    const totalClimbingSessions = await db
       .select({ count: sql<number>`count(*)` })
       .from(climbingSessions)
       .where(eq(climbingSessions.userId, userId));
+
+    // Get total workout sessions
+    const totalWorkoutSessions = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(workoutSessions)
+      .where(eq(workoutSessions.userId, userId));
+
+    const totalSessions = totalClimbingSessions[0]?.count || 0;
+    const totalWorkouts = totalWorkoutSessions[0]?.count || 0;
 
     // Get total problems
     const totalProblems = await db
@@ -575,6 +586,16 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
+    const recentWorkouts = await db
+      .select()
+      .from(workoutSessions)
+      .where(
+        and(
+          eq(workoutSessions.userId, userId),
+          gte(workoutSessions.createdAt, weekAgo)
+        )
+      );
+
     const recentProblems = await db
       .select()
       .from(boulderProblems)
@@ -586,8 +607,10 @@ export class DatabaseStorage implements IStorage {
         )
       );
 
-    const weeklyTime = recentSessions.reduce((total, session) => total + (session.duration || 0), 0);
-    const weeklyXP = recentSessions.reduce((total, session) => total + (session.xpEarned || 0), 0);
+    const weeklyTime = recentSessions.reduce((total, session) => total + (session.duration || 0), 0) +
+                     recentWorkouts.reduce((total, workout) => total + (workout.duration || 0), 0);
+    const weeklyXP = recentSessions.reduce((total, session) => total + (session.xpEarned || 0), 0) +
+                    recentWorkouts.reduce((total, workout) => total + (workout.xpEarned || 0), 0);
 
     // Get completed quests count
     const completedQuests = await db
@@ -646,7 +669,7 @@ export class DatabaseStorage implements IStorage {
       .groupBy(skills.category);
 
     return {
-      totalSessions: totalSessions[0]?.count || 0,
+      totalSessions: totalSessions,
       totalProblems: totalProblems[0]?.count || 0,
       totalXP: user.totalXP || 0,
       bestGrade,
@@ -656,6 +679,7 @@ export class DatabaseStorage implements IStorage {
       highestGradeNumeric,
       firstAttemptSuccesses: firstAttemptSuccesses[0]?.count || 0,
       skillCategoriesCompleted: skillCategoriesCompleted.length,
+      totalWorkouts,
       weeklyStats: {
         problems: recentProblems.length,
         xp: weeklyXP,
@@ -921,6 +945,11 @@ export class DatabaseStorage implements IStorage {
       .from(climbingSessions)
       .where(eq(climbingSessions.userId, userId));
 
+    const allWorkouts = await db
+      .select()
+      .from(workoutSessions)
+      .where(eq(workoutSessions.userId, userId));
+
     const allProblems = [];
     for (const session of allSessions) {
       const problems = await this.getBoulderProblemsForSession(session.id);
@@ -1027,6 +1056,7 @@ export class DatabaseStorage implements IStorage {
       enhancedStats: {
         totalSessions: allSessions.length,
         totalProblems: allProblems.length,
+        totalWorkouts: allWorkouts.length,
         weeklyTime,
         bestGrade,
         averageGrade7d: averageGrade,

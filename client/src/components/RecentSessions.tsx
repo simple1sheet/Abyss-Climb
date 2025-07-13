@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Clock, MapPin, Target, Plus } from "lucide-react";
+import { Calendar, Clock, MapPin, Target, Plus, Mountain, Dumbbell } from "lucide-react";
 import { format } from "date-fns";
 import { useLocation } from "wouter";
 
@@ -13,6 +13,11 @@ export default function RecentSessions() {
   
   const { data: sessions } = useQuery({
     queryKey: ["/api/sessions"],
+    enabled: !!user,
+  });
+
+  const { data: workouts } = useQuery({
+    queryKey: ["/api/workouts"],
     enabled: !!user,
   });
 
@@ -52,6 +57,24 @@ export default function RecentSessions() {
     }
   };
 
+  const getWorkoutTypeColor = (type: string): string => {
+    switch (type) {
+      case "stretching": return "bg-green-500/20 text-green-300";
+      case "meditation": return "bg-purple-500/20 text-purple-300";
+      case "strength": return "bg-red-500/20 text-red-300";
+      case "combo": return "bg-yellow-500/20 text-yellow-300";
+      default: return "bg-gray-500/20 text-gray-300";
+    }
+  };
+
+  // Combine and sort sessions and workouts by date
+  const allSessions = [
+    ...(sessions || []).map(session => ({ ...session, type: 'climbing' })),
+    ...(workouts || []).map(workout => ({ ...workout, type: 'workout' }))
+  ]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
+
   return (
     <section className="px-6 mb-8 relative z-10">
       <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
@@ -69,10 +92,10 @@ export default function RecentSessions() {
           </div>
           
           <div className="space-y-4">
-            {!sessions || sessions.length === 0 ? (
+            {allSessions.length === 0 ? (
               <div className="text-center py-8 text-abyss-ethereal/70">
                 <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="mb-2">No climbing sessions yet</p>
+                <p className="mb-2">No sessions yet</p>
                 <p className="text-sm">Start your first session to begin tracking your progress!</p>
                 <Button
                   onClick={() => navigate("/session")}
@@ -83,32 +106,49 @@ export default function RecentSessions() {
                 </Button>
               </div>
             ) : (
-              sessions.slice(0, 5).map((session: any) => (
+              allSessions.map((session: any) => (
                 <div
-                  key={session.id}
+                  key={`${session.type}-${session.id}`}
                   className="bg-abyss-dark/40 border border-abyss-teal/20 rounded-lg p-4 relic-shimmer hover:border-abyss-teal/40 transition-colors cursor-pointer"
-                  onClick={() => navigate(`/session/${session.id}`)}
+                  onClick={() => {
+                    if (session.type === 'climbing') {
+                      navigate(`/session/${session.id}`);
+                    } else {
+                      navigate(`/workout`);
+                    }
+                  }}
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <Badge className={getSessionTypeColor(session.sessionType)}>
-                          {session.sessionType}
+                        {session.type === 'climbing' ? (
+                          <Mountain className="h-4 w-4 text-abyss-teal" />
+                        ) : (
+                          <Dumbbell className="h-4 w-4 text-abyss-amber" />
+                        )}
+                        <Badge className={session.type === 'climbing' 
+                          ? getSessionTypeColor(session.sessionType)
+                          : getWorkoutTypeColor(session.workoutType)}>
+                          {session.type === 'climbing' ? session.sessionType : session.workoutType}
                         </Badge>
                         <span className="text-sm text-abyss-ethereal">
-                          {format(new Date(session.startTime), "MMM dd, yyyy")}
+                          {format(new Date(session.createdAt), "MMM dd, yyyy")}
                         </span>
                       </div>
                       <div className="flex items-center space-x-4 text-sm text-abyss-ethereal/70">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-4 w-4" />
-                          <span>{format(new Date(session.startTime), "h:mm a")}</span>
+                          <span>{format(new Date(session.createdAt), "h:mm a")}</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <Clock className="h-4 w-4" />
-                          <span>{getSessionDuration(session.startTime, session.endTime)}</span>
+                          <span>
+                            {session.type === 'climbing' 
+                              ? getSessionDuration(session.startTime, session.endTime)
+                              : `${session.duration}m`}
+                          </span>
                         </div>
-                        {session.location && (
+                        {session.type === 'climbing' && session.location && (
                           <div className="flex items-center space-x-1">
                             <MapPin className="h-4 w-4" />
                             <span>{session.location}</span>
@@ -121,7 +161,9 @@ export default function RecentSessions() {
                         {session.xpEarned || 0} XP
                       </div>
                       <div className="text-sm text-abyss-ethereal/60">
-                        {session.endTime ? "Completed" : "In Progress"}
+                        {session.type === 'climbing' 
+                          ? (session.endTime ? "Completed" : "In Progress")
+                          : (session.completed ? "Completed" : "In Progress")}
                       </div>
                     </div>
                   </div>
