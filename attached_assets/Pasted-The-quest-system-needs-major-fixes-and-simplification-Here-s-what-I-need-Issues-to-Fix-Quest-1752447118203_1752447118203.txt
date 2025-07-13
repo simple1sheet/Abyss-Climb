@@ -1,0 +1,90 @@
+The quest system needs major fixes and simplification. Here's what I need:
+
+❗ Issues to Fix
+🧭 Quest Tab Isolated / Can't Navigate Back
+
+Once I click into the quest system (tabs), I can’t return to other parts of the app
+
+Fix the routing or component logic so users can freely enter and leave the quest screen
+
+Ensure the quest tab doesn’t trap the user — it should behave like any other page or panel
+
+🚫 Weekly & Layer Quests Can’t Be Completed
+
+Completing a weekly or layer quest does nothing — no XP is awarded, and the UI doesn’t update
+
+Fix this:
+
+Make the ✅ button for weekly/layer quests actually mark them as completed
+
+Update XP correctly based on difficulty
+
+Remove the quest from view after completion
+
+🧩 Layer Quest Rules
+
+You should only have 1 Layer Quest per layer
+
+Automatically assign a new Layer Quest when the user enters a new layer (no button needed)
+
+Prevent duplicates for the same layer
+
+Layer Quests should be long and hard — balanced with XP (see below)
+
+⚙️ Automatic Daily & Weekly Quests
+
+Daily and Weekly quests should be:
+
+Automatically generated each day/week
+
+Up to 3 each (no more, no less)
+
+No need for “Generate Quest” or “Completed Quest” UI anymore
+
+Reset times:
+
+Daily: resets at midnight
+
+Weekly: resets every Monday at 00:00
+
+Store timestamp of generation in the backend to prevent double resets
+
+📈 XP Balance & Difficulty Tags
+
+Bring back the difficulty tags and XP scaling system:
+
+Difficulty	Tag	Base XP
+Easy	🟢 easy	80 XP
+Medium	🟡 medium	120 XP
+Hard	🟠 hard	180 XP
+Extreme	🔴 extreme	250 XP
+
+Weekly XP = baseXP × 1.5
+
+Layer XP = baseXP × (1.5 + layerIndex × 0.3)
+
+Show the tag and final XP reward visibly on each quest
+
+✅ Quest Completion Behavior
+
+When a quest is completed:
+
+Mark it as completed in the backend
+
+Update the XP immediately
+
+Remove the quest card from the UI
+
+Optionally show a short animation or feedback
+
+✅ Final Goals
+Tabs work fluidly (can leave quest view)
+
+Quest types behave correctly
+
+Difficulty and XP are properly balanced
+
+No manual quest generation — the system handles it daily/weekly
+
+UI is clean, readable, and automatically updates on actions
+

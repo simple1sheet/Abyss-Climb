@@ -14,6 +14,62 @@ import fs from "fs";
 import express from "express";
 import { log } from "./vite";
 
+// Auto-generate quests function
+async function autoGenerateQuests(userId: string) {
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) return;
+    
+    const now = new Date();
+    
+    // Check and generate daily quests (up to 3)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    const dailyQuests = await storage.getUserQuestsInDateRange(userId, today, tomorrow);
+    const activeDailyQuests = dailyQuests.filter(q => q.status === 'active' && q.questType === 'daily');
+    
+    const dailyQuestsToGenerate = Math.max(0, 3 - activeDailyQuests.length);
+    for (let i = 0; i < dailyQuestsToGenerate; i++) {
+      try {
+        await questGenerator.generateQuestForUser(userId, 'daily');
+      } catch (error) {
+        console.error(`Error generating daily quest ${i+1}:`, error);
+      }
+    }
+    
+    // Check and generate weekly quests (up to 3)
+    const weeklyQuests = await storage.getUserQuestsThisWeek(userId);
+    const activeWeeklyQuests = weeklyQuests.filter(q => q.status === 'active' && q.questType === 'weekly');
+    
+    const weeklyQuestsToGenerate = Math.max(0, 3 - activeWeeklyQuests.length);
+    for (let i = 0; i < weeklyQuestsToGenerate; i++) {
+      try {
+        await questGenerator.generateQuestForUser(userId, 'weekly');
+      } catch (error) {
+        console.error(`Error generating weekly quest ${i+1}:`, error);
+      }
+    }
+    
+    // Check and generate layer quest (only 1 per layer)
+    const layerQuests = await storage.getUserQuests(userId, 'active', 'layer');
+    const progressInfo = await storage.getLayerProgressInfo(userId);
+    
+    if (layerQuests.length === 0) {
+      try {
+        await questGenerator.generateQuestForUser(userId, 'layer');
+      } catch (error) {
+        console.error("Error generating layer quest:", error);
+      }
+    }
+    
+  } catch (error) {
+    console.error("Error in autoGenerateQuests:", error);
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -406,6 +462,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const status = req.query.status as string | undefined;
       const type = req.query.type as string | undefined;
+      
+      // Auto-generate quests if needed
+      await autoGenerateQuests(userId);
+      
       const quests = await storage.getUserQuests(userId, status, type);
       res.json(quests);
     } catch (error) {
@@ -528,41 +588,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const questId = parseInt(req.params.id);
       const userId = req.user.claims.sub;
       
-      // Check daily completion limit (3 per day)
-      const completedToday = await storage.getUserCompletedQuestsToday(userId);
-      if (completedToday.length >= 3) {
-        return res.status(400).json({ 
-          message: "Daily completion limit reached. You can only complete 3 quests per day!",
-          completionLimitReached: true,
-          questCount: completedToday.length
-        });
+      // Get the quest first to check its type and calculate XP
+      const quest = await storage.getUserQuests(userId).then(quests => 
+        quests.find(q => q.id === questId)
+      );
+      
+      if (!quest) {
+        return res.status(404).json({ message: "Quest not found" });
       }
       
-      const quest = await storage.updateQuest(questId, {
+      if (quest.status !== 'active') {
+        return res.status(400).json({ message: "Quest is not active" });
+      }
+      
+      // Check completion limits based on quest type
+      if (quest.questType === 'daily') {
+        const completedToday = await storage.getUserCompletedQuestsToday(userId);
+        if (completedToday.length >= 3) {
+          return res.status(400).json({ 
+            message: "Daily completion limit reached. You can only complete 3 quests per day!",
+            completionLimitReached: true,
+            questCount: completedToday.length
+          });
+        }
+      } else if (quest.questType === 'weekly') {
+        const completedThisWeek = await storage.getUserCompletedQuestsThisWeek(userId);
+        if (completedThisWeek.length >= 3) {
+          return res.status(400).json({ 
+            message: "Weekly completion limit reached. You can only complete 3 quests per week!",
+            completionLimitReached: true,
+            questCount: completedThisWeek.length
+          });
+        }
+      }
+      
+      // Calculate XP based on difficulty and quest type
+      const getDifficultyXP = (difficulty: string) => {
+        switch (difficulty) {
+          case 'easy': return 80;
+          case 'medium': return 120;
+          case 'hard': return 180;
+          case 'extreme': return 250;
+          default: return 120;
+        }
+      };
+      
+      let finalXP = getDifficultyXP(quest.difficulty);
+      
+      // Apply quest type multipliers
+      if (quest.questType === 'weekly') {
+        finalXP = Math.round(finalXP * 1.5);
+      } else if (quest.questType === 'layer') {
+        finalXP = Math.round(finalXP * (1.5 + (quest.layerIndex || 0) * 0.3));
+      }
+      
+      // Update quest with completion
+      const completedQuest = await storage.updateQuest(questId, {
         status: "completed",
         completedAt: new Date(),
+        xpReward: finalXP
       });
       
       // Award XP to user and check for layer advancement
       const user = await storage.getUser(userId);
       if (user) {
-        const newTotalXP = (user.totalXP || 0) + quest.xpReward;
+        const newTotalXP = (user.totalXP || 0) + finalXP;
         const updatedUser = await storage.upsertUser({
           ...user,
           totalXP: newTotalXP,
         });
         
+        console.log(`Quest completed! User ${userId} earned ${finalXP} XP. Total XP: ${newTotalXP}`);
+        
         // Check if user advanced to next layer
         const progressInfo = await storage.getLayerProgressInfo(userId);
         if (progressInfo.currentLayer > (user.currentLayer || 1)) {
           console.log(`User ${userId} advanced to layer ${progressInfo.currentLayer}!`);
+          
+          // Generate new layer quest if user advanced
+          try {
+            await questGenerator.generateQuestForUser(userId, 'layer');
+          } catch (error) {
+            console.error("Error generating layer quest:", error);
+          }
         }
         
         // Check for achievements after quest completion
         await achievementService.checkAndUnlockAchievements(userId);
       }
       
-      res.json(quest);
+      res.json(completedQuest);
     } catch (error) {
       console.error("Error completing quest:", error);
       res.status(500).json({ message: "Failed to complete quest" });

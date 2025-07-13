@@ -29,14 +29,14 @@ export class QuestGenerator {
         title: "Crimp Master",
         description: "Focus on crimp holds by completing 4 problems with primarily crimp holds",
         difficulty: "medium",
-        xpReward: 80,
+        xpReward: 120,
         requirements: { type: "problems", count: 4, style: "crimps", gradeRange: "comfort" }
       },
       {
         title: "Sloper Specialist",
         description: "Master sloper holds by completing 3 problems with primarily sloper holds",
         difficulty: "hard",
-        xpReward: 115,
+        xpReward: 180,
         requirements: { type: "problems", count: 3, style: "slopers", gradeRange: "comfort" }
       },
       {
@@ -460,11 +460,22 @@ export class QuestGenerator {
     // Adapt the template to user's skill level
     const adaptedQuest = this.adaptQuestToUser(selectedTemplate, currentLayer, userSkills);
 
-    const baseXP = 100;
+    // Calculate XP based on difficulty
+    const getDifficultyXP = (difficulty: string): number => {
+      switch (difficulty.toLowerCase()) {
+        case 'easy': return 80;
+        case 'medium': return 120;
+        case 'hard': return 180;
+        case 'extreme': return 250;
+        default: return 120;
+      }
+    };
+
+    const finalXP = getDifficultyXP(adaptedQuest.difficulty);
+    const baseXP = finalXP;
     const averageSkillGrade = this.calculateAverageSkillGrade(userSkills);
     const requiredGrade = this.parseGradeRequirement(adaptedQuest.requirements);
     const gradeDiff = Math.max(0, requiredGrade - averageSkillGrade);
-    const finalXP = Math.round(baseXP * (1 + gradeDiff * 0.3));
 
     const quest: InsertQuest = {
       userId,
@@ -657,7 +668,7 @@ export class QuestGenerator {
       description: "Complete 3 boulder problems to earn experience",
       questType: "daily",
       status: "active",
-      xpReward: 100,
+      xpReward: 120, // Medium difficulty XP
       maxProgress: 3,
       progress: 0,
       layer,
@@ -696,17 +707,40 @@ export class QuestGenerator {
         description: "Complete problems in 5 different climbing styles",
         difficulty: "medium",
         requirements: { type: "variety", count: 5, gradeRange: "comfort" }
+      },
+      {
+        title: "Weekly Consistency Challenge",
+        description: "Complete at least 3 problems each day for 5 days",
+        difficulty: "easy",
+        requirements: { type: "consistency", count: 5, dailyMin: 3, gradeRange: "comfort" }
+      },
+      {
+        title: "Weekly Grade Push",
+        description: "Push your limits by completing 6 problems at your challenge grade",
+        difficulty: "hard",
+        requirements: { type: "problems", count: 6, gradeRange: "challenge" }
       }
     ];
 
     const template = weeklyTemplates[Math.floor(Math.random() * weeklyTemplates.length)];
     const adaptedQuest = this.adaptQuestToUser(template, currentLayer, userSkills);
 
-    const baseXP = 300;
+    // Calculate XP based on difficulty with weekly multiplier
+    const getDifficultyXP = (difficulty: string): number => {
+      switch (difficulty.toLowerCase()) {
+        case 'easy': return 80;
+        case 'medium': return 120;
+        case 'hard': return 180;
+        case 'extreme': return 250;
+        default: return 120;
+      }
+    };
+
+    const baseXP = getDifficultyXP(adaptedQuest.difficulty);
+    const finalXP = Math.round(baseXP * 1.5); // Weekly multiplier
     const averageSkillGrade = this.calculateAverageSkillGrade(userSkills);
     const requiredGrade = this.parseGradeRequirement(adaptedQuest.requirements);
     const gradeDiff = Math.max(0, requiredGrade - averageSkillGrade);
-    const finalXP = Math.round(baseXP * (1 + gradeDiff * 0.4));
 
     const now = new Date();
     const startOfWeek = new Date(now);
@@ -759,17 +793,35 @@ export class QuestGenerator {
         description: `Build strength by completing 25 problems with fewer than 5 attempts each`,
         difficulty: "extreme",
         requirements: { type: "problems", count: 25, maxAttempts: 5, gradeRange: "challenge" }
+      },
+      {
+        title: `Layer ${currentLayer} Progression`,
+        description: `Push beyond your limits by completing 10 problems at your maximum grade`,
+        difficulty: "extreme",
+        requirements: { type: "problems", count: 10, gradeRange: "challenge" }
       }
     ];
 
     const template = layerTemplates[Math.floor(Math.random() * layerTemplates.length)];
     const adaptedQuest = this.adaptQuestToUser(template, currentLayer, userSkills);
 
-    const baseXP = 1000;
+    // Calculate XP based on difficulty with layer multiplier
+    const getDifficultyXP = (difficulty: string): number => {
+      switch (difficulty.toLowerCase()) {
+        case 'easy': return 80;
+        case 'medium': return 120;
+        case 'hard': return 180;
+        case 'extreme': return 250;
+        default: return 120;
+      }
+    };
+
+    const baseXP = getDifficultyXP(adaptedQuest.difficulty);
+    const layerMultiplier = 1.5 + (currentLayer - 1) * 0.3;
+    const finalXP = Math.round(baseXP * layerMultiplier); // Layer multiplier
     const averageSkillGrade = this.calculateAverageSkillGrade(userSkills);
     const requiredGrade = this.parseGradeRequirement(adaptedQuest.requirements);
     const gradeDiff = Math.max(0, requiredGrade - averageSkillGrade);
-    const finalXP = Math.round(baseXP * (1 + (currentLayer - 1) * 0.5 + gradeDiff * 0.5));
 
     const quest: InsertQuest = {
       userId,

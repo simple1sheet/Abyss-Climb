@@ -305,8 +305,6 @@ export default function QuestTabs() {
     const activeQuests = quests?.filter(q => q.status === 'active') || [];
     const completionLimitReached = completionData?.completionLimitReached || false;
     const canComplete = !completionLimitReached;
-    const maxQuests = questType === 'layer' ? 1 : 3;
-    const canGenerate = activeQuests.length < maxQuests;
 
     if (activeQuests.length === 0) {
       return (
@@ -314,17 +312,12 @@ export default function QuestTabs() {
           <div className="text-abyss-ethereal/70 mb-4">
             <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
             <p>No active {questType} quests</p>
+            <p className="text-sm mt-2 opacity-60">
+              {questType === 'daily' && 'Check back tomorrow for new daily quests'}
+              {questType === 'weekly' && 'Check back Monday for new weekly quests'}
+              {questType === 'layer' && 'Layer quests are automatically generated'}
+            </p>
           </div>
-          {canGenerate && (
-            <Button
-              onClick={() => generateQuest.mutate(questType)}
-              disabled={generateQuest.isPending}
-              className="bg-abyss-purple hover:bg-abyss-purple/80 text-abyss-ethereal"
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              Generate {questType.charAt(0).toUpperCase() + questType.slice(1)} Quest
-            </Button>
-          )}
         </div>
       );
     }
@@ -332,22 +325,6 @@ export default function QuestTabs() {
     return (
       <div className="space-y-4">
         {activeQuests.map(quest => renderQuestCard(quest, canComplete))}
-        
-        {canGenerate && (
-          <Card className="bg-abyss-dark/40 border-abyss-teal/10 border-dashed">
-            <CardContent className="p-4 text-center">
-              <Button
-                onClick={() => generateQuest.mutate(questType)}
-                disabled={generateQuest.isPending}
-                variant="outline"
-                className="border-abyss-teal/30 text-abyss-teal hover:bg-abyss-teal/10"
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                Generate New {questType.charAt(0).toUpperCase() + questType.slice(1)} Quest
-              </Button>
-            </CardContent>
-          </Card>
-        )}
       </div>
     );
   };
