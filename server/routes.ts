@@ -285,8 +285,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update skill progression if the problem has a style and was completed
       if (problem.style && problem.completed) {
-        const category = gradeConverter.getSkillCategoryForStyle(problem.style);
-        await storage.upsertUserSkill(userId, problem.style, problem.grade, category);
+        const categoryInfo = gradeConverter.getSkillCategoryForStyle(problem.style);
+        await storage.upsertUserSkill(userId, problem.style, problem.grade, categoryInfo.mainCategory, categoryInfo.subCategory);
       }
       
       // Update session XP if problem was completed
@@ -551,6 +551,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching skills:", error);
       res.status(500).json({ message: "Failed to fetch skills" });
+    }
+  });
+
+  app.post('/api/skills/initialize', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.initializeUserSkillTree(userId);
+      res.json({ message: "Skill tree initialized successfully" });
+    } catch (error) {
+      console.error("Error initializing skill tree:", error);
+      res.status(500).json({ message: "Failed to initialize skill tree" });
     }
   });
 

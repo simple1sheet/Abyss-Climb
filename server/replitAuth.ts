@@ -63,7 +63,7 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
-  await storage.upsertUser({
+  const user = await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
@@ -71,22 +71,10 @@ async function upsertUser(
     profileImageUrl: claims["profile_image_url"],
   });
   
-  // Initialize skills for new users
-  const existingSkills = await storage.getUserSkills(claims["sub"]);
-  if (existingSkills.length === 0) {
-    const defaultSkills = [
-      { userId: claims["sub"], skillType: 'crimps', category: 'Technique', maxGrade: 'V0', totalProblems: 0 },
-      { userId: claims["sub"], skillType: 'dynos', category: 'Movement', maxGrade: 'V0', totalProblems: 0 },
-      { userId: claims["sub"], skillType: 'slopers', category: 'Technique', maxGrade: 'V0', totalProblems: 0 },
-      { userId: claims["sub"], skillType: 'overhangs', category: 'Strength', maxGrade: 'V0', totalProblems: 0 },
-      { userId: claims["sub"], skillType: 'slabs', category: 'Balance', maxGrade: 'V0', totalProblems: 0 },
-      { userId: claims["sub"], skillType: 'pinches', category: 'Strength', maxGrade: 'V0', totalProblems: 0 },
-    ];
-    
-    for (const skill of defaultSkills) {
-      await storage.createSkill(skill);
-    }
-  }
+  // Initialize skill tree for new users
+  await storage.initializeUserSkillTree(user.id);
+  
+  return user;
 }
 
 export async function setupAuth(app: Express) {

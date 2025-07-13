@@ -134,43 +134,45 @@ export class GradeConverter {
     return whistleNames[level as keyof typeof whistleNames] || "Unknown";
   }
 
-  getSkillCategoryForStyle(style: string): string {
-    // Map climbing styles to 4 main categories
-    const categoryMapping = {
-      // Movement category
-      'dynos': 'Movement',
-      'mantling': 'Movement',
-      'stemming': 'Movement',
-      'flagging': 'Movement',
-      'heel_hooks': 'Movement',
-      'toe_hooks': 'Movement',
-      
-      // Technique category
-      'crimps': 'Technique',
-      'pinches': 'Technique',
-      'slopers': 'Technique',
-      'jugs': 'Technique',
-      'pockets': 'Technique',
-      'underclings': 'Technique',
-      'gaston': 'Technique',
-      
-      // Strength category
-      'overhangs': 'Strength',
-      'roofs': 'Strength',
-      'campus': 'Strength',
-      'lockoffs': 'Strength',
-      'core': 'Strength',
-      
-      // Mind category
-      'balance': 'Mind',
-      'slabs': 'Mind',
-      'reading': 'Mind',
-      'sequencing': 'Mind',
-      'risk_management': 'Mind',
-      'mental_game': 'Mind'
+  getSkillCategoryForStyle(style: string): { mainCategory: string; subCategory: string } {
+    const styleMap = {
+      'overhangs': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'slabs': { mainCategory: 'movement', subCategory: 'balance' },
+      'technical': { mainCategory: 'technical', subCategory: 'technique_refinement' },
+      'dynos': { mainCategory: 'movement', subCategory: 'dynamic' },
+      'crimps': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'slopers': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'pinches': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'jugs': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'pockets': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'heel_hooks': { mainCategory: 'movement', subCategory: 'coordination' },
+      'toe_hooks': { mainCategory: 'movement', subCategory: 'coordination' },
+      'mantles': { mainCategory: 'movement', subCategory: 'balance' },
+      'flagging': { mainCategory: 'movement', subCategory: 'coordination' },
+      'stemming': { mainCategory: 'movement', subCategory: 'coordination' },
+      'compression': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'balance': { mainCategory: 'movement', subCategory: 'balance' },
+      'endurance': { mainCategory: 'endurance', subCategory: 'power_endurance' },
+      'coordination': { mainCategory: 'movement', subCategory: 'coordination' },
+      'flexibility': { mainCategory: 'movement', subCategory: 'flexibility' },
+      'power': { mainCategory: 'strength', subCategory: 'upper_body' },
+      'route_reading': { mainCategory: 'technical', subCategory: 'route_reading' },
+      'confidence': { mainCategory: 'mental', subCategory: 'confidence' },
+      'footwork': { mainCategory: 'movement', subCategory: 'footwork' },
+      'mantling': { mainCategory: 'movement', subCategory: 'balance' },
+      'roofs': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'campus': { mainCategory: 'strength', subCategory: 'contact_strength' },
+      'lockoffs': { mainCategory: 'strength', subCategory: 'upper_body' },
+      'core': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'reading': { mainCategory: 'technical', subCategory: 'route_reading' },
+      'sequencing': { mainCategory: 'technical', subCategory: 'route_reading' },
+      'risk_management': { mainCategory: 'mental', subCategory: 'fear_management' },
+      'mental_game': { mainCategory: 'mental', subCategory: 'confidence' },
+      'underclings': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'gaston': { mainCategory: 'strength', subCategory: 'finger_strength' }
     };
     
-    return categoryMapping[style as keyof typeof categoryMapping] || 'Technique';
+    return styleMap[style as keyof typeof styleMap] || { mainCategory: 'technical', subCategory: 'technique_refinement' };
   }
 }
 

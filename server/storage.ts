@@ -55,7 +55,8 @@ export interface IStorage {
   createSkill(skill: InsertSkill): Promise<Skill>;
   getUserSkills(userId: string): Promise<Skill[]>;
   updateSkill(id: number, updates: Partial<Skill>): Promise<Skill>;
-  upsertUserSkill(userId: string, skillType: string, grade: string, category: string): Promise<Skill>;
+  upsertUserSkill(userId: string, skillType: string, grade: string, mainCategory: string, subCategory: string): Promise<Skill>;
+  initializeUserSkillTree(userId: string): Promise<void>;
   
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
@@ -428,12 +429,17 @@ export class DatabaseStorage implements IStorage {
     return updatedSkill;
   }
 
-  async upsertUserSkill(userId: string, skillType: string, grade: string, category: string): Promise<Skill> {
+  async upsertUserSkill(userId: string, skillType: string, grade: string, mainCategory: string, subCategory: string): Promise<Skill> {
     // Check if skill exists
     const existingSkill = await db
       .select()
       .from(skills)
-      .where(and(eq(skills.userId, userId), eq(skills.skillType, skillType)))
+      .where(and(
+        eq(skills.userId, userId), 
+        eq(skills.skillType, skillType),
+        eq(skills.mainCategory, mainCategory),
+        eq(skills.subCategory, subCategory)
+      ))
       .limit(1);
 
     if (existingSkill.length > 0) {
@@ -441,6 +447,7 @@ export class DatabaseStorage implements IStorage {
       const skill = existingSkill[0];
       const currentGradeNum = this.getGradeNumericValue(skill.maxGrade || "V0");
       const newGradeNum = this.getGradeNumericValue(grade);
+      const xpGained = newGradeNum * 10; // 10 XP per grade level
       
       if (newGradeNum > currentGradeNum) {
         const [updatedSkill] = await db
@@ -448,17 +455,21 @@ export class DatabaseStorage implements IStorage {
           .set({ 
             maxGrade: grade,
             totalProblems: (skill.totalProblems || 0) + 1,
+            xp: (skill.xp || 0) + xpGained,
+            level: Math.min(10, Math.floor(((skill.xp || 0) + xpGained) / 100) + 1),
             updatedAt: new Date()
           })
           .where(eq(skills.id, skill.id))
           .returning();
         return updatedSkill;
       } else {
-        // Just increment problem count
+        // Just increment problem count and XP
         const [updatedSkill] = await db
           .update(skills)
           .set({ 
             totalProblems: (skill.totalProblems || 0) + 1,
+            xp: (skill.xp || 0) + xpGained,
+            level: Math.min(10, Math.floor(((skill.xp || 0) + xpGained) / 100) + 1),
             updatedAt: new Date()
           })
           .where(eq(skills.id, skill.id))
@@ -471,13 +482,57 @@ export class DatabaseStorage implements IStorage {
         .insert(skills)
         .values({
           userId,
-          category,
+          mainCategory,
+          subCategory,
           skillType,
           maxGrade: grade,
           totalProblems: 1,
+          xp: newGradeNum * 10,
+          level: Math.min(10, Math.floor((newGradeNum * 10) / 100) + 1),
         })
         .returning();
       return newSkill;
+    }
+  }
+
+  async initializeUserSkillTree(userId: string): Promise<void> {
+    // Import the skill tree structure
+    const { CLIMBING_SKILL_TREE } = await import("@shared/skillTree");
+    
+    // Initialize basic skills for new users
+    const basicSkills: InsertSkill[] = [];
+    
+    for (const category of CLIMBING_SKILL_TREE) {
+      for (const subcategory of category.subcategories) {
+        // Initialize with one basic skill per subcategory
+        const basicSkillType = subcategory.skillTypes[0];
+        basicSkills.push({
+          userId,
+          mainCategory: category.id,
+          subCategory: subcategory.id,
+          skillType: basicSkillType,
+          maxGrade: "V0",
+          totalProblems: 0,
+          xp: 0,
+          level: 1,
+        });
+      }
+    }
+    
+    // Only create skills that don't already exist
+    for (const skill of basicSkills) {
+      const existing = await db.select().from(skills).where(
+        and(
+          eq(skills.userId, userId),
+          eq(skills.skillType, skill.skillType),
+          eq(skills.mainCategory, skill.mainCategory),
+          eq(skills.subCategory, skill.subCategory)
+        )
+      );
+      
+      if (existing.length === 0) {
+        await this.createSkill(skill);
+      }
     }
   }
 

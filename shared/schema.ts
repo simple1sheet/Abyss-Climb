@@ -99,13 +99,16 @@ export const quests = pgTable("quests", {
 });
 
 // User achievements and milestones
-// Skills table for tracking climbing abilities (4 main categories with subcategories)
+// Skills table for tracking climbing abilities (hierarchical tree structure)
 export const skills = pgTable("skills", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
-  category: varchar("category").notNull(), // Movement, Technique, Strength, Mind
+  mainCategory: varchar("main_category").notNull(), // Movement, Strength, Mental, Technical, Endurance, Strategy
+  subCategory: varchar("sub_category").notNull(), // Balance, Coordination, etc.
   skillType: varchar("skill_type").notNull(), // dynos, crimps, slabs, overhangs, etc.
   maxGrade: varchar("max_grade").default("V0"), // Highest grade achieved in this skill
+  level: integer("level").default(1), // 1-10 skill level
+  xp: integer("xp").default(0), // XP in this specific skill
   totalProblems: integer("total_problems").default(0),
   bestSession: integer("best_session").default(0), // Reference to session with best performance
   createdAt: timestamp("created_at").defaultNow(),

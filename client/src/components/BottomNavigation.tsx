@@ -8,6 +8,7 @@ export default function BottomNavigation() {
     { path: "/quests", icon: "fas fa-scroll", label: "Quests" },
     { path: "/session", icon: "fas fa-plus", label: "Climb", special: true },
     { path: "/progress", icon: "fas fa-chart-bar", label: "Progress" },
+    { path: "/skills", icon: "fas fa-tree", label: "Skills" },
     { path: "/profile", icon: "fas fa-user", label: "Profile" },
   ];
 
@@ -17,7 +18,7 @@ export default function BottomNavigation() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-abyss-purple/90 backdrop-blur-md border-t border-abyss-teal/20 z-30">
+    <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-2xl bg-abyss-purple/90 backdrop-blur-md border-t border-abyss-teal/20 z-30">
       <div className="flex items-center justify-around py-3">
         {navItems.map((item) => (
           <button
