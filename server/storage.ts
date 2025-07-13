@@ -419,6 +419,12 @@ export class DatabaseStorage implements IStorage {
     totalProblems: number;
     totalXP: number;
     bestGrade: string;
+    completedQuests: number;
+    questsCompletedToday: number;
+    longestSession: number;
+    highestGradeNumeric: number;
+    firstAttemptSuccesses: number;
+    skillCategoriesCompleted: number;
     weeklyStats: {
       problems: number;
       xp: number;
@@ -471,11 +477,73 @@ export class DatabaseStorage implements IStorage {
     const weeklyTime = recentSessions.reduce((total, session) => total + (session.duration || 0), 0);
     const weeklyXP = recentSessions.reduce((total, session) => total + (session.xpEarned || 0), 0);
 
+    // Get completed quests count
+    const completedQuests = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(quests)
+      .where(and(eq(quests.userId, userId), eq(quests.status, "completed")));
+
+    // Get quests completed today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const questsCompletedToday = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(quests)
+      .where(and(
+        eq(quests.userId, userId),
+        eq(quests.status, "completed"),
+        gte(quests.completedAt, today)
+      ));
+
+    // Get longest session duration
+    const longestSession = await db
+      .select({ duration: climbingSessions.duration })
+      .from(climbingSessions)
+      .where(eq(climbingSessions.userId, userId))
+      .orderBy(desc(climbingSessions.duration))
+      .limit(1);
+
+    // Get best grade (highest completed)
+    const bestGradeResult = await db
+      .select({ grade: boulderProblems.grade })
+      .from(boulderProblems)
+      .innerJoin(climbingSessions, eq(boulderProblems.sessionId, climbingSessions.id))
+      .where(and(eq(climbingSessions.userId, userId), eq(boulderProblems.completed, true)))
+      .orderBy(desc(boulderProblems.grade))
+      .limit(1);
+
+    const bestGrade = bestGradeResult[0]?.grade || "V0";
+    const highestGradeNumeric = this.getGradeNumericValue(bestGrade);
+
+    // Get first attempt successes
+    const firstAttemptSuccesses = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(boulderProblems)
+      .innerJoin(climbingSessions, eq(boulderProblems.sessionId, climbingSessions.id))
+      .where(and(
+        eq(climbingSessions.userId, userId),
+        eq(boulderProblems.completed, true),
+        eq(boulderProblems.attempts, 1)
+      ));
+
+    // Get skill categories completed
+    const skillCategoriesCompleted = await db
+      .select({ category: skills.category })
+      .from(skills)
+      .where(eq(skills.userId, userId))
+      .groupBy(skills.category);
+
     return {
       totalSessions: totalSessions[0]?.count || 0,
       totalProblems: totalProblems[0]?.count || 0,
       totalXP: user.totalXP || 0,
-      bestGrade: "V4", // TODO: Calculate from actual data
+      bestGrade,
+      completedQuests: completedQuests[0]?.count || 0,
+      questsCompletedToday: questsCompletedToday[0]?.count || 0,
+      longestSession: longestSession[0]?.duration || 0,
+      highestGradeNumeric,
+      firstAttemptSuccesses: firstAttemptSuccesses[0]?.count || 0,
+      skillCategoriesCompleted: skillCategoriesCompleted.length,
       weeklyStats: {
         problems: recentProblems.length,
         xp: weeklyXP,

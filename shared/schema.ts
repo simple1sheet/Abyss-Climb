@@ -113,10 +113,16 @@ export const skills = pgTable("skills", {
 export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
-  type: varchar("type").notNull(), // whistle_level, layer_progress, etc.
+  achievementId: varchar("achievement_id").notNull(), // unique identifier for achievement type
+  type: varchar("type").notNull(), // quest, session, skill, progression, etc.
   title: varchar("title").notNull(),
   description: text("description"),
+  icon: varchar("icon").default("trophy"), // Font Awesome icon name
+  category: varchar("category").notNull(), // Explorer, Climber, Master, etc.
+  xpReward: integer("xp_reward").default(0),
+  isUnlocked: boolean("is_unlocked").default(true),
   unlockedAt: timestamp("unlocked_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Relations

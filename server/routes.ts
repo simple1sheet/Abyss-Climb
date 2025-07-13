@@ -442,6 +442,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Achievement routes
+  app.get("/api/achievements/available", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { achievementService } = await import("./services/achievementService");
+      const achievements = await achievementService.getAvailableAchievements(userId);
+      res.json(achievements);
+    } catch (error) {
+      log(`Error getting available achievements: ${error}`, "error");
+      res.status(500).json({ message: "Failed to get achievements" });
+    }
+  });
+
+  app.post("/api/achievements/check", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { achievementService } = await import("./services/achievementService");
+      await achievementService.checkAndUnlockAchievements(userId);
+      res.json({ message: "Achievements checked successfully" });
+    } catch (error) {
+      log(`Error checking achievements: ${error}`, "error");
+      res.status(500).json({ message: "Failed to check achievements" });
+    }
+  });
+
+  // Profile picture upload
+  app.post("/api/user/profile-image", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // In a real implementation, you would:
+      // 1. Use multer to handle file upload
+      // 2. Upload to cloud storage (AWS S3, Cloudinary, etc.)
+      // 3. Save the URL to the database
+      
+      // For this demo, we'll simulate saving a profile picture URL
+      const profileImageUrl = `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80`;
+      
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        profileImageUrl,
+      });
+
+      res.json({ 
+        message: "Profile picture updated successfully",
+        profileImageUrl,
+        user: updatedUser,
+      });
+    } catch (error) {
+      log(`Error updating profile picture: ${error}`, "error");
+      res.status(500).json({ message: "Failed to update profile picture" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
