@@ -6,6 +6,7 @@ import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
 import { xpCalculator } from "./services/xpCalculator";
 import { analyzeClimbingProgress, generateWorkout } from "./services/openai";
+import { achievementService } from "./services/achievementService";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -209,6 +210,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const session = await storage.updateClimbingSession(sessionId, updates);
       
+      // Check for achievements when session is completed
+      if (updates.status === "completed") {
+        const userId = req.user.claims.sub;
+        await achievementService.checkAndUnlockAchievements(userId);
+      }
+      
       res.json(session);
     } catch (error) {
       console.error("Error updating session:", error);
@@ -306,6 +313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
             
             console.log(`User XP updated successfully for user ${userId}`);
+            
+            // Check for achievements after updating XP
+            await achievementService.checkAndUnlockAchievements(userId);
           } else {
             console.error(`User ${userId} not found when trying to update XP`);
           }
@@ -505,8 +515,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const progressInfo = await storage.getLayerProgressInfo(userId);
         if (progressInfo.currentLayer > (user.currentLayer || 1)) {
           console.log(`User ${userId} advanced to layer ${progressInfo.currentLayer}!`);
-          // You could add achievement tracking here
         }
+        
+        // Check for achievements after quest completion
+        await achievementService.checkAndUnlockAchievements(userId);
       }
       
       res.json(quest);
@@ -996,6 +1008,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...user,
           totalXP: newTotalXP,
         });
+        
+        // Check for achievements after workout completion
+        await achievementService.checkAndUnlockAchievements(userId);
       }
       
       res.json({

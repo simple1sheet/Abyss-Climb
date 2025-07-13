@@ -542,6 +542,14 @@ export class DatabaseStorage implements IStorage {
     firstAttemptSuccesses: number;
     skillCategoriesCompleted: number;
     totalWorkouts: number;
+    strengthWorkouts: number;
+    meditationSessions: number;
+    stretchingSessions: number;
+    apkBuilds: number;
+    developerResets: number;
+    gradeSystemChanges: number;
+    currentLayer: number;
+    consecutiveSessionDays: number;
     weeklyStats: {
       problems: number;
       xp: number;
@@ -671,6 +679,47 @@ export class DatabaseStorage implements IStorage {
       .where(eq(skills.userId, userId))
       .groupBy(skills.category);
 
+    // Get workout type statistics
+    const allWorkouts = await db
+      .select()
+      .from(workoutSessions)
+      .where(eq(workoutSessions.userId, userId));
+
+    const strengthWorkouts = allWorkouts.filter(w => w.type === 'strength').length;
+    const meditationSessions = allWorkouts.filter(w => w.type === 'meditation').length;
+    const stretchingSessions = allWorkouts.filter(w => w.type === 'stretching').length;
+
+    // Get current layer from XP
+    const currentLayer = this.calculateCurrentLayerFromXP(user.totalXP || 0);
+
+    // Calculate consecutive session days
+    const allSessions = await db
+      .select()
+      .from(climbingSessions)
+      .where(eq(climbingSessions.userId, userId))
+      .orderBy(desc(climbingSessions.createdAt));
+
+    const sessionDates = allSessions
+      .map(s => new Date(s.createdAt).toDateString())
+      .filter((date, index, array) => array.indexOf(date) === index) // Remove duplicates
+      .sort();
+
+    let consecutiveSessionDays = 0;
+    if (sessionDates.length > 0) {
+      consecutiveSessionDays = 1;
+      for (let i = sessionDates.length - 1; i > 0; i--) {
+        const currentDate = new Date(sessionDates[i]);
+        const previousDate = new Date(sessionDates[i - 1]);
+        const daysDiff = Math.floor((currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff === 1) {
+          consecutiveSessionDays++;
+        } else {
+          break;
+        }
+      }
+    }
+
     return {
       totalSessions: totalSessions,
       totalProblems: totalProblems[0]?.count || 0,
@@ -683,6 +732,14 @@ export class DatabaseStorage implements IStorage {
       firstAttemptSuccesses: firstAttemptSuccesses[0]?.count || 0,
       skillCategoriesCompleted: skillCategoriesCompleted.length,
       totalWorkouts,
+      strengthWorkouts,
+      meditationSessions,
+      stretchingSessions,
+      apkBuilds: 0, // TODO: Add tracking for APK builds
+      developerResets: 0, // TODO: Add tracking for developer resets
+      gradeSystemChanges: 0, // TODO: Add tracking for grade system changes
+      currentLayer,
+      consecutiveSessionDays,
       weeklyStats: {
         problems: recentProblems.length,
         xp: weeklyXP,

@@ -234,6 +234,162 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     type: "special",
     checkCondition: (user, stats) => stats.skillCategoriesCompleted >= 4,
   },
+
+  // Workout Achievements
+  {
+    id: "workout_warrior",
+    title: "Workout Warrior",
+    description: "Complete your first home workout",
+    icon: "dumbbell",
+    category: "Climber",
+    xpReward: 50,
+    type: "workout",
+    checkCondition: (user, stats) => stats.totalWorkouts >= 1,
+  },
+  {
+    id: "fitness_fanatic",
+    title: "Fitness Fanatic",
+    description: "Complete 10 home workouts",
+    icon: "heart",
+    category: "Climber",
+    xpReward: 150,
+    type: "workout",
+    checkCondition: (user, stats) => stats.totalWorkouts >= 10,
+  },
+  {
+    id: "strength_builder",
+    title: "Strength Builder",
+    description: "Complete 5 strength training workouts",
+    icon: "muscle",
+    category: "Climber",
+    xpReward: 100,
+    type: "workout",
+    checkCondition: (user, stats) => stats.strengthWorkouts >= 5,
+  },
+  {
+    id: "zen_master",
+    title: "Zen Master",
+    description: "Complete 5 meditation sessions",
+    icon: "lotus",
+    category: "Special",
+    xpReward: 100,
+    type: "workout",
+    checkCondition: (user, stats) => stats.meditationSessions >= 5,
+  },
+  {
+    id: "flexibility_expert",
+    title: "Flexibility Expert",
+    description: "Complete 5 stretching sessions",
+    icon: "leaf",
+    category: "Special",
+    xpReward: 75,
+    type: "workout",
+    checkCondition: (user, stats) => stats.stretchingSessions >= 5,
+  },
+
+  // Technology Achievements
+  {
+    id: "mobile_pioneer",
+    title: "Mobile Pioneer",
+    description: "Generate your first APK build",
+    icon: "smartphone",
+    category: "Special",
+    xpReward: 200,
+    type: "technology",
+    checkCondition: (user, stats) => stats.apkBuilds >= 1,
+  },
+  {
+    id: "developer_tools_user",
+    title: "Developer Tools User",
+    description: "Use the developer reset tool",
+    icon: "wrench",
+    category: "Special",
+    xpReward: 100,
+    type: "technology",
+    checkCondition: (user, stats) => stats.developerResets >= 1,
+  },
+  {
+    id: "grade_converter",
+    title: "Grade Converter",
+    description: "Change your preferred grade system",
+    icon: "exchange-alt",
+    category: "Special",
+    xpReward: 50,
+    type: "technology",
+    checkCondition: (user, stats) => stats.gradeSystemChanges >= 1,
+  },
+
+  // Advanced Achievements
+  {
+    id: "layer_explorer",
+    title: "Layer Explorer",
+    description: "Reach Layer 3 of the Abyss",
+    icon: "compass",
+    category: "Master",
+    xpReward: 300,
+    type: "progression",
+    checkCondition: (user, stats) => stats.currentLayer >= 3,
+  },
+  {
+    id: "abyss_challenger",
+    title: "Abyss Challenger",
+    description: "Reach Layer 5 of the Abyss",
+    icon: "sword",
+    category: "Master",
+    xpReward: 500,
+    type: "progression",
+    checkCondition: (user, stats) => stats.currentLayer >= 5,
+  },
+  {
+    id: "final_maelstrom",
+    title: "Final Maelstrom",
+    description: "Reach the Final Maelstrom (Layer 7)",
+    icon: "crown",
+    category: "Master",
+    xpReward: 1000,
+    type: "progression",
+    checkCondition: (user, stats) => stats.currentLayer >= 7,
+  },
+  {
+    id: "xp_collector",
+    title: "XP Collector",
+    description: "Earn 1000 total XP",
+    icon: "star",
+    category: "Master",
+    xpReward: 200,
+    type: "progression",
+    checkCondition: (user, stats) => user.totalXP >= 1000,
+  },
+  {
+    id: "xp_master",
+    title: "XP Master",
+    description: "Earn 10000 total XP",
+    icon: "trophy",
+    category: "Master",
+    xpReward: 500,
+    type: "progression",
+    checkCondition: (user, stats) => user.totalXP >= 10000,
+  },
+  {
+    id: "session_streaker",
+    title: "Session Streaker",
+    description: "Complete sessions on 7 consecutive days",
+    icon: "fire",
+    category: "Climber",
+    xpReward: 250,
+    type: "special",
+    checkCondition: (user, stats) => stats.consecutiveSessionDays >= 7,
+  },
+  {
+    id: "multi_modal_trainer",
+    title: "Multi-Modal Trainer",
+    description: "Complete both climbing and workout sessions",
+    icon: "layers",
+    category: "Special",
+    xpReward: 150,
+    type: "special",
+    checkCondition: (user, stats) => stats.totalSessions >= 1 && stats.totalWorkouts >= 1,
+  },
 ];
 
 export class AchievementService {
@@ -330,6 +486,43 @@ export class AchievementService {
         return Math.min(100, (user.whistleLevel / 4) * 100);
       case "white_whistle":
         return Math.min(100, (user.whistleLevel / 5) * 100);
+      case "perfectionist":
+        return Math.min(100, (stats.firstAttemptSuccesses / 5) * 100);
+      case "diverse_climber":
+        return Math.min(100, (stats.skillCategoriesCompleted / 4) * 100);
+      
+      // Workout achievements
+      case "workout_warrior":
+        return Math.min(100, (stats.totalWorkouts / 1) * 100);
+      case "fitness_fanatic":
+        return Math.min(100, (stats.totalWorkouts / 10) * 100);
+      case "strength_builder":
+        return Math.min(100, (stats.strengthWorkouts / 5) * 100);
+      case "zen_master":
+        return Math.min(100, (stats.meditationSessions / 5) * 100);
+      case "flexibility_expert":
+        return Math.min(100, (stats.stretchingSessions / 5) * 100);
+      
+      // Technology achievements
+      case "mobile_pioneer":
+        return Math.min(100, (stats.apkBuilds / 1) * 100);
+      case "developer_tools_user":
+        return Math.min(100, (stats.developerResets / 1) * 100);
+      case "grade_converter":
+        return Math.min(100, (stats.gradeSystemChanges / 1) * 100);
+      
+      // Advanced achievements
+      case "abyss_challenger":
+        return Math.min(100, (stats.currentLayer / 5) * 100);
+      case "final_maelstrom":
+        return Math.min(100, (stats.currentLayer / 7) * 100);
+      case "xp_master":
+        return Math.min(100, (user.totalXP / 10000) * 100);
+      case "session_streaker":
+        return Math.min(100, (stats.consecutiveSessionDays / 7) * 100);
+      case "multi_modal_trainer":
+        return Math.min(100, (stats.totalSessions >= 1 && stats.totalWorkouts >= 1) ? 100 : 0);
+      
       default:
         return 0;
     }
