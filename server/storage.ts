@@ -25,7 +25,7 @@ import {
   type InsertLayerQuest,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, gte, lte, lt, sql, inArray } from "drizzle-orm";
+import { eq, desc, and, or, gte, lte, lt, sql, inArray, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (mandatory for Replit Auth)
@@ -482,6 +482,7 @@ export class DatabaseStorage implements IStorage {
         .insert(skills)
         .values({
           userId,
+          category: `${mainCategory}`, // Keep old category field for compatibility
           mainCategory,
           subCategory,
           skillType,
@@ -508,6 +509,7 @@ export class DatabaseStorage implements IStorage {
         const basicSkillType = subcategory.skillTypes[0];
         basicSkills.push({
           userId,
+          category: category.name, // Keep old category field for compatibility
           mainCategory: category.id,
           subCategory: subcategory.id,
           skillType: basicSkillType,
@@ -737,10 +739,10 @@ export class DatabaseStorage implements IStorage {
 
     // Get skill categories completed
     const skillCategoriesCompleted = await db
-      .select({ category: skills.category })
+      .select({ mainCategory: skills.mainCategory })
       .from(skills)
-      .where(eq(skills.userId, userId))
-      .groupBy(skills.category);
+      .where(and(eq(skills.userId, userId), isNotNull(skills.mainCategory)))
+      .groupBy(skills.mainCategory);
 
     // Get workout type statistics
     const allWorkouts = await db

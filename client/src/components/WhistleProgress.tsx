@@ -42,42 +42,36 @@ export default function WhistleProgress() {
 
   const groupSkillsByCategory = (skills: any[]) => {
     const categories = {
-      'Grip & Handwork': [],
-      'Body & Power': [],
-      'Balance & Flow': [],
-      'Mind & Strategy': [],
-      'Skill Challenges': []
+      'Movement': [],
+      'Strength': [],
+      'Mental': [],
+      'Technical': [],
+      'Endurance': [],
+      'Strategy': []
     };
     
     if (!skills) return categories;
     
     skills.forEach(skill => {
-      const skillType = skill.skillType.toLowerCase();
-      
-      // Map skills to new categories
-      if (['jugs', 'crimps', 'endurance', 'pinches', 'slopers', 'pockets', 'underclings', 'gaston'].includes(skillType)) {
-        categories['Grip & Handwork'].push(skill);
-      } else if (['strength', 'dynos', 'mantles', 'campus', 'lockoffs', 'core', 'roofs'].includes(skillType)) {
-        categories['Body & Power'].push(skill);
-      } else if (['movement', 'balance', 'flexibility', 'stemming', 'flagging', 'heel_hooks', 'toe_hooks'].includes(skillType)) {
-        categories['Balance & Flow'].push(skill);
-      } else if (['slabs', 'technical', 'reading', 'sequencing', 'risk_management', 'mental_game'].includes(skillType)) {
-        categories['Mind & Strategy'].push(skill);
-      } else if (['overhangs'].includes(skillType)) {
-        categories['Skill Challenges'].push(skill);
-      } else {
-        // Default fallback based on original category
-        const originalCategory = skill.category || 'Technique';
-        if (originalCategory === 'Technique') {
-          categories['Grip & Handwork'].push(skill);
-        } else if (originalCategory === 'Strength') {
-          categories['Body & Power'].push(skill);
+      if (skill.mainCategory) {
+        const categoryName = skill.mainCategory.charAt(0).toUpperCase() + skill.mainCategory.slice(1);
+        if (categories[categoryName]) {
+          categories[categoryName].push(skill);
+        }
+      } else if (skill.category) {
+        // Fallback to old category system
+        const originalCategory = skill.category;
+        
+        if (originalCategory === 'Strength') {
+          categories['Strength'].push(skill);
+        } else if (originalCategory === 'Technique') {
+          categories['Technical'].push(skill);
         } else if (originalCategory === 'Movement') {
-          categories['Balance & Flow'].push(skill);
+          categories['Movement'].push(skill);
         } else if (originalCategory === 'Mind') {
-          categories['Mind & Strategy'].push(skill);
+          categories['Mental'].push(skill);
         } else {
-          categories['Skill Challenges'].push(skill);
+          categories['Technical'].push(skill);
         }
       }
     });

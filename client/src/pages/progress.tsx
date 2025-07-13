@@ -4,12 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import BottomNavigation from "@/components/BottomNavigation";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
 import { getLayerInfo } from "@/utils/layerConfig";
 import { Award, Trophy, Target, Calendar, TrendingUp, Clock } from "lucide-react";
+import SkillTree from "@/components/SkillTree";
 
 export default function ProgressPage() {
   const [, setLocation] = useLocation();
@@ -108,13 +110,23 @@ export default function ProgressPage() {
             >
               <i className="fas fa-arrow-left text-xl"></i>
             </button>
-            <h1 className="text-lg font-semibold text-abyss-ethereal">Progress</h1>
+            <h1 className="text-lg font-semibold text-abyss-ethereal">Progress & Skills</h1>
           </div>
         </div>
       </header>
 
+      {/* Tabs */}
+      <div className="relative z-10 px-6 mb-6">
+        <Tabs defaultValue="progress" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="skills">Skills</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="progress" className="mt-6">
+            <div className="space-y-6">{/* Progress content */}
+
       {/* Main Content */}
-      <div className="relative z-10 px-6 pb-24 space-y-6">
         {/* Grade-Based Whistle Level */}
         <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
           <CardHeader>
@@ -378,6 +390,13 @@ export default function ProgressPage() {
             </CardContent>
           </Card>
         )}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="skills" className="mt-6">
+            <SkillTree />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <BottomNavigation />
