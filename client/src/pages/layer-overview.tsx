@@ -19,7 +19,7 @@ const LAYER_CONFIG = {
     grades: "V0-V1",
     description: "The surface layer where all adventures begin",
     xpRequired: 0,
-    xpToNext: 200
+    xpToNext: 800
   },
   2: {
     name: "Forest of Temptation",
@@ -29,8 +29,8 @@ const LAYER_CONFIG = {
     icon: Mountain,
     grades: "V2-V3",
     description: "Dense woods with challenging terrain",
-    xpRequired: 200,
-    xpToNext: 600
+    xpRequired: 800,
+    xpToNext: 2500
   },
   3: {
     name: "Great Fault",
@@ -40,8 +40,8 @@ const LAYER_CONFIG = {
     icon: Zap,
     grades: "V4-V5",
     description: "A massive vertical cliff face",
-    xpRequired: 600,
-    xpToNext: 1200
+    xpRequired: 2500,
+    xpToNext: 5500
   },
   4: {
     name: "The Goblets of Giants",
@@ -51,8 +51,8 @@ const LAYER_CONFIG = {
     icon: Eye,
     grades: "V6-V7",
     description: "Mysterious formations that test your limits",
-    xpRequired: 1200,
-    xpToNext: 2400
+    xpRequired: 5500,
+    xpToNext: 10000
   },
   5: {
     name: "Sea of Corpses",
@@ -62,8 +62,8 @@ const LAYER_CONFIG = {
     icon: Skull,
     grades: "V8-V9",
     description: "A dangerous expanse of crystalline waters",
-    xpRequired: 2400,
-    xpToNext: 4800
+    xpRequired: 10000,
+    xpToNext: 18000
   },
   6: {
     name: "The Capital of the Unreturned",
@@ -73,8 +73,8 @@ const LAYER_CONFIG = {
     icon: Crown,
     grades: "V10-V11",
     description: "The point of no return for most",
-    xpRequired: 4800,
-    xpToNext: 12000
+    xpRequired: 18000,
+    xpToNext: 35000
   },
   7: {
     name: "The Final Maelstrom",
@@ -84,7 +84,7 @@ const LAYER_CONFIG = {
     icon: Flame,
     grades: "V12+",
     description: "The deepest layer, shrouded in mystery",
-    xpRequired: 12000,
+    xpRequired: 35000,
     xpToNext: null // Max layer
   }
 };

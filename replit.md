@@ -60,7 +60,7 @@ Preferred communication style: Simple, everyday language.
 - **Session State Management**: Fixed three-state model (idle/active/paused) with accurate timer behavior and proper persistence
 
 ### ✓ Enhanced Features (Latest Updates - January 2025)
-- **XP-Based Layer Progression**: Replaced quest-based layer advancement with XP thresholds (Layer 1: 0 XP to Layer 7: 12,000 XP)
+- **XP-Based Layer Progression**: Replaced quest-based layer advancement with challenging XP thresholds (Layer 1: 0 XP to Layer 7: 35,000 XP)
 - **Automatic Layer Advancement**: Players advance layers automatically when reaching XP thresholds
 - **Diverse Quest Type System**: 7 distinct quest categories (Technique, Creative, Social, Endurance, Progression, Exploration, Mindfulness) with 35+ unique templates
 - **Smart Quest Variety**: Each quest type offers unique challenges beyond simple "complete X problems" format
@@ -85,6 +85,7 @@ Preferred communication style: Simple, everyday language.
 - **Decoupled Quest System**: Quest completion is entirely manual - no automatic progress tracking from session activities
 - **Streamlined Navigation**: Progress tab with AI assistant in bottom navigation, Layers overview accessible via "View All Layers" button on home page
 - **Comprehensive Layer Overview**: Dedicated screen showing all 7 layers with completion status and XP requirements, accessible from home page
+- **Progressive Layer Difficulty**: Significantly increased XP requirements for each layer (Layer 2: 800 XP, Layer 3: 2,500 XP, Layer 4: 5,500 XP, Layer 5: 10,000 XP, Layer 6: 18,000 XP, Layer 7: 35,000 XP)
 
 ### ✓ Enhanced Profile Experience (January 2025)
 - **Comprehensive Achievement System**: 20+ unique achievements across 4 categories (Explorer, Climber, Master, Special) with icons, descriptions, and XP rewards

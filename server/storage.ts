@@ -154,12 +154,12 @@ export class DatabaseStorage implements IStorage {
   // XP thresholds for each layer (cumulative)
   private readonly LAYER_XP_THRESHOLDS = {
     1: 0,     // Edge of Abyss - Start here
-    2: 500,   // Forest of Temptation - 500 XP
-    3: 1500,  // Great Fault - 1500 XP
-    4: 3000,  // Goblets of Giants - 3000 XP
-    5: 5000,  // Sea of Corpses - 5000 XP
-    6: 8000,  // Capital of the Unreturned - 8000 XP
-    7: 12000, // Final Maelstrom - 12000 XP
+    2: 800,   // Forest of Temptation - 800 XP needed (40-80 problems)
+    3: 2500,  // Great Fault - 2500 XP needed (125-250 problems)
+    4: 5500,  // Goblets of Giants - 5500 XP needed (275-550 problems)
+    5: 10000, // Sea of Corpses - 10000 XP needed (500-1000 problems)
+    6: 18000, // Capital of the Unreturned - 18000 XP needed (900-1800 problems)
+    7: 35000, // Final Maelstrom - 35000 XP needed (1750-3500 problems)
   };
 
   private calculateCurrentLayerFromXP(totalXP: number): number {
