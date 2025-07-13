@@ -17,6 +17,10 @@ export default function SessionIndicator() {
     }
   };
 
+  const handleViewSession = () => {
+    setLocation("/session");
+  };
+
   const getSessionStatusText = () => {
     if (!activeSession) return "";
     
@@ -55,14 +59,25 @@ export default function SessionIndicator() {
               {activeSession.sessionType} • {formatDuration(activeSession)}
             </div>
           </div>
-          <Button
-            onClick={handleResumeSession}
-            size="sm"
-            className="bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold"
-            disabled={resumeSessionMutation.isPending}
-          >
-            {resumeSessionMutation.isPending ? "Resuming..." : activeSession.status === "paused" ? "Resume" : "Continue"}
-          </Button>
+          <div className="flex items-center space-x-2">
+            {activeSession.status === "paused" && (
+              <Button
+                onClick={handleResumeSession}
+                size="sm"
+                className="bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                disabled={resumeSessionMutation.isPending}
+              >
+                {resumeSessionMutation.isPending ? "Resuming..." : "Resume"}
+              </Button>
+            )}
+            <Button
+              onClick={handleViewSession}
+              size="sm"
+              className="bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold"
+            >
+              View Session
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

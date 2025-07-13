@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, Star, Target, Award, Crown, Zap, Calendar, Mountain, Clock, CheckCircle, Lock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import SessionIndicator from "@/components/SessionIndicator";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -135,6 +136,7 @@ export default function Profile() {
 
       {/* Main Content */}
       <div className="relative z-10 px-6 pb-24 space-y-6">
+        <SessionIndicator />
         {/* Profile Header with Picture Upload */}
         <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
           <CardContent className="p-6">

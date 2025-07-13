@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSession } from "@/hooks/useSession";
 import SessionTracker from "@/components/SessionTracker";
 import SessionControls from "@/components/SessionControls";
+import BottomNavigation from "@/components/BottomNavigation";
 
 export default function Session() {
   const { user } = useAuth();
@@ -110,6 +111,8 @@ export default function Session() {
           </Card>
         )}
       </div>
+      
+      <BottomNavigation />
     </div>
   );
 }

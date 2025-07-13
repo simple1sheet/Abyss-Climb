@@ -20,7 +20,7 @@ export function useSession() {
 
   // Update timer every second for active sessions only
   useEffect(() => {
-    if (activeSession && activeSession.status === "active") {
+    if (activeSession && (activeSession.status === "active" || activeSession.status === "paused")) {
       const interval = setInterval(() => {
         setCurrentTime(new Date());
       }, 1000);

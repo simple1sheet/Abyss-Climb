@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Zap, TrendingUp, Target, Star } from "lucide-react";
@@ -145,16 +146,29 @@ interface XPGainAnimationProps {
 }
 
 export function XPGainAnimation({ xpGained, onAnimationComplete }: XPGainAnimationProps) {
-  if (xpGained === 0) return null;
+  const [isVisible, setIsVisible] = useState(true);
+  
+  useEffect(() => {
+    if (xpGained > 0) {
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        onAnimationComplete?.();
+      }, 2000); // Animation duration: 2 seconds
+      
+      return () => clearTimeout(timer);
+    }
+  }, [xpGained, onAnimationComplete]);
+  
+  if (xpGained === 0 || !isVisible) return null;
   
   return (
     <div 
       className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 animate-bounce"
-      onAnimationEnd={onAnimationComplete}
+      style={{ animation: 'bounce 1s ease-in-out' }}
     >
       <div className="bg-amber-500/90 backdrop-blur-sm rounded-lg px-6 py-4 shadow-xl">
         <div className="flex items-center space-x-2">
-          <Star className="h-6 w-6 text-white animate-spin" />
+          <Star className="h-6 w-6 text-white animate-pulse" />
           <span className="text-xl font-bold text-white">
             +{xpGained} XP
           </span>
