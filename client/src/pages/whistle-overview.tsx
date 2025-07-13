@@ -10,6 +10,18 @@ import SessionIndicator from "@/components/SessionIndicator";
 import { Award, ArrowLeft, Lock, Check, Clock } from "lucide-react";
 
 const WHISTLE_CONFIG = {
+  0: {
+    name: "Bell Whistle",
+    fullName: "Bell Whistle – Novice",
+    color: "bg-gray-400",
+    borderColor: "border-gray-400/50",
+    textColor: "text-gray-400",
+    icon: Award,
+    gradeRange: "V0",
+    description: "Starting point for all cave raiders",
+    requirements: "Complete V0 grade problems",
+    privileges: "Access to basic climbing areas and safety equipment"
+  },
   1: {
     name: "Red Whistle",
     fullName: "Red Whistle – Cave Raider",
@@ -17,9 +29,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-red-500/50",
     textColor: "text-red-400",
     icon: Award,
-    gradeRequired: "V0",
+    gradeRange: "V1-V2",
     description: "Novice delvers who stay in the upper layers",
-    requirements: "Complete your first boulder problem",
+    requirements: "Successfully climb V1-V2 grade problems",
     privileges: "Access to basic climbing areas and guidance"
   },
   2: {
@@ -29,9 +41,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-blue-500/50",
     textColor: "text-blue-400",
     icon: Award,
-    gradeRequired: "V2",
+    gradeRange: "V3-V4",
     description: "Apprentices who venture into the second layer",
-    requirements: "Successfully climb V2 grade problems",
+    requirements: "Successfully climb V3-V4 grade problems",
     privileges: "Access to intermediate climbing techniques"
   },
   3: {
@@ -41,9 +53,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-purple-500/50",
     textColor: "text-purple-400",
     icon: Award,
-    gradeRequired: "V4",
+    gradeRange: "V5-V6",
     description: "Experienced climbers who can handle complex routes",
-    requirements: "Master V4 grade problems consistently",
+    requirements: "Master V5-V6 grade problems consistently",
     privileges: "Access to advanced climbing areas and mentorship roles"
   },
   4: {
@@ -53,9 +65,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-gray-500/50",
     textColor: "text-gray-300",
     icon: Award,
-    gradeRequired: "V6",
+    gradeRange: "V7-V8",
     description: "Elite climbers who push the boundaries of possibility",
-    requirements: "Conquer V6 grade problems with skill and precision",
+    requirements: "Conquer V7-V8 grade problems with skill and precision",
     privileges: "Access to expert-only routes and leadership opportunities"
   },
   5: {
@@ -65,9 +77,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-white/50",
     textColor: "text-white",
     icon: Award,
-    gradeRequired: "V8",
+    gradeRange: "V9+",
     description: "Legendary climbers who have mastered the art",
-    requirements: "Achieve V8+ grade problems and inspire others",
+    requirements: "Achieve V9+ grade problems and inspire others",
     privileges: "Unrestricted access to all climbing areas and recognition as a master"
   }
 };
@@ -84,7 +96,7 @@ export default function WhistleOverview() {
   const getWhistleStatus = (whistleLevel: number) => {
     if (!user) return "locked";
     
-    const currentWhistle = user.whistleLevel || 1;
+    const currentWhistle = user.whistleLevel || 0;
     
     if (whistleLevel <= currentWhistle) {
       if (whistleLevel === currentWhistle) {
@@ -130,10 +142,11 @@ export default function WhistleOverview() {
     let highestGrade = "V0";
     
     skills.forEach((skill: any) => {
-      const gradeIndex = gradeOrder.indexOf(skill.grade);
+      const skillGrade = skill.maxGrade || skill.grade || "V0";
+      const gradeIndex = gradeOrder.indexOf(skillGrade);
       const currentHighestIndex = gradeOrder.indexOf(highestGrade);
       if (gradeIndex > currentHighestIndex) {
-        highestGrade = skill.grade;
+        highestGrade = skillGrade;
       }
     });
     
@@ -141,12 +154,24 @@ export default function WhistleOverview() {
   };
 
   const getProgressToNextWhistle = () => {
-    const currentWhistle = user?.whistleLevel || 1;
+    const currentWhistle = user?.whistleLevel || 0;
     const nextWhistle = Math.min(currentWhistle + 1, 5);
     const currentGrade = getHighestGrade();
-    const requiredGrade = WHISTLE_CONFIG[nextWhistle as keyof typeof WHISTLE_CONFIG]?.gradeRequired;
     
     if (currentWhistle >= 5) return { progress: 100, text: "Maximum whistle achieved!" };
+    
+    // Get the minimum grade needed for next whistle based on the actual whistle system
+    const getMinGradeForWhistle = (whistleLevel: number): string => {
+      if (whistleLevel === 0) return "V0";
+      if (whistleLevel === 1) return "V1";
+      if (whistleLevel === 2) return "V3";
+      if (whistleLevel === 3) return "V5";
+      if (whistleLevel === 4) return "V7";
+      if (whistleLevel === 5) return "V9";
+      return "V0";
+    };
+    
+    const requiredGrade = getMinGradeForWhistle(nextWhistle);
     
     const gradeOrder = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17"];
     const currentIndex = gradeOrder.indexOf(currentGrade);
@@ -170,7 +195,7 @@ export default function WhistleOverview() {
     );
   }
 
-  const currentWhistle = user?.whistleLevel || 1;
+  const currentWhistle = user?.whistleLevel || 0;
   const highestGrade = getHighestGrade();
   const nextWhistleProgress = getProgressToNextWhistle();
 
@@ -266,7 +291,7 @@ export default function WhistleOverview() {
                         <CardTitle className="text-abyss-ethereal text-sm">
                           {whistleInfo.fullName}
                         </CardTitle>
-                        <p className="text-xs text-abyss-ethereal/60">Required: {whistleInfo.gradeRequired}+</p>
+                        <p className="text-xs text-abyss-ethereal/60">Grade Range: {whistleInfo.gradeRange}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
