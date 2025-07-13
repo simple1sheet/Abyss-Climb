@@ -13,6 +13,7 @@ import Sessions from "@/pages/sessions";
 import Quests from "@/pages/quests";
 import Progress from "@/pages/progress";
 import Profile from "@/pages/profile";
+import LayerOverview from "@/pages/layer-overview";
 import SessionForm from "@/components/SessionForm";
 
 function Router() {
@@ -31,6 +32,7 @@ function Router() {
           <Route path="/sessions" component={Sessions} />
           <Route path="/quests" component={Quests} />
           <Route path="/progress" component={Progress} />
+          <Route path="/layers" component={LayerOverview} />
           <Route path="/profile" component={Profile} />
         </>
       )}

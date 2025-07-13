@@ -7,7 +7,7 @@ export default function BottomNavigation() {
     { path: "/", icon: "fas fa-home", label: "Home" },
     { path: "/quests", icon: "fas fa-scroll", label: "Quests" },
     { path: "/session", icon: "fas fa-plus", label: "Climb", special: true },
-    { path: "/progress", icon: "fas fa-chart-bar", label: "Progress" },
+    { path: "/layers", icon: "fas fa-layer-group", label: "Layers" },
     { path: "/profile", icon: "fas fa-user", label: "Profile" },
   ];
 

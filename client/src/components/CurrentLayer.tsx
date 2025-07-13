@@ -1,8 +1,10 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { Shield, Mountain, Zap, Skull, Crown, Eye, Flame } from "lucide-react";
+import { Shield, Mountain, Zap, Skull, Crown, Eye, Flame, ExternalLink } from "lucide-react";
+import { useLocation } from "wouter";
 
 const LAYER_CONFIG = {
   1: {
@@ -58,6 +60,7 @@ const LAYER_CONFIG = {
 
 export default function CurrentLayer() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   
   const { data: quests } = useQuery({
     queryKey: ["/api/quests"],
@@ -136,6 +139,15 @@ export default function CurrentLayer() {
           <div className="text-sm text-abyss-ethereal/80 bg-abyss-dark/20 rounded-lg p-3">
             <p className="italic">"{layerInfo.description}"</p>
           </div>
+          
+          <Button
+            onClick={() => setLocation("/layers")}
+            variant="outline"
+            className="w-full mt-4 border-abyss-teal/30 text-abyss-teal hover:bg-abyss-teal/10"
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            View All Layers
+          </Button>
           
           {layerQuests.length > 0 && (
             <div className="mt-4">
