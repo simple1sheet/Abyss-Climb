@@ -8,6 +8,7 @@ import { useLocation } from "wouter";
 import BottomNavigation from "@/components/BottomNavigation";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
+import { getLayerInfo } from "@/utils/layerConfig";
 import { Award, Trophy, Target, Calendar, TrendingUp, Clock } from "lucide-react";
 
 export default function ProgressPage() {
@@ -22,6 +23,11 @@ export default function ProgressPage() {
 
   const { data: skills } = useQuery({
     queryKey: ["/api/skills"],
+    enabled: !!user,
+  });
+
+  const { data: layerProgress } = useQuery({
+    queryKey: ["/api/layer-progress"],
     enabled: !!user,
   });
 
@@ -53,18 +59,6 @@ export default function ProgressPage() {
     return { grade: "V1", whistle: "Red Whistle" };
   };
 
-  const getLayerName = (layer: number) => {
-    const names = {
-      1: "Edge of the Abyss",
-      2: "Forest of Temptation",
-      3: "Great Fault",
-      4: "Goblets of Giants",
-      5: "Sea of Corpses",
-      6: "Capital of the Unreturned",
-      7: "Final Maelstrom",
-    };
-    return names[layer as keyof typeof names] || "Unknown Layer";
-  };
 
   // Calculate highest grade from skills
   const getHighestGrade = (): string => {
@@ -80,7 +74,11 @@ export default function ProgressPage() {
   const highestGrade = getHighestGrade();
   const whistleInfo = getWhistleFromGrade(highestGrade);
   const nextGoal = getNextWhistleGoal(highestGrade);
-  const currentLayer = user?.currentLayer || 1;
+  
+  // Use dynamic layer calculation like Home tab
+  const currentLayer = layerProgress?.currentLayer || user?.currentLayer || 1;
+  const layerInfo = getLayerInfo(currentLayer);
+  const LayerIcon = layerInfo.icon;
 
   const formatDate = (date: Date | string | undefined) => {
     if (!date) return "Not achieved";
@@ -171,13 +169,39 @@ export default function ProgressPage() {
         <Card className="bg-layer-gradient backdrop-blur-sm border-abyss-teal/20 depth-layer">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4 mb-4">
-              <div className="w-16 h-16 bg-abyss-teal/50 rounded-full flex items-center justify-center">
-                <i className="fas fa-layer-group text-2xl text-abyss-amber"></i>
+              <div className={`w-16 h-16 ${layerInfo.color}/50 rounded-full flex items-center justify-center`}>
+                <LayerIcon className="text-2xl text-abyss-amber" size={24} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold text-abyss-ethereal">Layer {currentLayer}</h3>
-                <p className="text-abyss-amber">{getLayerName(currentLayer)}</p>
+                <p className="text-abyss-amber">{layerInfo.name}</p>
+                <p className="text-sm text-abyss-ethereal/70">{layerInfo.grades}</p>
               </div>
+            </div>
+            
+            {/* Layer Progress */}
+            {layerProgress && (
+              <div className="bg-abyss-dark/30 rounded-xl p-4 mb-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-abyss-ethereal/80">Layer Progress</span>
+                  <span className="text-abyss-amber font-medium">
+                    {layerProgress.progressToNextLayer}/{layerProgress.nextLayerXP - layerProgress.currentLayerXP} XP
+                  </span>
+                </div>
+                <Progress value={layerProgress.layerProgress} className="h-2" />
+                <p className="text-xs text-abyss-ethereal/60 mt-2">
+                  {currentLayer === 7 
+                    ? "Maximum layer reached!" 
+                    : `${(layerProgress.nextLayerXP - layerProgress.currentXP)} XP needed to advance`}
+                </p>
+                <div className="text-xs text-abyss-ethereal/50 mt-1">
+                  Total XP: {layerProgress.currentXP.toLocaleString()}
+                </div>
+              </div>
+            )}
+            
+            <div className="text-sm text-abyss-ethereal/80 bg-abyss-dark/20 rounded-lg p-3">
+              <p className="italic">"{layerInfo.description}"</p>
             </div>
           </CardContent>
         </Card>

@@ -12,7 +12,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Comprehensive Progress Tab Overhaul (Latest - January 2025)
+### ✓ Dynamic Layer System Unification (Latest - January 2025)
+- **Created Shared Layer Configuration**: Unified layer configuration in `client/src/utils/layerConfig.ts` with consistent naming, icons, and descriptions across all components
+- **Fixed Layer System Inconsistency**: Progress tab now uses same dynamic layer calculation as Home tab via `/api/layer-progress` endpoint
+- **Enhanced Layer Display**: Added proper layer icons, colors, XP progress, and lore-based descriptions ("The Goblets of Giants", "Sea of Corpses", etc.)
+- **Unified Layer Logic**: Both Home and Progress tabs now use `getLayerInfo()` function for consistent layer information display
+- **Dynamic Layer Updates**: Layer information updates in real-time based on user's actual XP progression, not static user.currentLayer field
+- **Complete Layer Details**: Progress tab now shows layer progress bar, XP requirements, and authentic layer descriptions matching the Made in Abyss lore
+
+### ✓ Comprehensive Progress Tab Overhaul (January 2025)
 - **Fixed Whistle XP System**: Implemented proper exponential XP thresholds (Red: 0, Blue: 500, Moon: 1500, Black: 3500, White: 7500)
 - **Dynamic Progress Tracking**: Current XP and next level requirements update automatically based on user's total XP
 - **Enhanced Whistle Display**: Added level titles, visual indicators, and proper whistle names for each rank
