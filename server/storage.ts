@@ -136,6 +136,9 @@ export interface IStorage {
       };
     };
   }>;
+
+  // Developer operations
+  resetUserData(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1078,6 +1081,50 @@ export class DatabaseStorage implements IStorage {
         }
       }
     };
+  }
+
+  // Developer operations
+  async resetUserData(userId: string): Promise<void> {
+    // Delete all user data in the correct order (due to foreign key constraints)
+    // Delete boulder problems first (they reference climbing sessions)
+    await db.delete(boulderProblems)
+      .where(eq(boulderProblems.sessionId, 
+        db.select({ id: climbingSessions.id })
+          .from(climbingSessions)
+          .where(eq(climbingSessions.userId, userId))
+      ));
+    
+    // Delete climbing sessions
+    await db.delete(climbingSessions)
+      .where(eq(climbingSessions.userId, userId));
+    
+    // Delete quests
+    await db.delete(quests)
+      .where(eq(quests.userId, userId));
+    
+    // Delete achievements
+    await db.delete(achievements)
+      .where(eq(achievements.userId, userId));
+    
+    // Delete skills
+    await db.delete(skills)
+      .where(eq(skills.userId, userId));
+    
+    // Delete workout sessions
+    await db.delete(workoutSessions)
+      .where(eq(workoutSessions.userId, userId));
+    
+    // Reset user stats but keep the user account
+    await db.update(users)
+      .set({
+        currentLayer: 1,
+        whistleLevel: 1,
+        totalXP: 0,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+    
+    console.log(`All data reset for user ${userId}`);
   }
 }
 

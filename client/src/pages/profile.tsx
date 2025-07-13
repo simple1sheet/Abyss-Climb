@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import SessionIndicator from "@/components/SessionIndicator";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
+import DeveloperTools from "@/components/DeveloperTools";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
@@ -458,6 +459,9 @@ export default function Profile() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Developer Tools */}
+        <DeveloperTools />
       </div>
 
       <BottomNavigation />

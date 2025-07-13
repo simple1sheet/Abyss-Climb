@@ -1008,6 +1008,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Developer-only endpoint to reset user data
+  app.post('/api/dev/reset-data', isAuthenticated, async (req: any, res) => {
+    try {
+      // Only allow in development mode
+      if (process.env.NODE_ENV !== 'development') {
+        return res.status(403).json({ message: "This endpoint is only available in development mode" });
+      }
+
+      const userId = req.user.claims.sub;
+      console.log(`Developer reset requested for user: ${userId}`);
+      
+      // Delete all user data except the user account itself
+      await storage.resetUserData(userId);
+      
+      console.log(`Developer reset completed for user: ${userId}`);
+      res.json({ 
+        message: "All user data has been reset successfully",
+        userId: userId,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error resetting user data:", error);
+      res.status(500).json({ message: "Failed to reset user data" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -4,7 +4,7 @@
 
 Abyss Climber is a full-stack web application that gamifies rock climbing progress tracking. Built with a "Made in Abyss" anime theme, it allows users to log climbing sessions, track boulder problems, complete quests, and progress through different "layers" of difficulty. The app combines climbing data with RPG-style elements like experience points, achievements, and a whistle-based level system.
 
-**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Comprehensive Home Workout feature with AI-powered workout generation, personalized training routines, and seamless integration into existing session management - now provides complete workout analytics with stretching, meditation, strength training, and XP rewards.
+**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Comprehensive multi-platform deployment capabilities with APK export via Capacitor for Android, developer tools for data management, and enhanced PWA support for mobile web experience - now provides complete native app functionality with one-click APK generation and development utilities.
 
 ## User Preferences
 
@@ -12,7 +12,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Comprehensive Home Workout Feature Implementation (Latest - January 2025)
+### ✓ Multi-Platform Deployment & Developer Tools (Latest - January 2025)
+- **APK Export Capabilities**: Complete Capacitor integration for Android APK generation with automated build scripts
+- **Developer Reset Tools**: Development-only data reset functionality with secure user authentication and environment checks
+- **Enhanced PWA Support**: Progressive Web App manifest with native app shortcuts, theme colors, and mobile optimization
+- **Multi-Account Architecture**: Confirmed and documented existing robust multi-account support with proper per-user data separation
+- **Build Automation**: One-click APK generation with build-android.sh script and proper Capacitor configuration
+- **Mobile App Features**: Native Android app capabilities with splash screens, status bar theming, and app shortcuts
+- **Developer UI Components**: Professional developer tools interface with confirmation dialogs and secure reset operations
+- **PWA Manifest**: Complete Progressive Web App support with app shortcuts for quick session/progress access
+- **Deployment Ready**: Full mobile deployment capabilities with both APK and PWA installation options
+
+### ✓ Comprehensive Home Workout Feature Implementation (January 2025)
 - **AI-Powered Workout Generation**: Complete OpenAI integration generating personalized workouts based on user's climbing stats, weaknesses, and recent activity
 - **Workout Database Schema**: Added workoutSessions table with comprehensive workout tracking including type, intensity, duration, exercises, and XP rewards
 - **Full Backend API System**: Implemented complete CRUD operations for workout generation, creation, retrieval, and completion with proper authentication
