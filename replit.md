@@ -12,6 +12,23 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
+### ✓ Session Management System Overhaul (Latest - January 2025)
+- **Session Detail Pages**: Added complete session detail view with `/session/:id` route
+- **Session List Page**: Created dedicated sessions page (`/sessions`) with monthly grouping and statistics
+- **Backend Session API**: Added GET `/api/sessions/:id` endpoint with proper authentication and ownership checks
+- **Enhanced Navigation**: Fixed 404 errors when clicking on past sessions from RecentSessions component
+- **Session Data Persistence**: All session data properly stored and retrieved from PostgreSQL database
+- **Session Grouping**: Sessions organized by month with summary statistics
+- **Boulder Problems Display**: Session details show all associated boulder problems with grades and completion status
+- **Responsive Design**: Mobile-first design with proper spacing and hover effects
+
+### ✓ Profile Picture System Enhancement (January 2025)
+- **Real File Upload**: Complete file upload system using multer with local storage
+- **Image Validation**: Comprehensive file type, size, and format validation
+- **Auto Cleanup**: Automatic deletion of old profile images when new ones are uploaded
+- **Enhanced UI**: Improved button styling and responsive layout for profile picture controls
+- **Error Handling**: Better error messages and user feedback for upload failures
+
 ### ✓ Core Features Implemented
 - **7-Layer progression system** based on Made in Abyss layers (Edge of Abyss → Final Maelstrom)
 - **Skill-based whistle system** (Bell → White Whistle) with grade-based progression instead of XP

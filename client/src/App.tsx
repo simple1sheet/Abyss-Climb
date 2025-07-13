@@ -8,6 +8,8 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Session from "@/pages/session";
+import SessionDetail from "@/pages/session-detail";
+import Sessions from "@/pages/sessions";
 import Quests from "@/pages/quests";
 import Progress from "@/pages/progress";
 import Profile from "@/pages/profile";
@@ -25,6 +27,8 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/session" component={Session} />
           <Route path="/session/new" component={SessionForm} />
+          <Route path="/session/:id" component={SessionDetail} />
+          <Route path="/sessions" component={Sessions} />
           <Route path="/quests" component={Quests} />
           <Route path="/progress" component={Progress} />
           <Route path="/profile" component={Profile} />

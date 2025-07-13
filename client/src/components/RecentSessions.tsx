@@ -138,7 +138,7 @@ export default function RecentSessions() {
           {sessions && sessions.length > 5 && (
             <div className="mt-4 text-center">
               <Button
-                onClick={() => navigate("/progress")}
+                onClick={() => navigate("/sessions")}
                 variant="outline"
                 className="text-abyss-ethereal/70 hover:text-abyss-ethereal border-abyss-ethereal/30"
               >
