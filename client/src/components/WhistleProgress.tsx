@@ -27,6 +27,11 @@ export default function WhistleProgress() {
     enabled: !!user,
   });
 
+  const { data: enhancedProgress } = useQuery({
+    queryKey: ["/api/enhanced-progress"],
+    enabled: !!user,
+  });
+
   const toggleCategory = (category: string) => {
     setOpenCategories(prev => 
       prev.includes(category) 
@@ -131,7 +136,8 @@ export default function WhistleProgress() {
     );
   }
 
-  const currentLevel = user.whistleLevel || 0;
+  // Use enhanced progress data for whistle level as it's always fresh from server
+  const currentLevel = enhancedProgress?.whistleLevel ?? user.whistleLevel ?? 0;
   const nextLevelGrade = getGradeRequiredForNextLevel(currentLevel);
   
   // Calculate progress to next whistle based on highest skill grade
