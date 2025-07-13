@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +8,6 @@ import { useSession } from '@/hooks/useSession';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import WorkoutGenerator from './WorkoutGenerator';
 import { motion } from 'framer-motion';
 
 export default function SessionStartPanel() {
@@ -16,8 +15,6 @@ export default function SessionStartPanel() {
   const { activeSession } = useSession();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [showWorkoutGenerator, setShowWorkoutGenerator] = useState(false);
-  const [generatedWorkout, setGeneratedWorkout] = useState(null);
 
   const createClimbingSessionMutation = useMutation({
     mutationFn: async () => {
@@ -50,13 +47,7 @@ export default function SessionStartPanel() {
     },
   });
 
-  const handleWorkoutGenerated = (workout) => {
-    setGeneratedWorkout(workout);
-    setShowWorkoutGenerator(false);
-    
-    // Automatically start the workout
-    setLocation('/workout');
-  };
+
 
   const handleStartClimbingSession = () => {
     if (activeSession) {
@@ -69,7 +60,12 @@ export default function SessionStartPanel() {
   };
 
   const handleStartHomeWorkout = () => {
-    setShowWorkoutGenerator(true);
+    // Direct navigation to workout page instead of two-step process
+    toast({
+      title: "Home Workout Started!",
+      description: "Generating your personalized workout...",
+    });
+    setLocation('/workout');
   };
 
   return (
@@ -146,56 +142,39 @@ export default function SessionStartPanel() {
 
             <TabsContent value="workout" className="mt-6">
               <div className="space-y-4">
-                {!showWorkoutGenerator ? (
-                  <div className="text-center space-y-3">
-                    <div className="p-4 bg-abyss-dark/50 rounded-lg">
-                      <Dumbbell className="w-12 h-12 text-abyss-amber mx-auto mb-3" />
-                      <h3 className="text-lg font-semibold text-abyss-ethereal">Home Workout Session</h3>
-                      <p className="text-abyss-muted text-sm mt-2">
-                        Get AI-generated workouts based on your climbing stats, weaknesses, and current needs.
-                        Perfect for rest days and supplemental training.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3 text-sm">
-                      <div className="bg-green-500/10 p-3 rounded-lg border border-green-500/20">
-                        <div className="text-2xl mb-1">🤸</div>
-                        <div className="text-green-400 font-medium">Stretching</div>
-                      </div>
-                      <div className="bg-purple-500/10 p-3 rounded-lg border border-purple-500/20">
-                        <div className="text-2xl mb-1">🧘</div>
-                        <div className="text-purple-400 font-medium">Meditation</div>
-                      </div>
-                      <div className="bg-red-500/10 p-3 rounded-lg border border-red-500/20">
-                        <div className="text-2xl mb-1">💪</div>
-                        <div className="text-red-400 font-medium">Strength</div>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={handleStartHomeWorkout}
-                      className="w-full bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark"
-                    >
-                      <Dumbbell className="w-4 h-4 mr-2" />
-                      Start Home Workout
-                    </Button>
+                <div className="text-center space-y-3">
+                  <div className="p-4 bg-abyss-dark/50 rounded-lg">
+                    <Dumbbell className="w-12 h-12 text-abyss-amber mx-auto mb-3" />
+                    <h3 className="text-lg font-semibold text-abyss-ethereal">Home Workout Session</h3>
+                    <p className="text-abyss-muted text-sm mt-2">
+                      Get AI-generated workouts based on your climbing stats, weaknesses, and current needs.
+                      Perfect for rest days and supplemental training.
+                    </p>
                   </div>
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
+
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="bg-green-500/10 p-3 rounded-lg border border-green-500/20">
+                      <div className="text-2xl mb-1">🤸</div>
+                      <div className="text-green-400 font-medium">Stretching</div>
+                    </div>
+                    <div className="bg-purple-500/10 p-3 rounded-lg border border-purple-500/20">
+                      <div className="text-2xl mb-1">🧘</div>
+                      <div className="text-purple-400 font-medium">Meditation</div>
+                    </div>
+                    <div className="bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+                      <div className="text-2xl mb-1">💪</div>
+                      <div className="text-red-400 font-medium">Strength</div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleStartHomeWorkout}
+                    className="w-full bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark"
                   >
-                    <WorkoutGenerator onWorkoutGenerated={handleWorkoutGenerated} />
-                    <Button
-                      onClick={() => setShowWorkoutGenerator(false)}
-                      variant="outline"
-                      className="w-full mt-4 border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10"
-                    >
-                      Back to Workout Options
-                    </Button>
-                  </motion.div>
-                )}
+                    <Dumbbell className="w-4 h-4 mr-2" />
+                    Start Home Workout
+                  </Button>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
