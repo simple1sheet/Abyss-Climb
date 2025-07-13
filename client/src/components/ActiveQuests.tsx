@@ -69,6 +69,7 @@ export default function ActiveQuests() {
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
       toast({
         title: "Quest Completed!",
         description: "Quest completed successfully and removed from active quests.",

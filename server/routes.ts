@@ -202,8 +202,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (user) {
             const newTotalXP = (user.totalXP || 0) + problem.xpEarned;
             await storage.upsertUser({
-              id: userId,
-              totalXP: newTotalXP
+              ...user,
+              totalXP: newTotalXP,
             });
           }
         }

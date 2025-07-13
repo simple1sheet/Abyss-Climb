@@ -47,6 +47,7 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
       queryClient.invalidateQueries({ queryKey: ["/api/achievements/available"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
       toast({
         title: "Achievements Updated",
         description: "Your achievements have been checked and updated!",
