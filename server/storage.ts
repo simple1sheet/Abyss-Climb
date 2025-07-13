@@ -86,14 +86,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    // Get user's skills to calculate whistle level
-    const userSkills = await this.getUserSkills(userData.id);
-    const whistleLevel = this.calculateWhistleLevel(userSkills);
+    // First, check if user exists
+    const existingUser = await this.getUser(userData.id);
+    let whistleLevel = 0;
+    let currentLayer = 1;
     
-    // Calculate layer based on XP if totalXP is provided, otherwise use whistle level
-    const currentLayer = userData.totalXP !== undefined 
-      ? this.calculateCurrentLayerFromXP(userData.totalXP || 0)
-      : this.calculateCurrentLayer(whistleLevel);
+    if (existingUser) {
+      // For existing users, get their skills to calculate whistle level
+      const userSkills = await this.getUserSkills(userData.id);
+      whistleLevel = this.calculateWhistleLevel(userSkills);
+      
+      // Calculate layer based on XP if totalXP is provided, otherwise use whistle level
+      currentLayer = userData.totalXP !== undefined 
+        ? this.calculateCurrentLayerFromXP(userData.totalXP || 0)
+        : this.calculateCurrentLayer(whistleLevel);
+    }
     
     const [user] = await db
       .insert(users)

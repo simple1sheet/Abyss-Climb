@@ -31,6 +31,12 @@ export function getSession() {
     ttl: sessionTtl,
     tableName: "sessions",
   });
+  
+  // Handle session store errors
+  sessionStore.on('error', (err) => {
+    console.error('Session store error:', err);
+  });
+  
   return session({
     secret: process.env.SESSION_SECRET!,
     store: sessionStore,
@@ -38,7 +44,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
       maxAge: sessionTtl,
     },
   });
@@ -69,12 +75,12 @@ async function upsertUser(
   const existingSkills = await storage.getUserSkills(claims["sub"]);
   if (existingSkills.length === 0) {
     const defaultSkills = [
-      { userId: claims["sub"], skillType: 'crimps', level: 1, xp: 0 },
-      { userId: claims["sub"], skillType: 'dynos', level: 1, xp: 0 },
-      { userId: claims["sub"], skillType: 'movement', level: 1, xp: 0 },
-      { userId: claims["sub"], skillType: 'strength', level: 1, xp: 0 },
-      { userId: claims["sub"], skillType: 'balance', level: 1, xp: 0 },
-      { userId: claims["sub"], skillType: 'flexibility', level: 1, xp: 0 },
+      { userId: claims["sub"], skillType: 'crimps', category: 'Technique', maxGrade: 'V0', totalProblems: 0 },
+      { userId: claims["sub"], skillType: 'dynos', category: 'Movement', maxGrade: 'V0', totalProblems: 0 },
+      { userId: claims["sub"], skillType: 'slopers', category: 'Technique', maxGrade: 'V0', totalProblems: 0 },
+      { userId: claims["sub"], skillType: 'overhangs', category: 'Strength', maxGrade: 'V0', totalProblems: 0 },
+      { userId: claims["sub"], skillType: 'slabs', category: 'Balance', maxGrade: 'V0', totalProblems: 0 },
+      { userId: claims["sub"], skillType: 'pinches', category: 'Strength', maxGrade: 'V0', totalProblems: 0 },
     ];
     
     for (const skill of defaultSkills) {
