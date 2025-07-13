@@ -143,17 +143,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updates.startTime = new Date(updates.startTime);
       }
       
-      const session = await storage.updateClimbingSession(sessionId, updates);
-      
       // Set status to completed when session ends
       if (updates.endTime) {
         updates.status = "completed";
       }
       
+      const session = await storage.updateClimbingSession(sessionId, updates);
+      
       res.json(session);
     } catch (error) {
       console.error("Error updating session:", error);
       res.status(500).json({ message: "Failed to update session" });
+    }
+  });
+
+  // Complete session endpoint - ensures all XP is properly applied
+  app.post('/api/sessions/:id/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const sessionId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Get session and its problems
+      const session = await storage.getClimbingSession(sessionId);
+      if (!session || session.userId !== userId) {
+        return res.status(404).json({ message: "Session not found or access denied" });
+      }
+      
+      const problems = await storage.getBoulderProblemsForSession(sessionId);
+      
+      // Calculate total session XP
+      const totalSessionXP = problems.reduce((sum, problem) => {
+        return sum + (problem.completed ? (problem.xpEarned || 0) : 0);
+      }, 0);
+      
+      // Update session with final XP and mark as completed
+      const updatedSession = await storage.updateClimbingSession(sessionId, {
+        status: "completed",
+        endTime: new Date(),
+        xpEarned: totalSessionXP
+      });
+      
+      console.log(`Session ${sessionId} completed with ${totalSessionXP} total XP`);
+      
+      res.json(updatedSession);
+    } catch (error) {
+      console.error("Error completing session:", error);
+      res.status(500).json({ message: "Failed to complete session" });
     }
   });
 
@@ -189,6 +224,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Update session XP if problem was completed
       if (problem.completed && problem.xpEarned > 0) {
+        console.log(`Problem completed with ${problem.xpEarned} XP for user ${userId}`);
+        
         // Get current session XP
         const session = await storage.getClimbingSession(problem.sessionId);
         if (session) {
@@ -200,13 +237,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Update user's total XP
           const user = await storage.getUser(userId);
           if (user) {
-            const newTotalXP = (user.totalXP || 0) + problem.xpEarned;
+            const oldTotalXP = user.totalXP || 0;
+            const newTotalXP = oldTotalXP + problem.xpEarned;
+            console.log(`Updating user XP from ${oldTotalXP} to ${newTotalXP}`);
+            
             await storage.upsertUser({
               ...user,
               totalXP: newTotalXP,
             });
+            
+            console.log(`User XP updated successfully for user ${userId}`);
+          } else {
+            console.error(`User ${userId} not found when trying to update XP`);
           }
+        } else {
+          console.error(`Session ${problem.sessionId} not found when trying to update XP`);
         }
+      } else {
+        console.log(`Problem not completed or no XP earned: completed=${problem.completed}, xpEarned=${problem.xpEarned}`);
       }
       
       res.json(problem);
