@@ -242,18 +242,18 @@ export default function ProgressPage() {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-abyss-amber">
-                  🧠 {enhancedProgress?.enhancedStats.bestGrade 
-                    ? gradeConverter.convertGrade(enhancedProgress.enhancedStats.bestGrade, 'V-Scale', gradeSystem)
-                    : "N/A"
+                  🧠 {enhancedProgress?.enhancedStats.bestGrade === "N/A" || !enhancedProgress?.enhancedStats.bestGrade
+                    ? "N/A"
+                    : gradeConverter.convertGrade(enhancedProgress.enhancedStats.bestGrade, 'V-Scale', gradeSystem)
                   }
                 </div>
                 <div className="text-sm text-abyss-ethereal/70">Best Grade</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-abyss-amber">
-                  📈 {enhancedProgress?.enhancedStats.averageGrade7d 
-                    ? gradeConverter.convertGrade(enhancedProgress.enhancedStats.averageGrade7d, 'V-Scale', gradeSystem)
-                    : gradeConverter.convertGrade("V0", 'V-Scale', gradeSystem)
+                  📈 {enhancedProgress?.enhancedStats.averageGrade7d === "N/A" || !enhancedProgress?.enhancedStats.averageGrade7d
+                    ? "N/A"
+                    : gradeConverter.convertGrade(enhancedProgress.enhancedStats.averageGrade7d, 'V-Scale', gradeSystem)
                   }
                 </div>
                 <div className="text-sm text-abyss-ethereal/70">Avg Grade (7d)</div>

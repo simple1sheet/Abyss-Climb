@@ -1,0 +1,58 @@
+After resetting user data with the Dev Reset tool, several parts of the app show incorrect values. Please fix the following issues and make sure the app behaves correctly with a clean account (no data yet):
+
+✅ 1. Whistle Rank Should Start at Bell
+🔴 Problem: After reset, the user starts as a Red Whistle, even without climbing anything.
+
+✅ Fix:
+
+Set default whistle rank to Bell Whistle (V0) when no climbs are logged yet.
+
+Make the whistle rank logic dynamically depend on the highest grade climbed.
+
+Do not hardcode a default rank beyond Bell.
+
+✅ 2. Average Grade Shows 3 with No Data
+🔴 Problem: The Average Grade in the Progress tab shows 3 even when no sessions are logged.
+
+✅ Fix:
+
+When no climbing data exists, display "-" or "N/A" as the average grade.
+
+Ensure average grade is only calculated if at least one session is logged with a valid grade.
+
+✅ 3. Skills Are Missing from Progress Tab
+🔴 Problem: After reset, the Skills section in the Progress tab is empty or not rendering properly.
+
+✅ Fix:
+
+Add fallback logic: if no skill data exists, show placeholder UI like “No skills logged yet.”
+
+Reinitialize the skill categories (Movement, Strength, Mind, Technique) to be available even before they’re filled with progress.
+
+Ensure future skill progress logs populate those categories correctly.
+
+✅ 4. “Top Skill” Shows Garbage or Wrong Color
+🔴 Problem: The Top Skill text shows the wrong color and doesn’t make sense when no skills are completed yet.
+
+✅ Fix:
+
+Only show “Top Skill” if there is actual skill progress data to base it on.
+
+If not, hide the Top Skill section or show: "Top Skill: N/A"
+
+Fix text color issue:
+
+Apply default color (text-white or text-foreground) if skill category color is undefined.
+
+Sanitize category names before using them in class names or color mappings.
+
+✅ Acceptance Criteria
+After a full Dev Reset, the user should:
+
+Start as Bell Whistle
+
+See "N/A" for stats like average grade and top skill until actual data exists
+
+Have default skill categories shown, ready to populate as soon as progress is made
+
+Experience no visual glitches or text color bugs in the progress tab

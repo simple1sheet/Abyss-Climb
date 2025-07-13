@@ -768,6 +768,8 @@ export class DatabaseStorage implements IStorage {
         const gradeNums = recentProblems.map(p => this.getGradeNumericValue(p.grade));
         const avgGradeNum = gradeNums.reduce((a, b) => a + b, 0) / gradeNums.length;
         averageGrade = `V${Math.round(avgGradeNum)}`;
+      } else {
+        averageGrade = "N/A";
       }
     }
 
@@ -819,8 +821,10 @@ export class DatabaseStorage implements IStorage {
       }
     });
 
-    const topSkillCategory = Object.entries(categoryCounts)
-      .sort(([,a], [,b]) => b - a)[0]?.[0] || 'Grip & Handwork';
+    const topSkillCategory = userSkills.length > 0 
+      ? Object.entries(categoryCounts)
+          .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A'
+      : 'N/A';
 
     return {
       averageGradePast7Days: averageGrade,
@@ -880,7 +884,8 @@ export class DatabaseStorage implements IStorage {
     
     // Whistle XP thresholds (exponential scaling)
     const whistleXPThresholds = {
-      1: 0,     // Red Whistle
+      0: 0,     // Bell Whistle
+      1: 0,     // Red Whistle (starts at 0 until first climb)
       2: 500,   // Blue Whistle
       3: 1500,  // Moon Whistle
       4: 3500,  // Black Whistle
@@ -888,6 +893,7 @@ export class DatabaseStorage implements IStorage {
     };
 
     const whistleNames = {
+      0: 'Bell Whistle',
       1: 'Red Whistle',
       2: 'Blue Whistle', 
       3: 'Moon Whistle',
@@ -935,7 +941,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Calculate average grade
-    let averageGrade = "V0";
+    let averageGrade = "N/A";
     if (allGrades.length > 0) {
       const gradeNums = allGrades.map(g => this.getGradeNumericValue(g));
       const avgGradeNum = gradeNums.reduce((a, b) => a + b, 0) / gradeNums.length;
@@ -966,7 +972,7 @@ export class DatabaseStorage implements IStorage {
           const pNum = this.getGradeNumericValue(p.grade);
           return pNum > maxNum ? p.grade : max;
         }, "V0")
-      : "V0";
+      : "N/A";
 
     // Calculate session consistency (sessions per week over past 30 days)
     const sessionsLast30Days = await db
@@ -1124,7 +1130,7 @@ export class DatabaseStorage implements IStorage {
     await db.update(users)
       .set({
         currentLayer: 1,
-        whistleLevel: 1,
+        whistleLevel: 0, // Start at Bell whistle
         totalXP: 0,
         updatedAt: new Date(),
       })

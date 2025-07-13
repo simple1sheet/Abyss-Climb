@@ -183,9 +183,9 @@ export default function WhistleProgress() {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-abyss-amber">
-                {whistleStats?.averageGradePast7Days 
-                  ? gradeConverter.convertGrade(whistleStats.averageGradePast7Days, 'V-Scale', gradeSystem)
-                  : gradeConverter.convertGrade("V0", 'V-Scale', gradeSystem)
+                {whistleStats?.averageGradePast7Days === "N/A" || !whistleStats?.averageGradePast7Days
+                  ? "N/A"
+                  : gradeConverter.convertGrade(whistleStats.averageGradePast7Days, 'V-Scale', gradeSystem)
                 }
               </div>
               <div className="text-sm text-abyss-ethereal/70">📊 Avg Grade (7d)</div>
@@ -200,8 +200,11 @@ export default function WhistleProgress() {
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center">
-              <div className="text-sm font-bold text-abyss-purple leading-tight">
-                {whistleStats?.topSkillCategory || "Grip & Handwork"}
+              <div className="text-sm font-bold text-abyss-ethereal leading-tight">
+                {whistleStats?.topSkillCategory === "N/A" || !whistleStats?.topSkillCategory
+                  ? "N/A"
+                  : whistleStats.topSkillCategory
+                }
               </div>
               <div className="text-sm text-abyss-ethereal/70">🔥 Top Skill</div>
             </div>
@@ -222,12 +225,12 @@ export default function WhistleProgress() {
             </Button>
           </div>
 
-          {skills && skills.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-abyss-ethereal mb-2 flex items-center">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Skills Progress
-              </h3>
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-abyss-ethereal mb-2 flex items-center">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Skills Progress
+            </h3>
+            {skills && skills.length > 0 ? (
               <div className="space-y-2">
                 {Object.entries(groupSkillsByCategory(skills)).map(([category, categorySkills]) => (
                   categorySkills.length > 0 && (
@@ -274,8 +277,13 @@ export default function WhistleProgress() {
                   )
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-abyss-dark/20 border border-abyss-teal/10 rounded-lg p-4 text-center">
+                <p className="text-abyss-ethereal/70 text-sm">No skills logged yet.</p>
+                <p className="text-abyss-ethereal/60 text-xs mt-1">Complete climbing problems to start building your skills!</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </section>
