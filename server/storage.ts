@@ -5,7 +5,6 @@ import {
   quests,
   achievements,
   skills,
-  userTitles,
   type User,
   type UpsertUser,
   type ClimbingSession,
@@ -18,8 +17,6 @@ import {
   type InsertSkill,
   type Achievement,
   type InsertAchievement,
-  type UserTitle,
-  type InsertUserTitle,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, gte, lte, lt, sql } from "drizzle-orm";
@@ -56,12 +53,6 @@ export interface IStorage {
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
   getUserAchievements(userId: string): Promise<Achievement[]>;
-  
-  // Title operations
-  createUserTitle(title: InsertUserTitle): Promise<UserTitle>;
-  getUserTitles(userId: string): Promise<UserTitle[]>;
-  setActiveTitle(userId: string, titleId: number): Promise<UserTitle>;
-  getActiveTitle(userId: string): Promise<UserTitle | undefined>;
   
   // Stats operations
   getUserStats(userId: string): Promise<{
@@ -427,50 +418,6 @@ export class DatabaseStorage implements IStorage {
       .from(achievements)
       .where(eq(achievements.userId, userId))
       .orderBy(desc(achievements.unlockedAt));
-  }
-
-  // Title operations
-  async createUserTitle(title: InsertUserTitle): Promise<UserTitle> {
-    const [newTitle] = await db
-      .insert(userTitles)
-      .values(title)
-      .returning();
-    return newTitle;
-  }
-
-  async getUserTitles(userId: string): Promise<UserTitle[]> {
-    return await db
-      .select()
-      .from(userTitles)
-      .where(eq(userTitles.userId, userId))
-      .orderBy(desc(userTitles.unlockedAt));
-  }
-
-  async setActiveTitle(userId: string, titleId: number): Promise<UserTitle> {
-    // First deactivate all titles for this user
-    await db
-      .update(userTitles)
-      .set({ isActive: false })
-      .where(eq(userTitles.userId, userId));
-    
-    // Then activate the selected title
-    const [activeTitle] = await db
-      .update(userTitles)
-      .set({ isActive: true })
-      .where(and(eq(userTitles.userId, userId), eq(userTitles.id, titleId)))
-      .returning();
-    
-    return activeTitle;
-  }
-
-  async getActiveTitle(userId: string): Promise<UserTitle | undefined> {
-    const [activeTitle] = await db
-      .select()
-      .from(userTitles)
-      .where(and(eq(userTitles.userId, userId), eq(userTitles.isActive, true)))
-      .limit(1);
-    
-    return activeTitle;
   }
 
   // Stats operations

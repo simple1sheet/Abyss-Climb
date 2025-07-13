@@ -126,26 +126,12 @@ export const achievements = pgTable("achievements", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// User titles system
-export const userTitles = pgTable("user_titles", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  titleName: varchar("title_name").notNull(),
-  titleCategory: varchar("title_category").notNull(),
-  xpRequired: integer("xp_required").notNull(),
-  requirement: text("requirement").notNull(),
-  isActive: boolean("is_active").default(false),
-  unlockedAt: timestamp("unlocked_at").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(climbingSessions),
   quests: many(quests),
   achievements: many(achievements),
   skills: many(skills),
-  titles: many(userTitles),
 }));
 
 export const climbingSessionsRelations = relations(climbingSessions, ({ one, many }) => ({
@@ -169,10 +155,6 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
   user: one(users, { fields: [achievements.userId], references: [users.id] }),
 }));
 
-export const userTitlesRelations = relations(userTitles, ({ one }) => ({
-  user: one(users, { fields: [userTitles.userId], references: [users.id] }),
-}));
-
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertClimbingSessionSchema = createInsertSchema(climbingSessions, {
@@ -183,7 +165,6 @@ export const insertBoulderProblemSchema = createInsertSchema(boulderProblems);
 export const insertQuestSchema = createInsertSchema(quests);
 export const insertSkillSchema = createInsertSchema(skills);
 export const insertAchievementSchema = createInsertSchema(achievements);
-export const insertUserTitleSchema = createInsertSchema(userTitles);
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -198,5 +179,3 @@ export type InsertSkill = z.infer<typeof insertSkillSchema>;
 export type Skill = typeof skills.$inferSelect;
 export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
 export type Achievement = typeof achievements.$inferSelect;
-export type InsertUserTitle = z.infer<typeof insertUserTitleSchema>;
-export type UserTitle = typeof userTitles.$inferSelect;
