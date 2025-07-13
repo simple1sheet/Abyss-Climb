@@ -17,13 +17,13 @@ export default function WhistleProgress() {
   const [openCategories, setOpenCategories] = useState<string[]>([]);
   const { gradeSystem } = useGradeSystem();
   
-  const { data: enhancedProgress } = useQuery({
-    queryKey: ["/api/enhanced-progress"],
+  const { data: skills } = useQuery({
+    queryKey: ["/api/skills"],
     enabled: !!user,
   });
 
-  const { data: skills } = useQuery({
-    queryKey: ["/api/skills"],
+  const { data: whistleStats } = useQuery({
+    queryKey: ["/api/whistle-progress"],
     enabled: !!user,
   });
 
@@ -104,16 +104,17 @@ export default function WhistleProgress() {
     return colors[level as keyof typeof colors] || "text-gray-400";
   };
 
-  const getWhistleConfig = (level: number) => {
-    const configs = {
-      0: { name: "Bell Whistle", color: "text-gray-400", xpRequired: 0 },
-      1: { name: "Red Whistle", color: "text-red-400", xpRequired: 500 },
-      2: { name: "Blue Whistle", color: "text-blue-400", xpRequired: 1500 },
-      3: { name: "Moon Whistle", color: "text-yellow-400", xpRequired: 3500 },
-      4: { name: "Black Whistle", color: "text-gray-800", xpRequired: 7500 },
-      5: { name: "White Whistle", color: "text-white", xpRequired: 15000 },
+  const getGradeRequiredForNextLevel = (currentLevel: number): string => {
+    const requirements = {
+      0: "V1",   // Bell to Red
+      1: "V3",   // Red to Blue
+      2: "V5",   // Blue to Moon
+      3: "V7",   // Moon to Black
+      4: "V9",   // Black to White
+      5: "V12+", // White (max)
     };
-    return configs[level as keyof typeof configs] || configs[0];
+    const vScaleGrade = requirements[currentLevel as keyof typeof requirements] || "V12+";
+    return gradeConverter.convertGrade(vScaleGrade, 'V-Scale', gradeSystem);
   };
 
   if (!user) {
@@ -130,13 +131,22 @@ export default function WhistleProgress() {
     );
   }
 
-  const currentLevel = enhancedProgress?.whistleLevel || 0;
-  const whistleConfig = getWhistleConfig(currentLevel);
+  const currentLevel = user.whistleLevel || 0;
+  const nextLevelGrade = getGradeRequiredForNextLevel(currentLevel);
   
-  // Use enhanced progress data for whistle progression
-  const progressPercentage = enhancedProgress?.whistleProgress || 0;
-  const currentXP = enhancedProgress?.currentXP || 0;
-  const nextLevelXP = enhancedProgress?.nextLevelXP || 0;
+  // Calculate progress to next whistle based on highest skill grade
+  const getHighestSkillGrade = (): number => {
+    if (!skills || skills.length === 0) return 0;
+    let highest = 0;
+    for (const skill of skills) {
+      const gradeNum = parseInt(skill.maxGrade?.replace('V', '') || '0');
+      if (gradeNum > highest) highest = gradeNum;
+    }
+    return highest;
+  };
+  
+  const highestGrade = getHighestSkillGrade();
+  const progressPercentage = currentLevel >= 5 ? 100 : Math.min((highestGrade / parseInt(nextLevelGrade.replace('V', '')) || 1) * 100, 100);
 
   return (
     <section className="px-6 mb-8 relative z-10">
@@ -145,18 +155,18 @@ export default function WhistleProgress() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-abyss-ethereal">Whistle Progress</h2>
             <div className="flex items-center space-x-2">
-              <Badge className={`${whistleConfig.color} bg-abyss-dark/50`}>
-                {whistleConfig.name}
+              <Badge className={`${getWhistleColor(currentLevel)} bg-abyss-dark/50`}>
+                {getWhistleName(currentLevel)}
               </Badge>
-              <Award className={`h-5 w-5 ${whistleConfig.color}`} />
+              <Award className={`h-5 w-5 ${getWhistleColor(currentLevel)}`} />
             </div>
           </div>
           
           <div className="mb-4">
             <div className="flex items-center justify-between text-sm text-abyss-ethereal/70 mb-2">
-              <span>Current XP: {currentXP.toLocaleString()}</span>
+              <span>Highest Grade: {gradeConverter.convertGrade(`V${highestGrade}`, 'V-Scale', gradeSystem)}</span>
               {currentLevel < 5 && (
-                <span>Next Level: {nextLevelXP.toLocaleString()} XP</span>
+                <span>Next Level: {nextLevelGrade}</span>
               )}
             </div>
             <Progress 
@@ -165,7 +175,7 @@ export default function WhistleProgress() {
             />
             {currentLevel < 5 && (
               <p className="text-xs text-abyss-ethereal/60 mt-1">
-                {((nextLevelXP - currentXP) || 0).toLocaleString()} XP to reach {getWhistleConfig(currentLevel + 1).name}
+                Climb {nextLevelGrade} to reach {getWhistleName(currentLevel + 1)}
               </p>
             )}
           </div>
@@ -173,8 +183,8 @@ export default function WhistleProgress() {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-abyss-amber">
-                {enhancedProgress?.xpBreakdown?.averageGrade 
-                  ? gradeConverter.convertGrade(enhancedProgress.xpBreakdown.averageGrade, 'V-Scale', gradeSystem)
+                {whistleStats?.averageGradePast7Days 
+                  ? gradeConverter.convertGrade(whistleStats.averageGradePast7Days, 'V-Scale', gradeSystem)
                   : gradeConverter.convertGrade("V0", 'V-Scale', gradeSystem)
                 }
               </div>
@@ -182,24 +192,22 @@ export default function WhistleProgress() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-abyss-teal">
-                {enhancedProgress?.xpBreakdown?.weeklyXP || 0}
+                {whistleStats?.questsCompletedToday || 0} / {whistleStats?.maxDailyQuests || 3}
               </div>
-              <div className="text-sm text-abyss-ethereal/70">🏆 Weekly XP</div>
+              <div className="text-sm text-abyss-ethereal/70">🏆 Quests Today</div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center">
               <div className="text-sm font-bold text-abyss-purple leading-tight">
-                {enhancedProgress?.xpBreakdown?.problemsSolved || 0}
+                {whistleStats?.topSkillCategory || "Grip & Handwork"}
               </div>
-              <div className="text-sm text-abyss-ethereal/70">🔥 Problems/Week</div>
+              <div className="text-sm text-abyss-ethereal/70">🔥 Top Skill</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-abyss-amber">
-                {enhancedProgress?.enhancedStats?.totalSessions || 0}
-              </div>
-              <div className="text-sm text-abyss-ethereal/70">🧗 Total Sessions</div>
+              <div className="text-2xl font-bold text-abyss-amber">{whistleStats?.sessionsThisWeek || 0}</div>
+              <div className="text-sm text-abyss-ethereal/70">🧗 Sessions/Week</div>
             </div>
           </div>
 
