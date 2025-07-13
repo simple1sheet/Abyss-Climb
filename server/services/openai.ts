@@ -157,3 +157,107 @@ export async function analyzeClimbingProgress(
     throw new Error("Failed to analyze climbing progress: " + (error as Error).message);
   }
 }
+
+export async function generateWorkout(
+  userStats: {
+    userId: string;
+    whistleLevel: number;
+    currentLayer: number;
+    highestGrade: string;
+    recentSessions: any[];
+    skills: any[];
+    weakestSkills: string[];
+    recentActivity: number; // sessions in last 7 days
+  }
+): Promise<{
+  workoutType: string;
+  title: string;
+  description: string;
+  duration: number;
+  intensity: string;
+  intensityRating: number;
+  targetAreas: string[];
+  exercises: any[];
+  xpReward: number;
+  generationReason: string;
+}> {
+  const { whistleLevel, currentLayer, highestGrade, skills, weakestSkills, recentActivity } = userStats;
+
+  const prompt = `Generate a personalized home workout for a climber based on their stats and needs.
+
+  User Profile:
+  - Whistle Level: ${whistleLevel}/5 (0=Bell, 1=Red, 2=Blue, 3=Moon, 4=Black, 5=White)
+  - Current Layer: ${currentLayer}/7 
+  - Highest Grade: ${highestGrade}
+  - Weakest Skills: ${weakestSkills.join(", ") || "None identified"}
+  - Recent Activity: ${recentActivity} sessions in last 7 days
+  - Total Skills: ${skills.length}
+
+  Workout Type Priority Logic:
+  1. If recent activity < 2 sessions: STRETCHING (recovery/maintenance)
+  2. If weakest skills include "mental" or "focus": MEDITATION (mental training)
+  3. If weakest skills include "strength" or "power": STRENGTH (physical training)
+  4. If balanced but recent activity > 5: COMBO (active recovery)
+  5. Default: STRETCHING or STRENGTH based on grade level
+
+  Intensity Scaling:
+  - Bell/Red Whistle (V0-V2): Low intensity, focus on basics
+  - Blue Whistle (V3-V4): Medium intensity, technique focus
+  - Moon+ Whistle (V5+): High intensity, advanced training
+
+  Duration Guidelines:
+  - Stretching: 15-30 minutes
+  - Meditation: 10-20 minutes  
+  - Strength: 20-40 minutes
+  - Combo: 25-45 minutes
+
+  XP Rewards:
+  - Low intensity: 25-50 XP
+  - Medium intensity: 50-100 XP
+  - High intensity: 100-200 XP
+  - Combo sessions: +25% bonus
+
+  Create practical, actionable exercises. For stretching: specific stretches. For strength: bodyweight exercises. For meditation: mindfulness techniques.
+
+  Respond with JSON:
+  {
+    "workoutType": "stretching|meditation|strength|combo",
+    "title": "Engaging workout title",
+    "description": "Clear workout description and benefits",
+    "duration": number (minutes),
+    "intensity": "low|medium|high|extreme",
+    "intensityRating": number (1-10),
+    "targetAreas": ["flexibility", "core", "shoulders", "mental_focus", "etc"],
+    "exercises": [
+      {
+        "name": "Exercise name",
+        "description": "How to perform it",
+        "duration": "2 minutes" or "10 reps",
+        "targetArea": "core|shoulders|flexibility|mental"
+      }
+    ],
+    "xpReward": number,
+    "generationReason": "Why this workout was recommended"
+  }`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a climbing coach AI that creates personalized home workouts. Focus on practical, actionable exercises that complement climbing training."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+    });
+
+    return JSON.parse(response.choices[0].message.content!);
+  } catch (error) {
+    throw new Error("Failed to generate workout: " + (error as Error).message);
+  }
+}

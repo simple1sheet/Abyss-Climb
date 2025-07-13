@@ -16,6 +16,7 @@ import Progress from "@/pages/progress";
 import Profile from "@/pages/profile";
 import LayerOverview from "@/pages/layer-overview";
 import WhistleOverview from "@/pages/whistle-overview";
+import WorkoutPage from "@/pages/workout";
 import SessionForm from "@/components/SessionForm";
 
 function Router() {
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/progress" component={Progress} />
           <Route path="/layers" component={LayerOverview} />
           <Route path="/whistles" component={WhistleOverview} />
+          <Route path="/workout" component={WorkoutPage} />
           <Route path="/profile" component={Profile} />
         </>
       )}

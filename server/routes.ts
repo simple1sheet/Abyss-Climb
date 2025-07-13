@@ -5,7 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
 import { xpCalculator } from "./services/xpCalculator";
-import { analyzeClimbingProgress } from "./services/openai";
+import { analyzeClimbingProgress, generateWorkout } from "./services/openai";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -790,6 +790,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error removing profile picture:", error);
       res.status(500).json({ message: "Failed to remove profile picture" });
+    }
+  });
+
+  // Workout routes
+  app.post('/api/workouts/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get user stats for AI workout generation
+      const user = await storage.getUser(userId);
+      const skills = await storage.getUserSkills(userId);
+      const recentSessions = await storage.getUserClimbingSessions(userId, 7);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Calculate weakest skills
+      const weakestSkills = skills
+        .filter(s => s.totalProblems < 10)
+        .sort((a, b) => a.totalProblems - b.totalProblems)
+        .slice(0, 3)
+        .map(s => s.skillType);
+
+      // Get highest grade from skills
+      const highestGrade = skills.length > 0 
+        ? skills.reduce((max, skill) => {
+            const maxGrade = gradeConverter.getGradeNumericValue(max, 'V-Scale');
+            const skillGrade = gradeConverter.getGradeNumericValue(skill.maxGrade, 'V-Scale');
+            return skillGrade > maxGrade ? skill.maxGrade : max;
+          }, 'V0')
+        : 'V0';
+
+      // Calculate whistle level based on highest grade
+      const whistleLevel = gradeConverter.getWhistleLevel(highestGrade, 'V-Scale');
+      
+      // Calculate current layer based on total XP
+      const layerProgress = await storage.getLayerProgressInfo(userId);
+      
+      const userStats = {
+        userId,
+        whistleLevel,
+        currentLayer: layerProgress.currentLayer,
+        highestGrade,
+        recentSessions,
+        skills,
+        weakestSkills,
+        recentActivity: recentSessions.length,
+      };
+
+      const workoutData = await generateWorkout(userStats);
+      
+      res.json(workoutData);
+    } catch (error) {
+      console.error("Error generating workout:", error);
+      res.status(500).json({ message: "Failed to generate workout" });
+    }
+  });
+
+  app.post('/api/workouts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const workoutData = req.body;
+      
+      const workout = await storage.createWorkoutSession({
+        userId,
+        ...workoutData,
+      });
+      
+      res.json(workout);
+    } catch (error) {
+      console.error("Error creating workout:", error);
+      res.status(500).json({ message: "Failed to create workout" });
+    }
+  });
+
+  app.get('/api/workouts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      
+      const workouts = await storage.getUserWorkoutSessions(userId, limit);
+      
+      res.json(workouts);
+    } catch (error) {
+      console.error("Error fetching workouts:", error);
+      res.status(500).json({ message: "Failed to fetch workouts" });
+    }
+  });
+
+  app.get('/api/workouts/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const workoutId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const workout = await storage.getWorkoutSession(workoutId);
+      
+      if (!workout) {
+        return res.status(404).json({ message: "Workout not found" });
+      }
+      
+      // Check if workout belongs to user
+      if (workout.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      res.json(workout);
+    } catch (error) {
+      console.error("Error fetching workout:", error);
+      res.status(500).json({ message: "Failed to fetch workout" });
+    }
+  });
+
+  app.post('/api/workouts/:id/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const workoutId = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      const workout = await storage.getWorkoutSession(workoutId);
+      
+      if (!workout) {
+        return res.status(404).json({ message: "Workout not found" });
+      }
+      
+      if (workout.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Complete the workout and award XP
+      const completedWorkout = await storage.updateWorkoutSession(workoutId, {
+        completed: true,
+        completedAt: new Date(),
+      });
+      
+      // Award XP to user
+      const user = await storage.getUser(userId);
+      if (user) {
+        const newTotalXP = (user.totalXP || 0) + workout.xpEarned;
+        await storage.upsertUser({
+          ...user,
+          totalXP: newTotalXP,
+        });
+      }
+      
+      res.json({
+        workout: completedWorkout,
+        xpEarned: workout.xpEarned,
+      });
+    } catch (error) {
+      console.error("Error completing workout:", error);
+      res.status(500).json({ message: "Failed to complete workout" });
     }
   });
 

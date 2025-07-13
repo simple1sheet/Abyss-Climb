@@ -5,6 +5,7 @@ import {
   quests,
   achievements,
   skills,
+  workoutSessions,
   type User,
   type UpsertUser,
   type ClimbingSession,
@@ -17,6 +18,8 @@ import {
   type InsertSkill,
   type Achievement,
   type InsertAchievement,
+  type WorkoutSession,
+  type InsertWorkoutSession,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, gte, lte, lt, sql } from "drizzle-orm";
@@ -54,6 +57,12 @@ export interface IStorage {
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
   getUserAchievements(userId: string): Promise<Achievement[]>;
+  
+  // Workout operations  
+  createWorkoutSession(workout: InsertWorkoutSession): Promise<WorkoutSession>;
+  getUserWorkoutSessions(userId: string, limit?: number): Promise<WorkoutSession[]>;
+  getWorkoutSession(id: number): Promise<WorkoutSession | undefined>;
+  updateWorkoutSession(id: number, updates: Partial<WorkoutSession>): Promise<WorkoutSession>;
   
   // Stats operations
   getUserStats(userId: string): Promise<{
@@ -480,6 +489,40 @@ export class DatabaseStorage implements IStorage {
       .from(achievements)
       .where(eq(achievements.userId, userId))
       .orderBy(desc(achievements.unlockedAt));
+  }
+
+  async createWorkoutSession(workout: InsertWorkoutSession): Promise<WorkoutSession> {
+    const [created] = await db
+      .insert(workoutSessions)
+      .values(workout)
+      .returning();
+    return created;
+  }
+
+  async getUserWorkoutSessions(userId: string, limit = 10): Promise<WorkoutSession[]> {
+    return await db
+      .select()
+      .from(workoutSessions)
+      .where(eq(workoutSessions.userId, userId))
+      .orderBy(desc(workoutSessions.createdAt))
+      .limit(limit);
+  }
+
+  async getWorkoutSession(id: number): Promise<WorkoutSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(workoutSessions)
+      .where(eq(workoutSessions.id, id));
+    return session;
+  }
+
+  async updateWorkoutSession(id: number, updates: Partial<WorkoutSession>): Promise<WorkoutSession> {
+    const [updated] = await db
+      .update(workoutSessions)
+      .set(updates)
+      .where(eq(workoutSessions.id, id))
+      .returning();
+    return updated;
   }
 
   // Stats operations

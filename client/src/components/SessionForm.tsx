@@ -7,10 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { Mountain, Dumbbell, ArrowLeft } from "lucide-react";
+import BottomNavigation from "@/components/BottomNavigation";
+import SessionIndicator from "@/components/SessionIndicator";
+import WorkoutGenerator from "@/components/WorkoutGenerator";
 
 interface BoulderProblem {
   grade: string;
@@ -39,6 +44,7 @@ export default function SessionForm() {
   const [problems, setProblems] = useState<BoulderProblem[]>([]);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
+  const [activeTab, setActiveTab] = useState('climbing');
 
   const createSessionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -199,25 +205,53 @@ export default function SessionForm() {
     return icons[skill as keyof typeof icons] || "fas fa-question";
   };
 
+  const handleWorkoutRedirect = () => {
+    setLocation("/workout");
+  };
+
   return (
-    <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-abyss-dark via-abyss-dark to-abyss-teal/10 text-abyss-ethereal relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-10 w-40 h-40 bg-abyss-teal rounded-full blur-3xl"></div>
       </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 relative z-10">
-        <button 
-          onClick={() => setLocation("/")}
-          className="text-abyss-amber hover:text-abyss-ethereal transition-colors"
-        >
-          <i className="fas fa-arrow-left text-xl"></i>
-        </button>
-        <h1 className="text-xl font-semibold text-abyss-ethereal">Climbing Session</h1>
-        <div className="w-6"></div>
-      </div>
+      <div className="relative z-10 container mx-auto px-4 py-6 pb-20">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              onClick={() => setLocation("/")}
+              className="text-abyss-ethereal hover:bg-abyss-teal/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-abyss-ethereal">Start Training</h1>
+              <p className="text-abyss-muted">Choose your training type</p>
+            </div>
+          </div>
+          <SessionIndicator />
+        </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-abyss-dark/50 border border-abyss-teal/20 mb-6">
+            <TabsTrigger value="climbing" className="data-[state=active]:bg-abyss-teal/20">
+              <Mountain className="w-4 h-4 mr-2" />
+              Climbing Session
+            </TabsTrigger>
+            <TabsTrigger value="workout" className="data-[state=active]:bg-abyss-teal/20">
+              <Dumbbell className="w-4 h-4 mr-2" />
+              Home Workout
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="climbing" className="space-y-6">
+            <div className="max-w-md mx-auto space-y-6">
 
       <div className="space-y-6 relative z-10">
         {/* Session Controls */}
@@ -451,6 +485,59 @@ export default function SessionForm() {
           )}
         </Button>
       </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="workout" className="space-y-6">
+            <Card className="bg-layer-gradient backdrop-blur-sm border-abyss-teal/20">
+              <CardHeader>
+                <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
+                  <Dumbbell className="w-5 h-5 text-abyss-amber" />
+                  <span>Home Workout</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center space-y-4">
+                  <p className="text-abyss-muted">
+                    Get personalized workouts based on your climbing stats and current needs. 
+                    Choose from stretching, meditation, strength training, or combination sessions.
+                  </p>
+                  <div className="space-y-3">
+                    <div className="flex justify-center space-x-4">
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                          <span className="text-green-400">💪</span>
+                        </div>
+                        <p className="text-xs text-abyss-muted">Strength</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                          <span className="text-blue-400">🧘</span>
+                        </div>
+                        <p className="text-xs text-abyss-muted">Meditation</p>
+                      </div>
+                      <div className="text-center">
+                        <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center mx-auto mb-2">
+                          <span className="text-yellow-400">🤸</span>
+                        </div>
+                        <p className="text-xs text-abyss-muted">Stretching</p>
+                      </div>
+                    </div>
+                    <Button
+                      onClick={handleWorkoutRedirect}
+                      className="w-full bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark"
+                    >
+                      Start Home Workout
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      <BottomNavigation />
     </div>
   );
 }

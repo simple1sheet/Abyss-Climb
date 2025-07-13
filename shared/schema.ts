@@ -127,12 +127,34 @@ export const achievements = pgTable("achievements", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Home workout sessions
+export const workoutSessions = pgTable("workout_sessions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  workoutType: varchar("workout_type").notNull(), // 'stretching', 'meditation', 'strength', 'combo'
+  title: varchar("title").notNull(),
+  description: text("description"),
+  duration: integer("duration").notNull(), // in minutes
+  intensity: varchar("intensity").notNull(), // 'low', 'medium', 'high', 'extreme'
+  intensityRating: integer("intensity_rating").default(1), // 1-10 numeric rating
+  targetAreas: jsonb("target_areas").default('[]'), // ['flexibility', 'core', 'shoulders', 'mental_focus']
+  exercises: jsonb("exercises").default('[]'), // Array of exercise objects
+  xpEarned: integer("xp_earned").default(0),
+  completed: boolean("completed").default(false),
+  aiGenerated: boolean("ai_generated").default(true),
+  generationReason: text("generation_reason"), // Why this workout was suggested
+  startTime: timestamp("start_time").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(climbingSessions),
   quests: many(quests),
   achievements: many(achievements),
   skills: many(skills),
+  workouts: many(workoutSessions),
 }));
 
 export const climbingSessionsRelations = relations(climbingSessions, ({ one, many }) => ({
@@ -156,6 +178,10 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
   user: one(users, { fields: [achievements.userId], references: [users.id] }),
 }));
 
+export const workoutSessionsRelations = relations(workoutSessions, ({ one }) => ({
+  user: one(users, { fields: [workoutSessions.userId], references: [users.id] }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertClimbingSessionSchema = createInsertSchema(climbingSessions, {
@@ -166,6 +192,7 @@ export const insertBoulderProblemSchema = createInsertSchema(boulderProblems);
 export const insertQuestSchema = createInsertSchema(quests);
 export const insertSkillSchema = createInsertSchema(skills);
 export const insertAchievementSchema = createInsertSchema(achievements);
+export const insertWorkoutSessionSchema = createInsertSchema(workoutSessions);
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -180,3 +207,5 @@ export type InsertSkill = z.infer<typeof insertSkillSchema>;
 export type Skill = typeof skills.$inferSelect;
 export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
 export type Achievement = typeof achievements.$inferSelect;
+export type InsertWorkoutSession = z.infer<typeof insertWorkoutSessionSchema>;
+export type WorkoutSession = typeof workoutSessions.$inferSelect;
