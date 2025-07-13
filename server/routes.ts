@@ -81,6 +81,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/enhanced-progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const enhancedStats = await storage.getEnhancedProgressStats(userId);
+      res.json(enhancedStats);
+    } catch (error) {
+      console.error("Error fetching enhanced progress:", error);
+      res.status(500).json({ message: "Failed to fetch enhanced progress" });
+    }
+  });
+
   app.patch('/api/user/grade-system', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

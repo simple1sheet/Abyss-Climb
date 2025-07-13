@@ -86,6 +86,46 @@ export interface IStorage {
     topSkillCategory: string;
     sessionsThisWeek: number;
   }>;
+
+  // Enhanced progress operations
+  getEnhancedProgressStats(userId: string): Promise<{
+    // Whistle tracking
+    whistleLevel: number;
+    whistleName: string;
+    currentXP: number;
+    nextLevelXP: number;
+    whistleProgress: number;
+    xpBreakdown: {
+      weeklyXP: number;
+      problemsSolved: number;
+      averageGrade: string;
+    };
+    // Enhanced statistics
+    enhancedStats: {
+      totalSessions: number;
+      totalProblems: number;
+      weeklyTime: number;
+      bestGrade: string;
+      averageGrade7d: string;
+      sessionConsistency: number;
+      weeklyStats: {
+        problems: number;
+        xp: number;
+        time: number;
+      };
+    };
+    // Personal milestones
+    milestones: {
+      firstV5Send?: Date;
+      firstOutdoorSession?: Date;
+      longestStreak: number;
+      bestSession: {
+        date: Date;
+        xp: number;
+        problems: number;
+      };
+    };
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -718,6 +758,252 @@ export class DatabaseStorage implements IStorage {
       maxDailyQuests: 3, // Standard max daily quests
       topSkillCategory,
       sessionsThisWeek: sessionsThisWeek.length
+    };
+  }
+
+  // Enhanced progress operations
+  async getEnhancedProgressStats(userId: string): Promise<{
+    whistleLevel: number;
+    whistleName: string;
+    currentXP: number;
+    nextLevelXP: number;
+    whistleProgress: number;
+    xpBreakdown: {
+      weeklyXP: number;
+      problemsSolved: number;
+      averageGrade: string;
+    };
+    enhancedStats: {
+      totalSessions: number;
+      totalProblems: number;
+      weeklyTime: number;
+      bestGrade: string;
+      averageGrade7d: string;
+      sessionConsistency: number;
+      weeklyStats: {
+        problems: number;
+        xp: number;
+        time: number;
+      };
+    };
+    milestones: {
+      firstV5Send?: Date;
+      firstOutdoorSession?: Date;
+      longestStreak: number;
+      bestSession: {
+        date: Date;
+        xp: number;
+        problems: number;
+      };
+    };
+  }> {
+    const user = await this.getUser(userId);
+    if (!user) throw new Error('User not found');
+
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Get user skills to calculate whistle level
+    const userSkills = await this.getUserSkills(userId);
+    const whistleLevel = this.calculateWhistleLevel(userSkills);
+    
+    // Whistle XP thresholds (exponential scaling)
+    const whistleXPThresholds = {
+      1: 0,     // Red Whistle
+      2: 500,   // Blue Whistle
+      3: 1500,  // Moon Whistle
+      4: 3500,  // Black Whistle
+      5: 7500,  // White Whistle
+    };
+
+    const whistleNames = {
+      1: 'Red Whistle',
+      2: 'Blue Whistle', 
+      3: 'Moon Whistle',
+      4: 'Black Whistle',
+      5: 'White Whistle'
+    };
+
+    const currentXP = user.totalXP || 0;
+    const nextLevelXP = whistleXPThresholds[Math.min(whistleLevel + 1, 5) as keyof typeof whistleXPThresholds] || 7500;
+    const currentLevelXP = whistleXPThresholds[whistleLevel as keyof typeof whistleXPThresholds] || 0;
+    const whistleProgress = Math.min(((currentXP - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100, 100);
+
+    // Get weekly XP breakdown
+    const recentSessions = await db
+      .select()
+      .from(climbingSessions)
+      .where(
+        and(
+          eq(climbingSessions.userId, userId),
+          gte(climbingSessions.createdAt, sevenDaysAgo)
+        )
+      );
+
+    let weeklyXP = 0;
+    let weeklyProblems = 0;
+    let weeklyTime = 0;
+    const allGrades: string[] = [];
+
+    for (const session of recentSessions) {
+      const problems = await this.getBoulderProblemsForSession(session.id);
+      weeklyXP += session.totalXP || 0;
+      weeklyProblems += problems.length;
+      
+      // Calculate session time (assuming 2 hours default if not specified)
+      const sessionTime = session.endTime && session.createdAt 
+        ? (new Date(session.endTime).getTime() - new Date(session.createdAt).getTime()) / (1000 * 60 * 60)
+        : 2;
+      weeklyTime += sessionTime;
+
+      problems.forEach(p => {
+        if (p.completed) {
+          allGrades.push(p.grade);
+        }
+      });
+    }
+
+    // Calculate average grade
+    let averageGrade = "V0";
+    if (allGrades.length > 0) {
+      const gradeNums = allGrades.map(g => this.getGradeNumericValue(g));
+      const avgGradeNum = gradeNums.reduce((a, b) => a + b, 0) / gradeNums.length;
+      averageGrade = `V${Math.round(avgGradeNum)}`;
+    }
+
+    // Get enhanced statistics
+    const allSessions = await db
+      .select()
+      .from(climbingSessions)
+      .where(eq(climbingSessions.userId, userId));
+
+    const allProblems = [];
+    for (const session of allSessions) {
+      const problems = await this.getBoulderProblemsForSession(session.id);
+      allProblems.push(...problems);
+    }
+
+    const completedProblems = allProblems.filter(p => p.completed);
+    const bestGrade = completedProblems.length > 0 
+      ? completedProblems.reduce((max, p) => {
+          const maxNum = this.getGradeNumericValue(max);
+          const pNum = this.getGradeNumericValue(p.grade);
+          return pNum > maxNum ? p.grade : max;
+        }, "V0")
+      : "V0";
+
+    // Calculate session consistency (sessions per week over past 30 days)
+    const sessionsLast30Days = await db
+      .select()
+      .from(climbingSessions)
+      .where(
+        and(
+          eq(climbingSessions.userId, userId),
+          gte(climbingSessions.createdAt, thirtyDaysAgo)
+        )
+      );
+
+    const sessionConsistency = (sessionsLast30Days.length / 30) * 7; // sessions per week
+
+    // Get personal milestones
+    const firstV5Send = await db
+      .select({ date: boulderProblems.createdAt })
+      .from(boulderProblems)
+      .innerJoin(climbingSessions, eq(boulderProblems.sessionId, climbingSessions.id))
+      .where(
+        and(
+          eq(climbingSessions.userId, userId),
+          eq(boulderProblems.completed, true),
+          sql`${boulderProblems.grade} >= 'V5'`
+        )
+      )
+      .orderBy(boulderProblems.createdAt)
+      .limit(1);
+
+    const firstOutdoorSession = await db
+      .select({ date: climbingSessions.createdAt })
+      .from(climbingSessions)
+      .where(
+        and(
+          eq(climbingSessions.userId, userId),
+          eq(climbingSessions.sessionType, 'outdoor')
+        )
+      )
+      .orderBy(climbingSessions.createdAt)
+      .limit(1);
+
+    // Find best session (highest XP)
+    const bestSession = allSessions.reduce((best, session) => {
+      const sessionXP = session.totalXP || 0;
+      const bestXP = best.totalXP || 0;
+      return sessionXP > bestXP ? session : best;
+    }, allSessions[0] || { totalXP: 0, createdAt: new Date(), id: 0 });
+
+    const bestSessionProblems = bestSession.id 
+      ? await this.getBoulderProblemsForSession(bestSession.id)
+      : [];
+
+    // Calculate longest streak (consecutive days with sessions)
+    const allSessionDates = allSessions
+      .map(s => new Date(s.createdAt).toDateString())
+      .sort();
+    
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let previousDate = null;
+
+    for (const dateStr of allSessionDates) {
+      const date = new Date(dateStr);
+      if (previousDate) {
+        const daysDiff = Math.floor((date.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysDiff === 1) {
+          currentStreak++;
+        } else {
+          longestStreak = Math.max(longestStreak, currentStreak);
+          currentStreak = 1;
+        }
+      } else {
+        currentStreak = 1;
+      }
+      previousDate = date;
+    }
+    longestStreak = Math.max(longestStreak, currentStreak);
+
+    return {
+      whistleLevel,
+      whistleName: whistleNames[whistleLevel as keyof typeof whistleNames] || 'Red Whistle',
+      currentXP,
+      nextLevelXP,
+      whistleProgress,
+      xpBreakdown: {
+        weeklyXP,
+        problemsSolved: weeklyProblems,
+        averageGrade
+      },
+      enhancedStats: {
+        totalSessions: allSessions.length,
+        totalProblems: allProblems.length,
+        weeklyTime,
+        bestGrade,
+        averageGrade7d: averageGrade,
+        sessionConsistency: Math.round(sessionConsistency * 10) / 10,
+        weeklyStats: {
+          problems: weeklyProblems,
+          xp: weeklyXP,
+          time: weeklyTime
+        }
+      },
+      milestones: {
+        firstV5Send: firstV5Send[0]?.date,
+        firstOutdoorSession: firstOutdoorSession[0]?.date,
+        longestStreak,
+        bestSession: {
+          date: bestSession.createdAt,
+          xp: bestSession.totalXP || 0,
+          problems: bestSessionProblems.length
+        }
+      }
     };
   }
 }

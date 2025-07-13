@@ -4,7 +4,7 @@
 
 Abyss Climber is a full-stack web application that gamifies rock climbing progress tracking. Built with a "Made in Abyss" anime theme, it allows users to log climbing sessions, track boulder problems, complete quests, and progress through different "layers" of difficulty. The app combines climbing data with RPG-style elements like experience points, achievements, and a whistle-based level system.
 
-**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Enhanced Whistle Progress dashboard with meaningful statistics - now shows average grade (7 days), quest completion progress, top skill category, and weekly session count, all dynamically calculated from real user data.
+**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Comprehensive Progress Tab overhaul with fixed whistle XP system, enhanced statistics section, and personal milestones tracking - now provides complete progress analytics with proper XP thresholds, streak tracking, and milestone achievements.
 
 ## User Preferences
 
@@ -12,17 +12,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Enhanced Whistle Progress Dashboard (Latest - January 2025)
-- **Meaningful Statistics**: Replaced "Current Layer" and "Skills Tracked" with dynamic, actionable stats
-- **Average Grade (7 Days)**: Shows user's average climbing grade from completed problems in past 7 days
-- **Quest Progress Today**: Real-time display of daily quest completion (e.g., "2 / 3 Quests Completed")
-- **Top Skill Category**: Dynamically identifies user's strongest skill category based on skill distribution
-- **Weekly Session Count**: Tracks total climbing sessions logged in the past 7 days
-- **Grade System Integration**: Average grade displays in user's preferred grade system (V-Scale, Font, German)
-- **Compact Layout**: Clean, scannable design with emojis and proper spacing for quick information consumption
-- **Database Optimization**: Efficient queries for recent session data and quest completion tracking
-- **Real-time Updates**: All statistics update automatically when new sessions/quests are logged
-- **API Endpoint**: New `/api/whistle-progress` endpoint providing comprehensive progress statistics
+### ✓ Comprehensive Progress Tab Overhaul (Latest - January 2025)
+- **Fixed Whistle XP System**: Implemented proper exponential XP thresholds (Red: 0, Blue: 500, Moon: 1500, Black: 3500, White: 7500)
+- **Dynamic Progress Tracking**: Current XP and next level requirements update automatically based on user's total XP
+- **Enhanced Whistle Display**: Added level titles, visual indicators, and proper whistle names for each rank
+- **XP Breakdown Tooltip**: Interactive tooltip shows weekly XP earned, problems solved, and average grade with detailed breakdown
+- **Expanded Statistics Section**: Added 6 comprehensive stats (Total Sessions, Problems Solved, Weekly Time, Best Grade, Avg Grade 7d, Session Consistency)
+- **Personal Milestones System**: New section tracking First V5 Send, First Outdoor Session, Longest Send Streak, and Personal Best Session
+- **Grade System Integration**: All grades display in user's preferred grade system throughout the progress page
+- **Enhanced Data Queries**: Comprehensive backend queries for calculating streaks, milestones, and progress statistics
+- **Real-time Performance Tracking**: Weekly time tracking, session consistency metrics, and milestone achievement dates
+- **API Endpoint**: New `/api/enhanced-progress` endpoint providing complete progress analytics with whistles, stats, and milestones
 
 ### ✓ Complete Grade System Conversion Feature (January 2025)
 - **Database Schema Update**: Added `preferredGradeSystem` field to users table with default "V-Scale"
