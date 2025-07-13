@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -8,9 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useLocation } from "wouter";
 import BottomNavigation from "@/components/BottomNavigation";
-import { CheckCircle, X } from "lucide-react";
+import { CheckCircle, X, ArrowLeft } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-export default function Quests() {
+function Quests() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -38,12 +41,14 @@ export default function Quests() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       toast({
         title: "Quest Generated",
         description: "A new quest has been added to your journey!",
       });
     },
     onError: (error: any) => {
+      console.error("Quest generation error:", error);
       if (error.response?.status === 400 && error.response?.data?.limitReached) {
         toast({
           title: "Daily Quest Limit Reached",
@@ -65,16 +70,20 @@ export default function Quests() {
       return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
     onSuccess: () => {
+      // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
       toast({
         title: "Quest Completed!",
         description: "Quest completed successfully and removed from active quests.",
       });
     },
     onError: (error: any) => {
+      console.error("Quest completion error:", error);
       if (error.response?.status === 400 && error.response?.data?.completionLimitReached) {
         toast({
           title: "Daily Completion Limit Reached",
@@ -98,12 +107,14 @@ export default function Quests() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       toast({
         title: "Quest Discarded",
         description: "The quest has been removed from your active quests.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Quest discard error:", error);
       toast({
         title: "Error",
         description: "Failed to discard quest. Try again later.",
@@ -151,47 +162,56 @@ export default function Quests() {
   const activeQuests = quests?.filter((q: any) => q.status === "active") || [];
   const completedQuests = quests?.filter((q: any) => q.status === "completed") || [];
 
-  return (
-    <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 left-10 w-40 h-40 bg-abyss-teal rounded-full blur-3xl"></div>
+  if (isLoading) {
+    return (
+      <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading quests..." />
       </div>
+    );
+  }
 
-      {/* Header */}
-      <header className="relative z-20 px-6 pt-12 pb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setLocation("/")}
-              className="text-abyss-amber hover:text-abyss-ethereal transition-colors"
-            >
-              <i className="fas fa-arrow-left text-xl"></i>
-            </button>
-            <div>
-              <h1 className="text-lg font-semibold text-abyss-ethereal">Quests</h1>
-              {dailyCount && (
-                <p className="text-sm text-abyss-ethereal/60">
-                  Daily: {dailyCount.dailyCount}/{dailyCount.maxDaily}
-                </p>
-              )}
-            </div>
-          </div>
-          <Button
-            onClick={() => generateQuestMutation.mutate()}
-            className="bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold disabled:opacity-50"
-            disabled={generateQuestMutation.isPending || (dailyCount?.limitReached)}
-            title={dailyCount?.limitReached ? "Daily quest limit reached. Come back tomorrow!" : "Generate new quest"}
-          >
-            <i className="fas fa-plus mr-2"></i>
-            {generateQuestMutation.isPending ? "Generating..." : "New Quest"}
-          </Button>
+  return (
+    <ErrorBoundary>
+      <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-10 w-40 h-40 bg-abyss-teal rounded-full blur-3xl"></div>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="relative z-10 px-6 pb-24 space-y-6">
+        {/* Header */}
+        <header className="relative z-20 px-6 pt-12 pb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setLocation("/")}
+                className="text-abyss-amber hover:text-abyss-ethereal transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-lg font-semibold text-abyss-ethereal">Quests</h1>
+                {dailyCount && (
+                  <p className="text-sm text-abyss-ethereal/60">
+                    Daily: {dailyCount.dailyCount}/{dailyCount.maxDaily}
+                  </p>
+                )}
+              </div>
+            </div>
+            <Button
+              onClick={() => generateQuestMutation.mutate()}
+              className="bg-abyss-amber hover:bg-abyss-amber/90 text-abyss-dark font-semibold disabled:opacity-50"
+              disabled={generateQuestMutation.isPending || (dailyCount?.limitReached)}
+              title={dailyCount?.limitReached ? "Daily quest limit reached. Come back tomorrow!" : "Generate new quest"}
+            >
+              <i className="fas fa-plus mr-2"></i>
+              {generateQuestMutation.isPending ? "Generating..." : "New Quest"}
+            </Button>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <div className="relative z-10 px-6 pb-24 space-y-6">
         {/* Active Quests */}
         <div>
           <h2 className="text-xl font-semibold text-abyss-ethereal mb-4">Active Quests</h2>
@@ -311,7 +331,10 @@ export default function Quests() {
         )}
       </div>
 
-      <BottomNavigation />
-    </div>
+        <BottomNavigation />
+      </div>
+    </ErrorBoundary>
   );
 }
+
+export default React.memo(Quests);

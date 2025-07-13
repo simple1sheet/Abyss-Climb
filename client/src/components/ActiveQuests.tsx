@@ -1,15 +1,16 @@
+import React from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, X, Plus, Clock, Target } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
-export default function ActiveQuests() {
+function ActiveQuests() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -166,27 +167,7 @@ export default function ActiveQuests() {
       <section className="px-6 mb-8 relative z-10">
         <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <Skeleton className="h-6 w-32 mb-2 bg-abyss-purple/50" />
-                <Skeleton className="h-4 w-48 bg-abyss-purple/50" />
-              </div>
-              <Skeleton className="h-8 w-8 bg-abyss-purple/50" />
-            </div>
-            <div className="space-y-4">
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="bg-abyss-purple/20 rounded-lg p-4 border border-abyss-teal/20">
-                  <Skeleton className="h-5 w-3/4 mb-2 bg-abyss-purple/50" />
-                  <Skeleton className="h-4 w-full mb-3 bg-abyss-purple/50" />
-                  <div className="flex gap-2 mb-3">
-                    <Skeleton className="h-6 w-16 bg-abyss-purple/50" />
-                    <Skeleton className="h-6 w-20 bg-abyss-purple/50" />
-                    <Skeleton className="h-6 w-14 bg-abyss-purple/50" />
-                  </div>
-                  <Skeleton className="h-2 w-full bg-abyss-purple/50" />
-                </div>
-              ))}
-            </div>
+            <LoadingSpinner size="md" text="Loading active quests..." />
           </CardContent>
         </Card>
       </section>
@@ -308,3 +289,5 @@ export default function ActiveQuests() {
     </section>
   );
 }
+
+export default React.memo(ActiveQuests);

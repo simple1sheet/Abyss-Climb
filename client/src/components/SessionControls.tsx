@@ -1,10 +1,10 @@
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSession } from "@/hooks/useSession";
-import { useLocation } from "wouter";
 
-export default function SessionControls() {
+function SessionControls() {
   const { activeSession, formatDuration, pauseSessionMutation, endSessionMutation, resumeSessionMutation } = useSession();
   const [, setLocation] = useLocation();
 
@@ -85,3 +85,5 @@ export default function SessionControls() {
     </Card>
   );
 }
+
+export default React.memo(SessionControls);

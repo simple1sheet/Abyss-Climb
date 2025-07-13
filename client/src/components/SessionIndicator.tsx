@@ -1,9 +1,10 @@
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
 import { useSession } from "@/hooks/useSession";
 
-export default function SessionIndicator() {
+function SessionIndicator() {
   const [, setLocation] = useLocation();
   const { activeSession, formatDuration, resumeSessionMutation } = useSession();
 
@@ -83,3 +84,5 @@ export default function SessionIndicator() {
     </Card>
   );
 }
+
+export default React.memo(SessionIndicator);

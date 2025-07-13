@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,26 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { XPDisplay, SessionXPCounter, XPGainAnimation } from "./XPDisplay";
-import { Trophy, Target, Zap } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { Trophy, Target, Zap, AlertCircle } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 interface SessionTrackerProps {
   sessionId: number;
 }
 
-export default function SessionTracker({ sessionId }: SessionTrackerProps) {
+const GRADE_OPTIONS = {
+  "V-Scale": ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17"],
+  "Font": ["4", "5", "5+", "6A", "6A+", "6B", "6B+", "6C", "6C+", "7A", "7A+", "7B", "7B+", "7C", "7C+", "8A", "8A+", "8B", "8B+"],
+  "German": ["3", "4", "5", "6", "6+", "7-", "7", "7+", "8-", "8", "8+", "9-", "9", "9+", "10-", "10", "10+", "11-", "11"],
+};
+
+const STYLE_OPTIONS = [
+  "Crimps", "Jugs", "Pinches", "Slopers", "Pockets", "Dynos", "Mantles", 
+  "Overhangs", "Slabs", "Roofs", "Aretes", "Compression", "Coordination"
+];
+
+function SessionTracker({ sessionId }: SessionTrackerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -30,6 +43,7 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
   const [notes, setNotes] = useState("");
   const [showXPAnimation, setShowXPAnimation] = useState(false);
   const [lastXPGained, setLastXPGained] = useState(0);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const { data: problems, isLoading } = useQuery({
     queryKey: ["/api/sessions", sessionId, "problems"],
@@ -97,11 +111,27 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
     },
   });
 
-  const handleAddProblem = () => {
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    
     if (!grade) {
+      errors.grade = "Please select a grade for this problem.";
+    }
+    
+    if (attempts < 1 || attempts > 50) {
+      errors.attempts = "Attempts must be between 1 and 50.";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleAddProblem = () => {
+    if (!validateForm()) {
+      const firstError = Object.values(formErrors)[0];
       toast({
-        title: "Missing Grade",
-        description: "Please select a grade for this problem.",
+        title: "Form Error",
+        description: firstError,
         variant: "destructive",
       });
       return;
@@ -118,16 +148,7 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
     });
   };
 
-  const gradeOptions = {
-    "V-Scale": ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17"],
-    "Font": ["4", "5", "5+", "6A", "6A+", "6B", "6B+", "6C", "6C+", "7A", "7A+", "7B", "7B+", "7C", "7C+", "8A", "8A+", "8B", "8B+"],
-    "German": ["3", "4", "5", "6", "6+", "7-", "7", "7+", "8-", "8", "8+", "9-", "9", "9+", "10-", "10", "10+", "11-", "11"],
-  };
-
-  const styleOptions = [
-    "Crimps", "Jugs", "Pinches", "Slopers", "Pockets", "Dynos", "Mantles", 
-    "Overhangs", "Slabs", "Roofs", "Aretes", "Compression", "Coordination"
-  ];
+  // Moved constants to top of file for better organization
 
   const getGradeColor = (grade: string) => {
     const vGrade = parseInt(grade.replace("V", ""));
@@ -183,18 +204,27 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
             
             <div className="space-y-2">
               <Label className="text-abyss-ethereal">Grade</Label>
-              <Select value={grade} onValueChange={setGrade}>
-                <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
+              <Select value={grade} onValueChange={(value) => {
+                setGrade(value);
+                setFormErrors(prev => ({ ...prev, grade: "" }));
+              }}>
+                <SelectTrigger className={`bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal ${formErrors.grade ? 'border-red-500' : ''}`}>
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent>
-                  {gradeOptions[gradeSystem as keyof typeof gradeOptions].map((g) => (
+                  {GRADE_OPTIONS[gradeSystem as keyof typeof GRADE_OPTIONS].map((g) => (
                     <SelectItem key={g} value={g}>
                       {g}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {formErrors.grade && (
+                <p className="text-red-400 text-sm flex items-center space-x-1">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>{formErrors.grade}</span>
+                </p>
+              )}
             </div>
           </div>
 
@@ -205,7 +235,7 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
                 <SelectValue placeholder="Select climbing style" />
               </SelectTrigger>
               <SelectContent>
-                {styleOptions.map((s) => (
+                {STYLE_OPTIONS.map((s) => (
                   <SelectItem key={s} value={s}>
                     {s}
                   </SelectItem>
@@ -222,9 +252,19 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
                 min="1"
                 max="50"
                 value={attempts}
-                onChange={(e) => setAttempts(parseInt(e.target.value) || 1)}
-                className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal"
+                onChange={(e) => {
+                  const value = parseInt(e.target.value) || 1;
+                  setAttempts(value);
+                  setFormErrors(prev => ({ ...prev, attempts: "" }));
+                }}
+                className={`bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal ${formErrors.attempts ? 'border-red-500' : ''}`}
               />
+              {formErrors.attempts && (
+                <p className="text-red-400 text-sm flex items-center space-x-1">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>{formErrors.attempts}</span>
+                </p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -269,9 +309,8 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-abyss-amber mx-auto"></div>
-              <p className="text-abyss-ethereal/70 mt-2">Loading problems...</p>
+            <div className="py-8">
+              <LoadingSpinner size="md" text="Loading problems..." />
             </div>
           ) : problems && problems.length > 0 ? (
             <div className="space-y-3">
@@ -323,3 +362,5 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
     </div>
   );
 }
+
+export default React.memo(SessionTracker);
