@@ -526,6 +526,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Title routes
+  app.get('/api/titles', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const titles = await storage.getUserTitles(userId);
+      res.json(titles);
+    } catch (error) {
+      console.error("Error fetching titles:", error);
+      res.status(500).json({ message: "Failed to fetch titles" });
+    }
+  });
+
+  app.post('/api/titles', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const titleData = { ...req.body, userId };
+      const title = await storage.createUserTitle(titleData);
+      res.json(title);
+    } catch (error) {
+      console.error("Error creating title:", error);
+      res.status(500).json({ message: "Failed to create title" });
+    }
+  });
+
+  app.post('/api/titles/:id/activate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const titleId = parseInt(req.params.id);
+      const activeTitle = await storage.setActiveTitle(userId, titleId);
+      res.json(activeTitle);
+    } catch (error) {
+      console.error("Error activating title:", error);
+      res.status(500).json({ message: "Failed to activate title" });
+    }
+  });
+
+  app.get('/api/titles/active', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const activeTitle = await storage.getActiveTitle(userId);
+      res.json(activeTitle);
+    } catch (error) {
+      console.error("Error fetching active title:", error);
+      res.status(500).json({ message: "Failed to fetch active title" });
+    }
+  });
+
   // Manual XP award endpoint (for testing)
   app.post('/api/award-xp', isAuthenticated, async (req: any, res) => {
     try {
