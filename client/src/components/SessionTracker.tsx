@@ -11,6 +11,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { XPDisplay, SessionXPCounter, XPGainAnimation } from "./XPDisplay";
+import { Trophy, Target, Zap } from "lucide-react";
 
 interface SessionTrackerProps {
   sessionId: number;
@@ -26,9 +28,16 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
   const [completed, setCompleted] = useState(false);
   const [attempts, setAttempts] = useState(1);
   const [notes, setNotes] = useState("");
+  const [showXPAnimation, setShowXPAnimation] = useState(false);
+  const [lastXPGained, setLastXPGained] = useState(0);
 
   const { data: problems, isLoading } = useQuery({
     queryKey: ["/api/sessions", sessionId, "problems"],
+    enabled: !!sessionId,
+  });
+
+  const { data: session } = useQuery({
+    queryKey: ["/api/sessions", sessionId],
     enabled: !!sessionId,
   });
 
@@ -45,12 +54,22 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
       const response = await apiRequest("POST", "/api/problems", problemData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "problems"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      
+      // Show XP animation if XP was earned
+      if (data.xpEarned && data.xpEarned > 0) {
+        setLastXPGained(data.xpEarned);
+        setShowXPAnimation(true);
+      }
+      
       toast({
         title: "Problem Added",
-        description: "Your climb has been logged!",
+        description: data.xpEarned ? `Your climb has been logged! +${data.xpEarned} XP` : "Your climb has been logged!",
       });
+      
       // Reset form
       setGrade("");
       setStyle("");
@@ -119,8 +138,28 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
     return "bg-purple-500";
   };
 
+  // Calculate session XP and stats
+  const sessionXP = session?.xpEarned || 0;
+  const completedProblems = problems?.filter(p => p.completed).length || 0;
+  const totalProblems = problems?.length || 0;
+
   return (
     <div className="space-y-6">
+      {/* XP Animation */}
+      {showXPAnimation && (
+        <XPGainAnimation
+          xpGained={lastXPGained}
+          onAnimationComplete={() => setShowXPAnimation(false)}
+        />
+      )}
+
+      {/* Session XP Counter */}
+      <SessionXPCounter
+        currentXP={sessionXP}
+        totalProblems={totalProblems}
+        completedProblems={completedProblems}
+      />
+
       {/* Add Problem Form */}
       <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
         <CardHeader>
@@ -248,9 +287,9 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
                     <div>
                       <div className="flex items-center space-x-2">
                         {problem.completed ? (
-                          <i className="fas fa-check text-green-400"></i>
+                          <Trophy className="h-4 w-4 text-green-400" />
                         ) : (
-                          <i className="fas fa-clock text-yellow-400"></i>
+                          <Target className="h-4 w-4 text-yellow-400" />
                         )}
                         <span className="text-sm text-abyss-ethereal">
                           {problem.style || "Mixed"}
@@ -261,8 +300,9 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs text-abyss-ethereal/70">
+                  <div className="text-right space-y-1">
+                    <XPDisplay xpEarned={problem.xpEarned || 0} size="sm" />
+                    <span className="text-xs text-abyss-ethereal/70 block">
                       {problem.gradeSystem}
                     </span>
                   </div>
@@ -271,10 +311,10 @@ export default function SessionTracker({ sessionId }: SessionTrackerProps) {
             </div>
           ) : (
             <div className="text-center py-8">
-              <i className="fas fa-mountain text-3xl text-abyss-amber/50 mb-3"></i>
+              <Target className="h-12 w-12 text-abyss-amber/50 mb-3 mx-auto" />
               <p className="text-abyss-ethereal/70">No problems logged yet</p>
               <p className="text-sm text-abyss-ethereal/50 mt-1">
-                Add your first climb above!
+                Add your first climb above to start earning XP!
               </p>
             </div>
           )}

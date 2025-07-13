@@ -70,6 +70,7 @@ export const boulderProblems = pgTable("boulder_problems", {
   wallAngle: varchar("wall_angle"), // overhang, vertical, slab
   completed: boolean("completed").default(false),
   attempts: integer("attempts").default(1),
+  xpEarned: integer("xp_earned").default(0), // XP earned from this problem
   notes: text("notes"),
   skillsGained: jsonb("skills_gained").default('{}'), // Track which skills were practiced
   createdAt: timestamp("created_at").defaultNow(),

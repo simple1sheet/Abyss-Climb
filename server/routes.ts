@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
+import { xpCalculator } from "./services/xpCalculator";
 import { analyzeClimbingProgress } from "./services/openai";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
 import multer from "multer";
@@ -93,6 +94,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/sessions/:id', isAuthenticated, async (req: any, res) => {
     try {
       const sessionId = parseInt(req.params.id);
+      
+      // Check if sessionId is valid
+      if (isNaN(sessionId)) {
+        return res.status(400).json({ message: "Invalid session ID" });
+      }
+      
       const session = await storage.getClimbingSession(sessionId);
       
       if (!session) {
@@ -142,7 +149,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/problems', isAuthenticated, async (req: any, res) => {
     try {
       const problemData = insertBoulderProblemSchema.parse(req.body);
-      const problem = await storage.createBoulderProblem(problemData);
+      
+      // Calculate XP for this problem
+      const xpEarned = xpCalculator.calculateProblemXP(
+        problemData.grade,
+        problemData.gradeSystem || 'V-Scale',
+        problemData.completed,
+        problemData.attempts,
+        problemData.style
+      );
+      
+      // Add XP to the problem data
+      const problemWithXP = {
+        ...problemData,
+        xpEarned
+      };
+      
+      const problem = await storage.createBoulderProblem(problemWithXP);
       
       const userId = req.user.claims.sub;
       
@@ -150,6 +173,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (problem.style && problem.completed) {
         const category = gradeConverter.getSkillCategoryForStyle(problem.style);
         await storage.upsertUserSkill(userId, problem.style, problem.grade, category);
+      }
+      
+      // Update session XP if problem was completed
+      if (problem.completed && problem.xpEarned > 0) {
+        // Get current session XP
+        const session = await storage.getClimbingSession(problem.sessionId);
+        if (session) {
+          const newSessionXP = (session.xpEarned || 0) + problem.xpEarned;
+          await storage.updateClimbingSession(problem.sessionId, {
+            xpEarned: newSessionXP
+          });
+          
+          // Update user's total XP
+          const user = await storage.getUser(userId);
+          if (user) {
+            const newTotalXP = (user.totalXP || 0) + problem.xpEarned;
+            await storage.upsertUser({
+              id: userId,
+              totalXP: newTotalXP
+            });
+          }
+        }
       }
       
       res.json(problem);

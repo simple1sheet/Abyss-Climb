@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Clock, Calendar, MapPin, Target, Trophy, Star } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, MapPin, Target, Trophy, Star, Zap } from "lucide-react";
 import { format } from "date-fns";
 import BottomNavigation from "@/components/BottomNavigation";
+import { XPDisplay } from "@/components/XPDisplay";
 
 export default function SessionDetail() {
   const { id } = useParams();
@@ -189,8 +190,11 @@ export default function SessionDetail() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-abyss-amber">
-                  {session.xpEarned || 0} XP
+                <div className="flex items-center space-x-1 justify-end mb-1">
+                  <Zap className="h-5 w-5 text-abyss-amber" />
+                  <span className="text-2xl font-bold text-abyss-amber">
+                    {session.xpEarned || 0} XP
+                  </span>
                 </div>
                 <div className="text-sm text-abyss-ethereal/60">
                   {session.endTime ? "Completed" : "In Progress"}
@@ -240,15 +244,18 @@ export default function SessionDetail() {
                           {problem.style}
                         </span>
                       </div>
-                      <div className="flex items-center space-x-1">
-                        {problem.completed ? (
-                          <Trophy className="h-4 w-4 text-abyss-amber" />
-                        ) : (
-                          <Star className="h-4 w-4 text-abyss-ethereal/50" />
-                        )}
-                        <span className="text-sm text-abyss-ethereal/70">
-                          {problem.attempts} attempts
-                        </span>
+                      <div className="flex items-center space-x-3">
+                        <XPDisplay xpEarned={problem.xpEarned || 0} size="sm" />
+                        <div className="flex items-center space-x-1">
+                          {problem.completed ? (
+                            <Trophy className="h-4 w-4 text-abyss-amber" />
+                          ) : (
+                            <Star className="h-4 w-4 text-abyss-ethereal/50" />
+                          )}
+                          <span className="text-sm text-abyss-ethereal/70">
+                            {problem.attempts} attempts
+                          </span>
+                        </div>
                       </div>
                     </div>
                     
@@ -270,6 +277,9 @@ export default function SessionDetail() {
               <div className="text-center py-8 text-abyss-ethereal/70">
                 <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p>No problems logged for this session</p>
+                <p className="text-sm text-abyss-ethereal/50 mt-2">
+                  Start climbing to earn XP!
+                </p>
               </div>
             )}
           </CardContent>
