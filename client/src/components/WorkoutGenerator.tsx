@@ -38,9 +38,16 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
 
   const generateWorkoutMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('POST', '/api/workouts/generate');
+      console.log("Making API request to generate workout...");
+      const response = await apiRequest('POST', '/api/workouts/generate');
+      console.log("API response received:", response);
+      console.log("Response type:", typeof response);
+      console.log("Response keys:", Object.keys(response || {}));
+      return response;
     },
     onSuccess: (data) => {
+      console.log("Workout generation successful, data received:", data);
+      
       // Development-time check for missing workoutType
       if (import.meta.env.DEV && !data.workoutType) {
         console.error('Development Error: Generated workout missing workoutType:', data);
@@ -54,6 +61,7 @@ export default function WorkoutGenerator({ onWorkoutGenerated }: WorkoutGenerato
       });
     },
     onError: (error) => {
+      console.error("Workout generation failed:", error);
       toast({
         title: "Error",
         description: "Failed to generate workout. Please try again.",

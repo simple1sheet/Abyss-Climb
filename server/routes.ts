@@ -843,9 +843,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Generating workout with user stats:", userStats);
       const workoutData = await generateWorkout(userStats);
       console.log("Generated workout data:", workoutData);
+      console.log("WorkoutData type:", typeof workoutData);
+      console.log("WorkoutData keys:", Object.keys(workoutData || {}));
       
       // Ensure we always return a valid workout object
-      if (!workoutData || typeof workoutData !== 'object') {
+      if (!workoutData || typeof workoutData !== 'object' || !workoutData.workoutType) {
         console.error("Invalid workout data received, using fallback");
         const fallbackWorkout = {
           workoutType: 'combo',
@@ -872,9 +874,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           xpReward: 50,
           generationReason: 'Fallback workout due to generation error.'
         };
+        console.log("Sending fallback workout:", fallbackWorkout);
         return res.json(fallbackWorkout);
       }
       
+      console.log("Sending workout data to client:", JSON.stringify(workoutData, null, 2));
       res.json(workoutData);
     } catch (error) {
       console.error("Error generating workout:", error);

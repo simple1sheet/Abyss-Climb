@@ -21,7 +21,7 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<any> {
   // Runtime check to ensure method is a string
   if (typeof method !== 'string') {
     throw new Error(`apiRequest expects method to be a string, got ${typeof method}. Usage: apiRequest('POST', '/api/endpoint', data)`);
@@ -35,7 +35,7 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
-  return res;
+  return await res.json();
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
