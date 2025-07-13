@@ -6,6 +6,7 @@ import {
   achievements,
   skills,
   workoutSessions,
+  layerQuests,
   type User,
   type UpsertUser,
   type ClimbingSession,
@@ -20,6 +21,8 @@ import {
   type InsertAchievement,
   type WorkoutSession,
   type InsertWorkoutSession,
+  type LayerQuest,
+  type InsertLayerQuest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, gte, lte, lt, sql, inArray } from "drizzle-orm";
@@ -137,6 +140,11 @@ export interface IStorage {
     };
   }>;
 
+  // Layer quest operations
+  createLayerQuest(layerQuest: InsertLayerQuest): Promise<LayerQuest>;
+  getLayerQuestByLayer(userId: string, layer: number): Promise<LayerQuest | undefined>;
+  updateLayerQuest(id: number, updates: Partial<LayerQuest>): Promise<LayerQuest>;
+  
   // Developer operations
   resetUserData(userId: string): Promise<void>;
 }
@@ -1146,6 +1154,23 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
+  // Layer quest operations
+  async createLayerQuest(layerQuest: InsertLayerQuest): Promise<LayerQuest> {
+    const [quest] = await db.insert(layerQuests).values(layerQuest).returning();
+    return quest;
+  }
+
+  async getLayerQuestByLayer(userId: string, layer: number): Promise<LayerQuest | undefined> {
+    const [quest] = await db.select().from(layerQuests)
+      .where(and(eq(layerQuests.userId, userId), eq(layerQuests.layer, layer)));
+    return quest;
+  }
+
+  async updateLayerQuest(id: number, updates: Partial<LayerQuest>): Promise<LayerQuest> {
+    const [quest] = await db.update(layerQuests).set(updates).where(eq(layerQuests.id, id)).returning();
+    return quest;
+  }
+
   // Developer operations
   async resetUserData(userId: string): Promise<void> {
     // Delete all user data in the correct order (due to foreign key constraints)
@@ -1182,6 +1207,10 @@ export class DatabaseStorage implements IStorage {
     // Delete workout sessions
     await db.delete(workoutSessions)
       .where(eq(workoutSessions.userId, userId));
+    
+    // Delete layer quests
+    await db.delete(layerQuests)
+      .where(eq(layerQuests.userId, userId));
     
     // Reset user stats but keep the user account
     await db.update(users)

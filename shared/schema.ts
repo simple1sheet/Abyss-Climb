@@ -155,6 +155,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   achievements: many(achievements),
   skills: many(skills),
   workouts: many(workoutSessions),
+  layerQuests: many(layerQuests),
 }));
 
 export const climbingSessionsRelations = relations(climbingSessions, ({ one, many }) => ({
@@ -180,6 +181,26 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
 
 export const workoutSessionsRelations = relations(workoutSessions, ({ one }) => ({
   user: one(users, { fields: [workoutSessions.userId], references: [users.id] }),
+}));
+
+// Layer quests - one per layer that must be completed to progress
+export const layerQuests = pgTable("layer_quests", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  layer: integer("layer").notNull(), // 1-7 for each layer
+  questId: varchar("quest_id").notNull(), // unique identifier for the quest
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  xpReward: integer("xp_reward").default(0),
+  completed: boolean("completed").default(false),
+  progress: integer("progress").default(0),
+  maxProgress: integer("max_progress").default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const layerQuestsRelations = relations(layerQuests, ({ one }) => ({
+  user: one(users, { fields: [layerQuests.userId], references: [users.id] }),
 }));
 
 // Insert schemas
@@ -209,3 +230,7 @@ export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
 export type Achievement = typeof achievements.$inferSelect;
 export type InsertWorkoutSession = z.infer<typeof insertWorkoutSessionSchema>;
 export type WorkoutSession = typeof workoutSessions.$inferSelect;
+
+export const insertLayerQuestSchema = createInsertSchema(layerQuests);
+export type InsertLayerQuest = z.infer<typeof insertLayerQuestSchema>;
+export type LayerQuest = typeof layerQuests.$inferSelect;

@@ -321,8 +321,8 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
 
   // Advanced Achievements
   {
-    id: "layer_explorer",
-    title: "Layer Explorer",
+    id: "layer_challenger",
+    title: "Layer Challenger",
     description: "Reach Layer 3 of the Abyss",
     icon: "compass",
     category: "Master",
@@ -351,8 +351,8 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
     checkCondition: (user, stats) => stats.currentLayer >= 7,
   },
   {
-    id: "xp_collector",
-    title: "XP Collector",
+    id: "xp_hoarder",
+    title: "XP Hoarder",
     description: "Earn 1000 total XP",
     icon: "star",
     category: "Master",

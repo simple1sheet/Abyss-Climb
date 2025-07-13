@@ -7,6 +7,7 @@ import { gradeConverter } from "./services/gradeConverter";
 import { xpCalculator } from "./services/xpCalculator";
 import { analyzeClimbingProgress, generateWorkout } from "./services/openai";
 import { achievementService } from "./services/achievementService";
+import { layerQuestService } from "./services/layerQuestService";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -1020,6 +1021,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error completing workout:", error);
       res.status(500).json({ message: "Failed to complete workout" });
+    }
+  });
+
+  // Layer quest routes
+  app.get('/api/layer-quest/:layer', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const layer = parseInt(req.params.layer);
+      
+      let layerQuest = await storage.getLayerQuestByLayer(userId, layer);
+      
+      if (!layerQuest) {
+        layerQuest = await layerQuestService.initializeLayerQuest(userId, layer);
+      }
+      
+      res.json(layerQuest);
+    } catch (error) {
+      console.error("Error fetching layer quest:", error);
+      res.status(500).json({ message: "Failed to fetch layer quest" });
+    }
+  });
+
+  app.post('/api/layer-quest/:layer/complete', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const layer = parseInt(req.params.layer);
+      
+      const layerQuest = await layerQuestService.completeLayerQuest(userId, layer);
+      
+      if (!layerQuest) {
+        return res.status(404).json({ message: "Layer quest not found" });
+      }
+      
+      res.json(layerQuest);
+    } catch (error) {
+      console.error("Error completing layer quest:", error);
+      res.status(500).json({ message: "Failed to complete layer quest" });
+    }
+  });
+
+  app.post('/api/layer-quest/:layer/progress', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const layer = parseInt(req.params.layer);
+      
+      const layerQuest = await layerQuestService.updateLayerQuestProgress(userId, layer);
+      
+      res.json(layerQuest);
+    } catch (error) {
+      console.error("Error updating layer quest progress:", error);
+      res.status(500).json({ message: "Failed to update layer quest progress" });
+    }
+  });
+
+  app.get('/api/layer-progress/:layer/check', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const layer = parseInt(req.params.layer);
+      
+      const progressCheck = await layerQuestService.canProgressToNextLayer(userId, layer);
+      
+      res.json(progressCheck);
+    } catch (error) {
+      console.error("Error checking layer progress:", error);
+      res.status(500).json({ message: "Failed to check layer progress" });
+    }
+  });
+
+  app.post('/api/layer-progress/advance', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      const result = await layerQuestService.progressToNextLayer(userId);
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error advancing layer:", error);
+      res.status(500).json({ message: "Failed to advance layer" });
     }
   });
 

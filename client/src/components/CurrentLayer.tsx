@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
 import { useLocation } from "wouter";
 import { LAYER_CONFIG, getLayerInfo } from "@/utils/layerConfig";
+import { LayerQuest } from "./LayerQuest";
 
 export default function CurrentLayer() {
   const { user } = useAuth();
@@ -97,6 +98,17 @@ export default function CurrentLayer() {
             <ExternalLink className="h-4 w-4 mr-2" />
             View All Layers
           </Button>
+          
+          <div className="mt-6">
+            <LayerQuest
+              layer={currentLayer}
+              xpProgress={{
+                currentXP: currentXP,
+                nextLayerXP: nextLayerXP,
+                hasEnoughXP: currentXP >= nextLayerXP,
+              }}
+            />
+          </div>
           
           {layerQuests.length > 0 && (
             <div className="mt-4">
