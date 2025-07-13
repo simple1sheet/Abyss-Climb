@@ -141,7 +141,15 @@ export default function Profile() {
             <ProfilePictureUpload 
               currentImageUrl={user?.profileImageUrl}
               userName={`${user?.firstName || ""} ${user?.lastName || ""}`.trim() || "Cave Raider"}
-              onImageUpdate={() => {
+              onImageUpdate={(newImageUrl) => {
+                // Update the user data immediately in the cache
+                queryClient.setQueryData(["/api/auth/user"], (oldData: any) => {
+                  if (oldData) {
+                    return { ...oldData, profileImageUrl: newImageUrl };
+                  }
+                  return oldData;
+                });
+                // Also invalidate to refetch from server
                 queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
               }}
             />

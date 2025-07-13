@@ -488,8 +488,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 2. Upload to cloud storage (AWS S3, Cloudinary, etc.)
       // 3. Save the URL to the database
       
-      // For this demo, we'll simulate saving a profile picture URL
-      const profileImageUrl = `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80`;
+      // For this demo, we'll simulate different profile pictures based on user ID
+      const profileImages = [
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
+        "https://images.unsplash.com/photo-1494790108755-2616b612b765?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80",
+      ];
+      
+      // Generate a consistent but different image for each upload attempt
+      const imageIndex = (Date.now() + userId.length) % profileImages.length;
+      const profileImageUrl = profileImages[imageIndex];
       
       const updatedUser = await storage.upsertUser({
         id: userId,

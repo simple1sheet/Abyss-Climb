@@ -38,7 +38,14 @@ export default function ProfilePictureUpload({
     },
     onSuccess: (data) => {
       setPreviewUrl(null);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Force refetch to get the updated user data
+      queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
       onImageUpdate?.(data.profileImageUrl);
       toast({
         title: "Profile Picture Updated",
@@ -115,6 +122,7 @@ export default function ProfilePictureUpload({
                 src={previewUrl || currentImageUrl} 
                 alt="Profile picture" 
                 className="object-cover"
+                key={previewUrl || currentImageUrl} // Force re-render when image changes
               />
               <AvatarFallback className="bg-abyss-purple/50 text-abyss-ethereal font-semibold text-lg">
                 {getInitials(userName)}
