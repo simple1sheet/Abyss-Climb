@@ -153,6 +153,28 @@
     100% { left: 100%; }
   }
 
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes fadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px) scale(0.9);
+    }
+  }
+
   /* Custom Tailwind Classes */
   .bg-abyss-dark { background-color: var(--abyss-dark); }
   .bg-abyss-purple { background-color: var(--abyss-purple); }

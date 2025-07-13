@@ -5,7 +5,7 @@ import { useSession } from "@/hooks/useSession";
 import { useLocation } from "wouter";
 
 export default function SessionControls() {
-  const { activeSession, formatDuration, pauseSessionMutation, endSessionMutation } = useSession();
+  const { activeSession, formatDuration, pauseSessionMutation, endSessionMutation, resumeSessionMutation } = useSession();
   const [, setLocation] = useLocation();
 
   if (!activeSession) return null;
@@ -64,11 +64,12 @@ export default function SessionControls() {
             </Button>
           ) : (
             <Button
-              onClick={() => setLocation("/session")}
+              onClick={() => resumeSessionMutation.mutate(activeSession.id)}
+              disabled={resumeSessionMutation.isPending}
               variant="outline"
-              className="border-abyss-amber text-abyss-amber hover:bg-abyss-amber/10"
+              className="border-green-500 text-green-500 hover:bg-green-500/10"
             >
-              Resume
+              {resumeSessionMutation.isPending ? "Resuming..." : "Resume"}
             </Button>
           )}
 

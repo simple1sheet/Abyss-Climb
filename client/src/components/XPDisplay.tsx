@@ -146,25 +146,38 @@ interface XPGainAnimationProps {
 }
 
 export function XPGainAnimation({ xpGained, onAnimationComplete }: XPGainAnimationProps) {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   
   useEffect(() => {
     if (xpGained > 0) {
+      // Show animation
+      setIsVisible(true);
+      
+      // Hide after animation completes
       const timer = setTimeout(() => {
         setIsVisible(false);
         onAnimationComplete?.();
-      }, 2000); // Animation duration: 2 seconds
+      }, 2000);
       
       return () => clearTimeout(timer);
     }
   }, [xpGained, onAnimationComplete]);
   
-  if (xpGained === 0 || !isVisible) return null;
+  // Reset visibility when XP changes to 0
+  useEffect(() => {
+    if (xpGained === 0) {
+      setIsVisible(false);
+    }
+  }, [xpGained]);
+  
+  if (!isVisible || xpGained === 0) return null;
   
   return (
     <div 
-      className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 animate-bounce"
-      style={{ animation: 'bounce 1s ease-in-out' }}
+      className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+      style={{ 
+        animation: 'bounce 1s ease-in-out, fadeIn 0.3s ease-in-out, fadeOut 0.3s ease-in-out 1.7s forwards' 
+      }}
     >
       <div className="bg-amber-500/90 backdrop-blur-sm rounded-lg px-6 py-4 shadow-xl">
         <div className="flex items-center space-x-2">
