@@ -96,10 +96,6 @@ export const quests = pgTable("quests", {
   expiresAt: timestamp("expires_at"),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
-  weekStartDate: timestamp("week_start_date"), // For weekly quest tracking
-  baseXP: integer("base_xp").default(100), // Base XP before multipliers
-  gradeDiff: integer("grade_diff").default(0), // Grade difficulty difference
-  layerIndex: integer("layer_index").default(0), // Layer index for calculations
 });
 
 // User achievements and milestones

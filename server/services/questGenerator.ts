@@ -29,14 +29,14 @@ export class QuestGenerator {
         title: "Crimp Master",
         description: "Focus on crimp holds by completing 4 problems with primarily crimp holds",
         difficulty: "medium",
-        xpReward: 120,
+        xpReward: 80,
         requirements: { type: "problems", count: 4, style: "crimps", gradeRange: "comfort" }
       },
       {
         title: "Sloper Specialist",
         description: "Master sloper holds by completing 3 problems with primarily sloper holds",
         difficulty: "hard",
-        xpReward: 180,
+        xpReward: 115,
         requirements: { type: "problems", count: 3, style: "slopers", gradeRange: "comfort" }
       },
       {
@@ -323,7 +323,7 @@ export class QuestGenerator {
     }
   };
 
-  async generateQuestForUser(userId: string, questType: string = 'daily'): Promise<void> {
+  async generateQuestForUser(userId: string): Promise<void> {
     const user = await storage.getUser(userId);
     if (!user) {
       throw new Error("User not found");
@@ -333,13 +333,11 @@ export class QuestGenerator {
     const currentLayer = user.currentLayer || 1;
     const whistleLevel = user.whistleLevel || 1;
 
-    if (questType === 'daily') {
-      await this.generateDailyQuest(userId, currentLayer, userSkills);
-    } else if (questType === 'weekly') {
-      await this.generateWeeklyQuest(userId, currentLayer, userSkills);
-    } else if (questType === 'layer') {
-      await this.generateLayerQuest(userId, currentLayer, userSkills);
-    }
+    // First, check if we need to generate a long-term layer quest
+    await this.generateLayerQuestIfNeeded(userId, currentLayer);
+
+    // Primary method: Use quest pool with proper randomization and duplicate prevention
+    await this.generateDailyQuest(userId, currentLayer, userSkills);
   }
 
   private async generateLayerQuestIfNeeded(userId: string, currentLayer: number): Promise<void> {
@@ -460,30 +458,13 @@ export class QuestGenerator {
     // Adapt the template to user's skill level
     const adaptedQuest = this.adaptQuestToUser(selectedTemplate, currentLayer, userSkills);
 
-    // Calculate XP based on difficulty
-    const getDifficultyXP = (difficulty: string): number => {
-      switch (difficulty.toLowerCase()) {
-        case 'easy': return 80;
-        case 'medium': return 120;
-        case 'hard': return 180;
-        case 'extreme': return 250;
-        default: return 120;
-      }
-    };
-
-    const finalXP = getDifficultyXP(adaptedQuest.difficulty);
-    const baseXP = finalXP;
-    const averageSkillGrade = this.calculateAverageSkillGrade(userSkills);
-    const requiredGrade = this.parseGradeRequirement(adaptedQuest.requirements);
-    const gradeDiff = Math.max(0, requiredGrade - averageSkillGrade);
-
     const quest: InsertQuest = {
       userId,
       title: adaptedQuest.title,
       description: adaptedQuest.description,
       questType: "daily",
       status: "active",
-      xpReward: finalXP,
+      xpReward: adaptedQuest.xpReward,
       maxProgress: adaptedQuest.requirements.count || 1,
       progress: 0,
       layer: currentLayer,
@@ -492,10 +473,6 @@ export class QuestGenerator {
       difficultyRating: this.getDifficultyRating(adaptedQuest.difficulty),
       generatedByAi: false,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
-      baseXP,
-      gradeDiff,
-      layerIndex: currentLayer - 1,
-      weekStartDate: null
     };
 
     await storage.createQuest(quest);
@@ -668,7 +645,7 @@ export class QuestGenerator {
       description: "Complete 3 boulder problems to earn experience",
       questType: "daily",
       status: "active",
-      xpReward: 120, // Medium difficulty XP
+      xpReward: 100,
       maxProgress: 3,
       progress: 0,
       layer,
@@ -680,201 +657,6 @@ export class QuestGenerator {
     };
 
     await storage.createQuest(fallbackQuest);
-  }
-
-  private async generateWeeklyQuest(userId: string, currentLayer: number, userSkills: any[]): Promise<void> {
-    const weeklyTemplates = [
-      {
-        title: "Weekly Volume Challenge",
-        description: "Complete 25 boulder problems throughout the week to build endurance and consistency",
-        difficulty: "medium",
-        requirements: { type: "problems", count: 25, gradeRange: "comfort" }
-      },
-      {
-        title: "Weekly Technique Mastery",
-        description: "Master challenging holds by completing 15 problems using crimps, pinches, and slopers",
-        difficulty: "hard",
-        requirements: { type: "problems", count: 15, style: "technical_holds", gradeRange: "comfort" }
-      },
-      {
-        title: "Weekly Strength Development",
-        description: "Build power by completing 18 overhang problems across multiple sessions",
-        difficulty: "hard",
-        requirements: { type: "problems", count: 18, wallAngle: "overhang", gradeRange: "comfort" }
-      },
-      {
-        title: "Weekly Style Exploration",
-        description: "Expand your climbing vocabulary by completing problems in 6 different climbing styles",
-        difficulty: "medium",
-        requirements: { type: "variety", count: 6, gradeRange: "comfort" }
-      },
-      {
-        title: "Weekly Session Consistency",
-        description: "Maintain consistency by completing at least 4 problems in each of 5 different sessions",
-        difficulty: "easy",
-        requirements: { type: "consistency", count: 5, dailyMin: 4, gradeRange: "comfort" }
-      },
-      {
-        title: "Weekly Grade Progression",
-        description: "Push your limits by completing 12 problems at your challenge grade over multiple sessions",
-        difficulty: "hard",
-        requirements: { type: "problems", count: 12, gradeRange: "challenge" }
-      },
-      {
-        title: "Weekly Endurance Builder",
-        description: "Build stamina by completing 20 problems with less than 5 attempts each",
-        difficulty: "medium",
-        requirements: { type: "problems", count: 20, maxAttempts: 5, gradeRange: "comfort" }
-      },
-      {
-        title: "Weekly Mental Game",
-        description: "Develop focus by completing 10 problems after visualizing the sequence first",
-        difficulty: "medium",
-        requirements: { type: "visualization", count: 10, gradeRange: "comfort" }
-      }
-    ];
-
-    const template = weeklyTemplates[Math.floor(Math.random() * weeklyTemplates.length)];
-    const adaptedQuest = this.adaptQuestToUser(template, currentLayer, userSkills);
-
-    // Calculate XP based on difficulty with weekly multiplier
-    const getDifficultyXP = (difficulty: string): number => {
-      switch (difficulty.toLowerCase()) {
-        case 'easy': return 80;
-        case 'medium': return 120;
-        case 'hard': return 180;
-        case 'extreme': return 250;
-        default: return 120;
-      }
-    };
-
-    const baseXP = getDifficultyXP(adaptedQuest.difficulty);
-    const finalXP = Math.round(baseXP * 1.5); // Weekly multiplier
-    const averageSkillGrade = this.calculateAverageSkillGrade(userSkills);
-    const requiredGrade = this.parseGradeRequirement(adaptedQuest.requirements);
-    const gradeDiff = Math.max(0, requiredGrade - averageSkillGrade);
-
-    const now = new Date();
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
-    startOfWeek.setHours(0, 0, 0, 0);
-
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 7);
-
-    const quest: InsertQuest = {
-      userId,
-      title: adaptedQuest.title,
-      description: adaptedQuest.description,
-      questType: "weekly",
-      status: "active",
-      xpReward: finalXP,
-      maxProgress: adaptedQuest.requirements.count || 1,
-      progress: 0,
-      layer: currentLayer,
-      requirements: adaptedQuest.requirements,
-      difficulty: adaptedQuest.difficulty,
-      difficultyRating: this.getDifficultyRating(adaptedQuest.difficulty),
-      generatedByAi: false,
-      expiresAt: endOfWeek,
-      baseXP,
-      gradeDiff,
-      layerIndex: currentLayer - 1,
-      weekStartDate: startOfWeek
-    };
-
-    await storage.createQuest(quest);
-  }
-
-  private async generateLayerQuest(userId: string, currentLayer: number, userSkills: any[]): Promise<void> {
-    const layerTemplates = [
-      {
-        title: `Layer ${currentLayer} Mastery`,
-        description: `Complete 20 problems appropriate for Layer ${currentLayer} difficulty`,
-        difficulty: "hard",
-        requirements: { type: "problems", count: 20, gradeRange: "challenge" }
-      },
-      {
-        title: `${currentLayer === 1 ? "Surface" : "Abyss"} Explorer`,
-        description: `Explore different climbing styles by completing 15 problems across 3 different techniques`,
-        difficulty: "medium", 
-        requirements: { type: "variety", count: 15, styles: 3, gradeRange: "comfort" }
-      },
-      {
-        title: `Layer ${currentLayer} Strength Test`,
-        description: `Build strength by completing 25 problems with fewer than 5 attempts each`,
-        difficulty: "extreme",
-        requirements: { type: "problems", count: 25, maxAttempts: 5, gradeRange: "challenge" }
-      },
-      {
-        title: `Layer ${currentLayer} Progression`,
-        description: `Push beyond your limits by completing 10 problems at your maximum grade`,
-        difficulty: "extreme",
-        requirements: { type: "problems", count: 10, gradeRange: "challenge" }
-      }
-    ];
-
-    const template = layerTemplates[Math.floor(Math.random() * layerTemplates.length)];
-    const adaptedQuest = this.adaptQuestToUser(template, currentLayer, userSkills);
-
-    // Calculate XP based on difficulty with layer multiplier
-    const getDifficultyXP = (difficulty: string): number => {
-      switch (difficulty.toLowerCase()) {
-        case 'easy': return 80;
-        case 'medium': return 120;
-        case 'hard': return 180;
-        case 'extreme': return 250;
-        default: return 120;
-      }
-    };
-
-    const baseXP = getDifficultyXP(adaptedQuest.difficulty);
-    const layerMultiplier = 1.5 + (currentLayer - 1) * 0.3;
-    const finalXP = Math.round(baseXP * layerMultiplier); // Layer multiplier
-    const averageSkillGrade = this.calculateAverageSkillGrade(userSkills);
-    const requiredGrade = this.parseGradeRequirement(adaptedQuest.requirements);
-    const gradeDiff = Math.max(0, requiredGrade - averageSkillGrade);
-
-    const quest: InsertQuest = {
-      userId,
-      title: adaptedQuest.title,
-      description: adaptedQuest.description,
-      questType: "layer",
-      status: "active",
-      xpReward: finalXP,
-      maxProgress: adaptedQuest.requirements.count || 1,
-      progress: 0,
-      layer: currentLayer,
-      requirements: adaptedQuest.requirements,
-      difficulty: adaptedQuest.difficulty,
-      difficultyRating: this.getDifficultyRating(adaptedQuest.difficulty),
-      generatedByAi: false,
-      expiresAt: null, // Layer quests don't expire
-      baseXP,
-      gradeDiff,
-      layerIndex: currentLayer - 1,
-      weekStartDate: null
-    };
-
-    await storage.createQuest(quest);
-  }
-
-  private calculateAverageSkillGrade(userSkills: any[]): number {
-    if (userSkills.length === 0) return 0;
-    
-    const totalGrade = userSkills.reduce((sum, skill) => {
-      return sum + this.getGradeNumeric(skill.maxGrade || "V0");
-    }, 0);
-    
-    return totalGrade / userSkills.length;
-  }
-
-  private parseGradeRequirement(requirements: any): number {
-    if (!requirements.gradeRange) return 0;
-    
-    // Parse grade range like "V3-V5" or "V4"
-    const gradeMatch = requirements.gradeRange.match(/V(\d+)/);
-    return gradeMatch ? parseInt(gradeMatch[1]) : 0;
   }
 }
 
