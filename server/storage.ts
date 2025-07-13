@@ -43,9 +43,11 @@ export interface IStorage {
   
   // Quest operations
   createQuest(quest: InsertQuest): Promise<Quest>;
-  getUserQuests(userId: string, status?: string): Promise<Quest[]>;
+  getUserQuests(userId: string, status?: string, type?: string): Promise<Quest[]>;
   getUserQuestsInDateRange(userId: string, startDate: Date, endDate: Date): Promise<Quest[]>;
   getUserCompletedQuestsToday(userId: string): Promise<Quest[]>;
+  getUserCompletedQuestsThisWeek(userId: string): Promise<Quest[]>;
+  getUserQuestsThisWeek(userId: string): Promise<Quest[]>;
   updateQuest(id: number, updates: Partial<Quest>): Promise<Quest>;
   
   // Skill operations
@@ -339,15 +341,21 @@ export class DatabaseStorage implements IStorage {
     return newQuest;
   }
 
-  async getUserQuests(userId: string, status?: string): Promise<Quest[]> {
-    const whereClause = status 
-      ? and(eq(quests.userId, userId), eq(quests.status, status))
-      : eq(quests.userId, userId);
+  async getUserQuests(userId: string, status?: string, type?: string): Promise<Quest[]> {
+    const whereConditions = [eq(quests.userId, userId)];
+    
+    if (status) {
+      whereConditions.push(eq(quests.status, status));
+    }
+    
+    if (type) {
+      whereConditions.push(eq(quests.questType, type));
+    }
     
     return await db
       .select()
       .from(quests)
-      .where(whereClause)
+      .where(and(...whereConditions))
       .orderBy(desc(quests.createdAt));
   }
 
@@ -383,6 +391,53 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(quests.completedAt));
+  }
+
+  async getUserCompletedQuestsThisWeek(userId: string): Promise<Quest[]> {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    
+    return await db
+      .select()
+      .from(quests)
+      .where(
+        and(
+          eq(quests.userId, userId),
+          eq(quests.status, "completed"),
+          eq(quests.questType, "weekly"),
+          gte(quests.completedAt, startOfWeek),
+          lt(quests.completedAt, endOfWeek)
+        )
+      )
+      .orderBy(desc(quests.completedAt));
+  }
+
+  async getUserQuestsThisWeek(userId: string): Promise<Quest[]> {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    
+    return await db
+      .select()
+      .from(quests)
+      .where(
+        and(
+          eq(quests.userId, userId),
+          eq(quests.questType, "weekly"),
+          gte(quests.createdAt, startOfWeek),
+          lt(quests.createdAt, endOfWeek)
+        )
+      )
+      .orderBy(desc(quests.createdAt));
   }
 
   async updateQuest(id: number, updates: Partial<Quest>): Promise<Quest> {

@@ -405,7 +405,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const status = req.query.status as string | undefined;
-      const quests = await storage.getUserQuests(userId, status);
+      const type = req.query.type as string | undefined;
+      const quests = await storage.getUserQuests(userId, status, type);
       res.json(quests);
     } catch (error) {
       console.error("Error fetching quests:", error);
@@ -440,13 +441,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/quests/completion-count', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const completedToday = await storage.getUserCompletedQuestsToday(userId);
+      const type = req.query.type as string || 'daily';
       
-      res.json({
-        completedToday: completedToday.length,
-        maxCompletions: 3,
-        completionLimitReached: completedToday.length >= 3
-      });
+      if (type === 'daily') {
+        const completedToday = await storage.getUserCompletedQuestsToday(userId);
+        res.json({
+          completedToday: completedToday.length,
+          maxCompletions: 3,
+          completionLimitReached: completedToday.length >= 3
+        });
+      } else if (type === 'weekly') {
+        const completedThisWeek = await storage.getUserCompletedQuestsThisWeek(userId);
+        res.json({
+          completedThisWeek: completedThisWeek.length,
+          maxCompletions: 3,
+          completionLimitReached: completedThisWeek.length >= 3
+        });
+      } else {
+        res.json({
+          completedToday: 0,
+          maxCompletions: 1,
+          completionLimitReached: false
+        });
+      }
     } catch (error) {
       console.error("Error fetching completion count:", error);
       res.status(500).json({ message: "Failed to fetch completion count" });
@@ -456,25 +473,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/quests/generate', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const questType = req.body.questType || 'daily';
       
-      // Check daily quest limit (3 per day)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
-      const dailyQuests = await storage.getUserQuestsInDateRange(userId, today, tomorrow);
-      const activeDailyQuests = dailyQuests.filter((q: Quest) => q.status === 'active');
-      
-      if (activeDailyQuests.length >= 3) {
-        return res.status(400).json({ 
-          message: "Daily quest limit reached. Come back tomorrow!",
-          limitReached: true,
-          questCount: activeDailyQuests.length
-        });
+      // Check quest limits based on type
+      if (questType === 'daily') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const dailyQuests = await storage.getUserQuestsInDateRange(userId, today, tomorrow);
+        const activeDailyQuests = dailyQuests.filter((q: Quest) => q.status === 'active' && q.questType === 'daily');
+        
+        if (activeDailyQuests.length >= 3) {
+          return res.status(400).json({ 
+            message: "Daily quest limit reached. Come back tomorrow!",
+            limitReached: true,
+            questCount: activeDailyQuests.length
+          });
+        }
+      } else if (questType === 'weekly') {
+        const weeklyQuests = await storage.getUserQuestsThisWeek(userId);
+        const activeWeeklyQuests = weeklyQuests.filter((q: Quest) => q.status === 'active' && q.questType === 'weekly');
+        
+        if (activeWeeklyQuests.length >= 3) {
+          return res.status(400).json({ 
+            message: "Weekly quest limit reached. Come back next week!",
+            limitReached: true,
+            questCount: activeWeeklyQuests.length
+          });
+        }
+      } else if (questType === 'layer') {
+        const layerQuests = await storage.getUserQuests(userId, 'active', 'layer');
+        
+        if (layerQuests.length >= 1) {
+          return res.status(400).json({ 
+            message: "Layer quest already exists!",
+            limitReached: true,
+            questCount: layerQuests.length
+          });
+        }
       }
       
-      await questGenerator.generateQuestForUser(userId);
+      await questGenerator.generateQuestForUser(userId, questType);
       res.json({ message: "Quest generated successfully" });
     } catch (error) {
       console.error("Error generating quest:", error);
