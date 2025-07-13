@@ -4,7 +4,7 @@
 
 Abyss Climber is a full-stack web application that gamifies rock climbing progress tracking. Built with a "Made in Abyss" anime theme, it allows users to log climbing sessions, track boulder problems, complete quests, and progress through different "layers" of difficulty. The app combines climbing data with RPG-style elements like experience points, achievements, and a whistle-based level system.
 
-**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Comprehensive code cleanup and performance optimization completed with error boundaries, form validation, React.memo optimizations, and enhanced user experience improvements.
+**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Complete grade system conversion feature implemented - users can now change their preferred grade system (V-Scale, Fontainebleau, German) in profile settings and have it apply throughout the entire application.
 
 ## User Preferences
 
@@ -12,7 +12,21 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Comprehensive Code Cleanup & Performance Optimization (Latest - January 2025)
+### ✓ Complete Grade System Conversion Feature (Latest - January 2025)
+- **Database Schema Update**: Added `preferredGradeSystem` field to users table with default "V-Scale"
+- **Grade System Context**: Implemented app-wide grade system state management with useGradeSystem hook
+- **Profile Settings**: Added functional dropdown in profile page to change preferred grade system
+- **Client-Side Grade Converter**: Created comprehensive grade conversion utility supporting V-Scale, Fontainebleau, and German (Saxon) systems
+- **Server-Side Grade Converter**: Updated server-side converter to handle all grade system conversions
+- **Whistle Overview Update**: All whistle progression displays now show grades in user's preferred system
+- **API Endpoint**: Added PATCH /api/user/grade-system endpoint for updating user preferences
+- **Database Storage**: Added updateUserGradeSystem method to storage interface for persistence
+- **Cache Management**: Proper cache invalidation for grade system changes affecting skills and progress
+- **Real-time Updates**: Grade system changes apply immediately across all app components
+- **Grade Range Conversion**: Dynamic conversion of grade ranges (e.g., "V3-V4" → "6A-6A+" for Font system)
+- **Progress Tracking**: Whistle advancement progress properly converts grades for accurate tracking
+
+### ✓ Comprehensive Code Cleanup & Performance Optimization (January 2025)
 - **React.memo Optimization**: Added React.memo to key components (SessionIndicator, SessionControls, ActiveQuests, SessionTracker, Session page, Quest page) to prevent unnecessary re-renders
 - **Error Boundary Implementation**: Added comprehensive error boundaries with custom ErrorBoundary component for better error handling and user experience
 - **Enhanced Form Validation**: Improved form validation with real-time error feedback, visual error states, and better user guidance

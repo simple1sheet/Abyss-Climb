@@ -25,6 +25,7 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUserGradeSystem(userId: string, gradeSystem: string): Promise<User>;
   
   // Climbing session operations
   createClimbingSession(session: InsertClimbingSession): Promise<ClimbingSession>;
@@ -120,6 +121,18 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async updateUserGradeSystem(userId: string, gradeSystem: string): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        preferredGradeSystem: gradeSystem,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
   }
 
   private calculateWhistleLevel(userSkills: Skill[]): number {

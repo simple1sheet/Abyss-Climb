@@ -12,12 +12,14 @@ import { Trophy, Star, Target, Award, Crown, Zap, Calendar, Mountain, Clock, Che
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import SessionIndicator from "@/components/SessionIndicator";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
 
 export default function Profile() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { gradeSystem, setGradeSystem } = useGradeSystem();
   
   const { data: achievements, isLoading: isLoadingAchievements } = useQuery({
     queryKey: ["/api/achievements"],
@@ -424,9 +426,15 @@ export default function Profile() {
                 <h4 className="text-abyss-ethereal font-medium">Grade System</h4>
                 <p className="text-sm text-abyss-ethereal/70">Default climbing grade system</p>
               </div>
-              <Badge variant="outline" className="border-abyss-amber/30 text-abyss-amber">
-                V-Scale
-              </Badge>
+              <select 
+                value={gradeSystem} 
+                onChange={(e) => setGradeSystem(e.target.value)}
+                className="bg-abyss-purple/30 border border-abyss-teal/20 text-abyss-ethereal rounded px-3 py-1 text-sm"
+              >
+                <option value="V-Scale">V-Scale</option>
+                <option value="Font">Fontainebleau</option>
+                <option value="German">German (Saxon)</option>
+              </select>
             </div>
             
             <div className="flex items-center justify-between">

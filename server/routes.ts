@@ -41,6 +41,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user grade system
+  app.patch('/api/user/grade-system', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { gradeSystem } = req.body;
+      
+      if (!gradeSystem || !['V-Scale', 'Font', 'German'].includes(gradeSystem)) {
+        return res.status(400).json({ message: "Invalid grade system" });
+      }
+      
+      const updatedUser = await storage.updateUserGradeSystem(userId, gradeSystem);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user grade system:", error);
+      res.status(500).json({ message: "Failed to update grade system" });
+    }
+  });
+
   app.get('/api/layer-progress', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
@@ -49,6 +67,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching layer progress:", error);
       res.status(500).json({ message: "Failed to fetch layer progress" });
+    }
+  });
+
+  app.patch('/api/user/grade-system', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { gradeSystem } = req.body;
+      
+      // Validate grade system
+      const validSystems = ["V-Scale", "Font", "German"];
+      if (!validSystems.includes(gradeSystem)) {
+        return res.status(400).json({ message: "Invalid grade system" });
+      }
+      
+      const updatedUser = await storage.updateUserGradeSystem(userId, gradeSystem);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user grade system:", error);
+      res.status(500).json({ message: "Failed to update grade system" });
     }
   });
 

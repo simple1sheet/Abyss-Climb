@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   currentLayer: integer("current_layer").default(1),
   whistleLevel: integer("whistle_level").default(1),
   totalXP: integer("total_xp").default(0),
+  preferredGradeSystem: varchar("preferred_grade_system").default("V-Scale"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

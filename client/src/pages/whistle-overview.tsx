@@ -8,6 +8,8 @@ import { useLocation } from "wouter";
 import BottomNavigation from "@/components/BottomNavigation";
 import SessionIndicator from "@/components/SessionIndicator";
 import { Award, ArrowLeft, Lock, Check, Clock } from "lucide-react";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
+import { gradeConverter } from "@/utils/gradeConverter";
 
 const WHISTLE_CONFIG = {
   0: {
@@ -87,11 +89,30 @@ const WHISTLE_CONFIG = {
 export default function WhistleOverview() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { gradeSystem } = useGradeSystem();
   
   const { data: skills, isLoading } = useQuery({
     queryKey: ["/api/skills"],
     enabled: !!user,
   });
+
+  // Convert grade ranges to user's preferred system
+  const getConvertedGradeRange = (vScaleRange: string) => {
+    if (gradeSystem === 'V-Scale') return vScaleRange;
+    
+    if (vScaleRange.includes('-')) {
+      const [start, end] = vScaleRange.split('-');
+      const convertedStart = gradeConverter.convertGrade(start, 'V-Scale', gradeSystem);
+      const convertedEnd = gradeConverter.convertGrade(end, 'V-Scale', gradeSystem);
+      return `${convertedStart}-${convertedEnd}`;
+    } else if (vScaleRange.includes('+')) {
+      const baseGrade = vScaleRange.replace('+', '');
+      const convertedGrade = gradeConverter.convertGrade(baseGrade, 'V-Scale', gradeSystem);
+      return `${convertedGrade}+`;
+    } else {
+      return gradeConverter.convertGrade(vScaleRange, 'V-Scale', gradeSystem);
+    }
+  };
 
   const getWhistleStatus = (whistleLevel: number) => {
     if (!user) return "locked";
@@ -136,7 +157,7 @@ export default function WhistleOverview() {
   };
 
   const getHighestGrade = () => {
-    if (!skills || skills.length === 0) return "V0";
+    if (!skills || skills.length === 0) return gradeConverter.convertGrade("V0", 'V-Scale', gradeSystem);
     
     const gradeOrder = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17"];
     let highestGrade = "V0";
@@ -150,7 +171,7 @@ export default function WhistleOverview() {
       }
     });
     
-    return highestGrade;
+    return gradeConverter.convertGrade(highestGrade, 'V-Scale', gradeSystem);
   };
 
   const getProgressToNextWhistle = () => {
@@ -172,9 +193,10 @@ export default function WhistleOverview() {
     };
     
     const requiredGrade = getMinGradeForWhistle(nextWhistle);
+    const convertedRequiredGrade = gradeConverter.convertGrade(requiredGrade, 'V-Scale', gradeSystem);
     
     const gradeOrder = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13", "V14", "V15", "V16", "V17"];
-    const currentIndex = gradeOrder.indexOf(currentGrade);
+    const currentIndex = gradeOrder.indexOf(gradeConverter.convertGrade(currentGrade, gradeSystem, 'V-Scale'));
     const requiredIndex = gradeOrder.indexOf(requiredGrade);
     
     if (currentIndex >= requiredIndex) {
@@ -182,7 +204,7 @@ export default function WhistleOverview() {
     }
     
     const progress = Math.min((currentIndex + 1) / (requiredIndex + 1) * 100, 100);
-    return { progress, text: `Climb ${requiredGrade} to advance` };
+    return { progress, text: `Climb ${convertedRequiredGrade} to advance` };
   };
 
   if (isLoading) {
@@ -269,6 +291,7 @@ export default function WhistleOverview() {
             const whistleNumber = parseInt(whistleNum);
             const status = getWhistleStatus(whistleNumber);
             const IconComponent = whistleInfo.icon;
+            const convertedGradeRange = getConvertedGradeRange(whistleInfo.gradeRange);
             
             return (
               <Card 
@@ -291,7 +314,7 @@ export default function WhistleOverview() {
                         <CardTitle className="text-abyss-ethereal text-sm">
                           {whistleInfo.fullName}
                         </CardTitle>
-                        <p className="text-xs text-abyss-ethereal/60">Grade Range: {whistleInfo.gradeRange}</p>
+                        <p className="text-xs text-abyss-ethereal/60">Grade Range: {convertedGradeRange}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -309,7 +332,7 @@ export default function WhistleOverview() {
                   <div className="space-y-3">
                     <div className="bg-abyss-dark/30 rounded-lg p-3">
                       <h4 className="text-xs font-medium text-abyss-ethereal/90 mb-1">Requirements</h4>
-                      <p className="text-xs text-abyss-ethereal/70">{whistleInfo.requirements}</p>
+                      <p className="text-xs text-abyss-ethereal/70">Successfully climb {convertedGradeRange} grade problems</p>
                     </div>
                     
                     <div className="bg-abyss-dark/30 rounded-lg p-3">
