@@ -11,7 +11,7 @@ import { Award, ArrowLeft, Lock, Check, Clock } from "lucide-react";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
 
-const WHISTLE_CONFIG = {
+const getWhistleConfig = (gradeSystem: string) => ({
   0: {
     name: "Bell Whistle",
     fullName: "Bell Whistle – Novice",
@@ -19,9 +19,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-gray-400/50",
     textColor: "text-gray-400",
     icon: Award,
-    gradeRange: "V0",
+    gradeRange: gradeConverter.convertGrade("V0", 'V-Scale', gradeSystem),
     description: "Starting point for all cave raiders",
-    requirements: "Complete V0 grade problems",
+    requirements: `Complete ${gradeConverter.convertGrade("V0", 'V-Scale', gradeSystem)} grade problems`,
     privileges: "Access to basic climbing areas and safety equipment"
   },
   1: {
@@ -31,9 +31,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-red-500/50",
     textColor: "text-red-400",
     icon: Award,
-    gradeRange: "V1-V2",
+    gradeRange: `${gradeConverter.convertGrade("V1", 'V-Scale', gradeSystem)}-${gradeConverter.convertGrade("V2", 'V-Scale', gradeSystem)}`,
     description: "Novice delvers who stay in the upper layers",
-    requirements: "Successfully climb V1-V2 grade problems",
+    requirements: `Successfully climb ${gradeConverter.convertGrade("V1", 'V-Scale', gradeSystem)}-${gradeConverter.convertGrade("V2", 'V-Scale', gradeSystem)} grade problems`,
     privileges: "Access to basic climbing areas and guidance"
   },
   2: {
@@ -43,9 +43,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-blue-500/50",
     textColor: "text-blue-400",
     icon: Award,
-    gradeRange: "V3-V4",
+    gradeRange: `${gradeConverter.convertGrade("V3", 'V-Scale', gradeSystem)}-${gradeConverter.convertGrade("V4", 'V-Scale', gradeSystem)}`,
     description: "Apprentices who venture into the second layer",
-    requirements: "Successfully climb V3-V4 grade problems",
+    requirements: `Successfully climb ${gradeConverter.convertGrade("V3", 'V-Scale', gradeSystem)}-${gradeConverter.convertGrade("V4", 'V-Scale', gradeSystem)} grade problems`,
     privileges: "Access to intermediate climbing techniques"
   },
   3: {
@@ -55,9 +55,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-purple-500/50",
     textColor: "text-purple-400",
     icon: Award,
-    gradeRange: "V5-V6",
+    gradeRange: `${gradeConverter.convertGrade("V5", 'V-Scale', gradeSystem)}-${gradeConverter.convertGrade("V6", 'V-Scale', gradeSystem)}`,
     description: "Experienced climbers who can handle complex routes",
-    requirements: "Master V5-V6 grade problems consistently",
+    requirements: `Master ${gradeConverter.convertGrade("V5", 'V-Scale', gradeSystem)}-${gradeConverter.convertGrade("V6", 'V-Scale', gradeSystem)} grade problems consistently`,
     privileges: "Access to advanced climbing areas and mentorship roles"
   },
   4: {
@@ -67,9 +67,9 @@ const WHISTLE_CONFIG = {
     borderColor: "border-gray-500/50",
     textColor: "text-gray-300",
     icon: Award,
-    gradeRange: "V7-V8",
+    gradeRange: `${gradeConverter.convertGrade("V7", 'V-Scale', gradeSystem)}-${gradeConverter.convertGrade("V8", 'V-Scale', gradeSystem)}`,
     description: "Elite climbers who push the boundaries of possibility",
-    requirements: "Conquer V7-V8 grade problems with skill and precision",
+    requirements: `Conquer ${gradeConverter.convertGrade("V7", 'V-Scale', gradeSystem)}-${gradeConverter.convertGrade("V8", 'V-Scale', gradeSystem)} grade problems with skill and precision`,
     privileges: "Access to expert-only routes and leadership opportunities"
   },
   5: {
@@ -79,17 +79,20 @@ const WHISTLE_CONFIG = {
     borderColor: "border-white/50",
     textColor: "text-white",
     icon: Award,
-    gradeRange: "V9+",
-    description: "Legendary climbers who have mastered the art",
-    requirements: "Achieve V9+ grade problems and inspire others",
-    privileges: "Unrestricted access to all climbing areas and recognition as a master"
+    gradeRange: `${gradeConverter.convertGrade("V9", 'V-Scale', gradeSystem)}+`,
+    description: "Legendary climbers who define the impossible",
+    requirements: `Achieve ${gradeConverter.convertGrade("V9", 'V-Scale', gradeSystem)}+ grade problems with mastery and innovation`,
+    privileges: "Access to the most challenging routes and legendary status"
   }
-};
+});
 
 export default function WhistleOverview() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { gradeSystem } = useGradeSystem();
+  
+  // Get dynamic whistle configuration based on user's grade system
+  const WHISTLE_CONFIG = getWhistleConfig(gradeSystem);
   
   const { data: skills, isLoading } = useQuery({
     queryKey: ["/api/skills"],

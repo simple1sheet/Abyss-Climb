@@ -7,9 +7,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Clock, MapPin, Plus, Target, Trophy } from "lucide-react";
 import { format } from "date-fns";
 import BottomNavigation from "@/components/BottomNavigation";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
+import { gradeConverter } from "@/utils/gradeConverter";
 
 export default function Sessions() {
   const [, setLocation] = useLocation();
+  const { gradeSystem } = useGradeSystem();
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ["/api/sessions"],

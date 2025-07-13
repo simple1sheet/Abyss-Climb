@@ -3,9 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { TrendingUp, Clock, Target, Award, Activity } from "lucide-react";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
+import { gradeConverter } from "@/utils/gradeConverter";
 
 export default function StatsOverview() {
   const { user } = useAuth();
+  const { gradeSystem } = useGradeSystem();
   
   const { data: stats } = useQuery({
     queryKey: ["/api/user/stats"],
@@ -28,7 +31,7 @@ export default function StatsOverview() {
 
   const getGradeDisplay = (grade: string): string => {
     if (!grade || grade === "N/A") return "No climbs yet";
-    return grade;
+    return gradeConverter.convertGrade(grade, 'V-Scale', gradeSystem);
   };
 
   const getTimeDisplay = (minutes: number): string => {

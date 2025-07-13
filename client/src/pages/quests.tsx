@@ -12,12 +12,23 @@ import BottomNavigation from "@/components/BottomNavigation";
 import { CheckCircle, X, ArrowLeft } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
+import { gradeConverter } from "@/utils/gradeConverter";
 
 function Quests() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { gradeSystem } = useGradeSystem();
+
+  // Helper function to convert grade mentions in quest descriptions
+  const convertGradesInText = (text: string): string => {
+    // Match V-scale grades in the format "V0", "V1", etc.
+    return text.replace(/V(\d+)/g, (match) => {
+      return gradeConverter.convertGrade(match, 'V-Scale', gradeSystem);
+    });
+  };
   
   const { data: quests, isLoading } = useQuery({
     queryKey: ["/api/quests"],
@@ -246,7 +257,7 @@ function Quests() {
                         {quest.difficulty}
                       </Badge>
                     </div>
-                    <p className="text-sm text-abyss-ethereal/80 mb-3">{quest.description}</p>
+                    <p className="text-sm text-abyss-ethereal/80 mb-3">{convertGradesInText(quest.description)}</p>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-abyss-ethereal/70">Progress</span>

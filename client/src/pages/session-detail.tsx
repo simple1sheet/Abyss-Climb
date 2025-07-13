@@ -8,10 +8,13 @@ import { ArrowLeft, Clock, Calendar, MapPin, Target, Trophy, Star, Zap } from "l
 import { format } from "date-fns";
 import BottomNavigation from "@/components/BottomNavigation";
 import { XPDisplay } from "@/components/XPDisplay";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
+import { gradeConverter } from "@/utils/gradeConverter";
 
 export default function SessionDetail() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
+  const { gradeSystem } = useGradeSystem();
 
   const { data: session, isLoading: isLoadingSession } = useQuery({
     queryKey: ["/api/sessions", id],
@@ -238,7 +241,7 @@ export default function SessionDetail() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center space-x-2">
                         <Badge className={getGradeColor(problem.grade)}>
-                          {problem.grade}
+                          {gradeConverter.convertGrade(problem.grade, 'V-Scale', gradeSystem)}
                         </Badge>
                         <span className="text-sm text-abyss-ethereal/70 capitalize">
                           {problem.style}
@@ -262,7 +265,7 @@ export default function SessionDetail() {
                     <div className="flex items-center space-x-4 text-xs text-abyss-ethereal/60">
                       <span className="capitalize">{problem.holdType}</span>
                       <span>{problem.wallAngle}</span>
-                      <span className="capitalize">{problem.gradeSystem}</span>
+                      <span className="capitalize">{gradeSystem}</span>
                     </div>
                     
                     {problem.notes && (

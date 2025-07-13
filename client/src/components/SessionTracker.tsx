@@ -15,6 +15,8 @@ import { XPDisplay, SessionXPCounter, XPGainAnimation } from "./XPDisplay";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { Trophy, Target, Zap, AlertCircle } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
+import { gradeConverter } from "@/utils/gradeConverter";
 
 interface SessionTrackerProps {
   sessionId: number;
@@ -34,9 +36,9 @@ const STYLE_OPTIONS = [
 function SessionTracker({ sessionId }: SessionTrackerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { gradeSystem: userGradeSystem } = useGradeSystem();
 
   const [grade, setGrade] = useState("");
-  const [gradeSystem, setGradeSystem] = useState("V-Scale");
   const [style, setStyle] = useState("");
   const [completed, setCompleted] = useState(false);
   const [attempts, setAttempts] = useState(1);
@@ -137,10 +139,13 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       return;
     }
 
+    // Convert grade from user's preferred system to V-Scale for server storage
+    const gradeInVScale = gradeConverter.convertGrade(grade, userGradeSystem, 'V-Scale');
+    
     addProblemMutation.mutate({
       sessionId,
-      grade,
-      gradeSystem,
+      grade: gradeInVScale,
+      gradeSystem: 'V-Scale',
       style: style || undefined,
       completed,
       attempts,
@@ -190,16 +195,9 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-abyss-ethereal">Grade System</Label>
-              <Select value={gradeSystem} onValueChange={setGradeSystem}>
-                <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="V-Scale">V-Scale</SelectItem>
-                  <SelectItem value="Font">Fontainebleau</SelectItem>
-                  <SelectItem value="German">German</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="bg-[#1a1a1a] border border-abyss-teal/30 rounded-md px-3 py-2">
+                <span className="text-abyss-ethereal">{userGradeSystem}</span>
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -212,7 +210,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent>
-                  {GRADE_OPTIONS[gradeSystem as keyof typeof GRADE_OPTIONS].map((g) => (
+                  {GRADE_OPTIONS[userGradeSystem as keyof typeof GRADE_OPTIONS].map((g) => (
                     <SelectItem key={g} value={g}>
                       {g}
                     </SelectItem>
@@ -321,7 +319,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
                 >
                   <div className="flex items-center space-x-3">
                     <Badge className={`${getGradeColor(problem.grade)} text-white`}>
-                      {problem.grade}
+                      {gradeConverter.convertGrade(problem.grade, 'V-Scale', userGradeSystem)}
                     </Badge>
                     <div>
                       <div className="flex items-center space-x-2">
@@ -342,7 +340,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
                   <div className="text-right space-y-1">
                     <XPDisplay xpEarned={problem.xpEarned || 0} size="sm" />
                     <span className="text-xs text-abyss-ethereal/70 block">
-                      {problem.gradeSystem}
+                      {userGradeSystem}
                     </span>
                   </div>
                 </div>

@@ -113,7 +113,8 @@ export default function WhistleProgress() {
       4: "V9",   // Black to White
       5: "V12+", // White (max)
     };
-    return requirements[currentLevel as keyof typeof requirements] || "V12+";
+    const vScaleGrade = requirements[currentLevel as keyof typeof requirements] || "V12+";
+    return gradeConverter.convertGrade(vScaleGrade, 'V-Scale', gradeSystem);
   };
 
   if (!user) {
@@ -163,7 +164,7 @@ export default function WhistleProgress() {
           
           <div className="mb-4">
             <div className="flex items-center justify-between text-sm text-abyss-ethereal/70 mb-2">
-              <span>Highest Grade: V{highestGrade}</span>
+              <span>Highest Grade: {gradeConverter.convertGrade(`V${highestGrade}`, 'V-Scale', gradeSystem)}</span>
               {currentLevel < 5 && (
                 <span>Next Level: {nextLevelGrade}</span>
               )}
@@ -262,7 +263,7 @@ export default function WhistleProgress() {
                               </div>
                               <div className="flex items-center space-x-2">
                                 <Badge variant="outline" className="text-xs text-abyss-amber border-abyss-amber/30">
-                                  {skill.maxGrade || "V0"}
+                                  {gradeConverter.convertGrade(skill.maxGrade || "V0", 'V-Scale', gradeSystem)}
                                 </Badge>
                               </div>
                             </div>
