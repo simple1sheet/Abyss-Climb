@@ -461,12 +461,7 @@
     }
   }
 
-  @keyframes whistle-float {
-    0%, 100% { transform: translateY(0) rotate(-2deg); }
-    25% { transform: translateY(-5px) rotate(0deg); }
-    50% { transform: translateY(0) rotate(2deg); }
-    75% { transform: translateY(-3px) rotate(0deg); }
-  }
+
 
   /* Organic Card Shapes */
   .abyss-card {
@@ -558,7 +553,6 @@
     padding: 0.5rem 1rem;
     position: relative;
     overflow: hidden;
-    animation: whistle-float 6s ease-in-out infinite;
   }
 
   /* Depth Fog Effect */
