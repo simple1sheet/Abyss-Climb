@@ -51,9 +51,7 @@ export function LayerQuest({ layer, xpProgress }: LayerQuestProps) {
 
   const updateProgressMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/layer-quest/${layer}/progress`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/layer-quest/${layer}/progress`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/layer-quest/${layer}`] });
@@ -63,9 +61,7 @@ export function LayerQuest({ layer, xpProgress }: LayerQuestProps) {
 
   const completeQuestMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/layer-quest/${layer}/complete`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/layer-quest/${layer}/complete`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/layer-quest/${layer}`] });
@@ -80,9 +76,7 @@ export function LayerQuest({ layer, xpProgress }: LayerQuestProps) {
 
   const advanceLayerMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("/api/layer-progress/advance", {
-        method: "POST",
-      });
+      return await apiRequest("POST", "/api/layer-progress/advance");
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
