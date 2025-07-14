@@ -136,30 +136,47 @@ export class GradeConverter {
 
   getSkillCategoryForStyle(style: string): { mainCategory: string; subCategory: string } {
     const styleMap = {
-      // Movement styles
+      // Frontend available styles (capitalized) - matching exact names from STYLE_OPTIONS
+      'Crimps': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'Jugs': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'Pinches': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'Slopers': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'Pockets': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'Dynos': { mainCategory: 'movement', subCategory: 'dynamic' },
+      'Mantles': { mainCategory: 'movement', subCategory: 'balance' },
+      'Overhangs': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'Slabs': { mainCategory: 'movement', subCategory: 'balance' },
+      'Roofs': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'Aretes': { mainCategory: 'technical', subCategory: 'technique_refinement' },
+      'Compression': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'Coordination': { mainCategory: 'movement', subCategory: 'coordination' },
+      
+      // Additional common styles (lowercase versions for compatibility)
+      'crimps': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'jugs': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'pinches': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'slopers': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'pockets': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'dynos': { mainCategory: 'movement', subCategory: 'dynamic' },
+      'mantles': { mainCategory: 'movement', subCategory: 'balance' },
       'overhangs': { mainCategory: 'strength', subCategory: 'core_strength' },
       'slabs': { mainCategory: 'movement', subCategory: 'balance' },
-      'dynos': { mainCategory: 'movement', subCategory: 'dynamic' },
+      'roofs': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'aretes': { mainCategory: 'technical', subCategory: 'technique_refinement' },
+      'compression': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'coordination': { mainCategory: 'movement', subCategory: 'coordination' },
+      
+      // Additional movement styles
       'heel_hooks': { mainCategory: 'movement', subCategory: 'coordination' },
       'toe_hooks': { mainCategory: 'movement', subCategory: 'coordination' },
-      'mantles': { mainCategory: 'movement', subCategory: 'balance' },
       'flagging': { mainCategory: 'movement', subCategory: 'coordination' },
       'stemming': { mainCategory: 'movement', subCategory: 'coordination' },
       'balance': { mainCategory: 'movement', subCategory: 'balance' },
-      'coordination': { mainCategory: 'movement', subCategory: 'coordination' },
       'flexibility': { mainCategory: 'movement', subCategory: 'flexibility' },
       'footwork': { mainCategory: 'movement', subCategory: 'footwork' },
-      'mantling': { mainCategory: 'movement', subCategory: 'balance' },
       
-      // Strength styles
-      'crimps': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'slopers': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'pinches': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'jugs': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'pockets': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'compression': { mainCategory: 'strength', subCategory: 'core_strength' },
+      // Additional strength styles
       'power': { mainCategory: 'strength', subCategory: 'upper_body' },
-      'roofs': { mainCategory: 'strength', subCategory: 'core_strength' },
       'campus': { mainCategory: 'strength', subCategory: 'contact_strength' },
       'lockoffs': { mainCategory: 'strength', subCategory: 'upper_body' },
       'core': { mainCategory: 'strength', subCategory: 'core_strength' },
