@@ -23,6 +23,10 @@ export default function Profile() {
   const queryClient = useQueryClient();
   const { gradeSystem, setGradeSystem } = useGradeSystem();
   
+  // Debug logging for notifications
+  console.log("User data:", user);
+  console.log("Notifications enabled:", user?.notificationsEnabled);
+  
   // Notifications mutation
   const notificationsMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
@@ -447,7 +451,7 @@ export default function Profile() {
               <select 
                 value={gradeSystem} 
                 onChange={(e) => setGradeSystem(e.target.value)}
-                className="bg-abyss-dark/80 border border-abyss-teal/30 text-abyss-ethereal rounded px-3 py-1 text-sm hover:bg-abyss-dark/90 focus:outline-none focus:ring-2 focus:ring-abyss-teal/50"
+                className="bg-abyss-dark border-2 border-abyss-teal/50 text-abyss-ethereal rounded-lg px-4 py-2 text-sm hover:bg-abyss-dark/90 focus:outline-none focus:ring-2 focus:ring-abyss-amber/50 min-w-[140px] font-medium"
               >
                 <option value="V-Scale" className="bg-abyss-dark text-abyss-ethereal">V-Scale</option>
                 <option value="Font" className="bg-abyss-dark text-abyss-ethereal">Fontainebleau</option>
@@ -459,12 +463,22 @@ export default function Profile() {
               <div>
                 <h4 className="text-abyss-ethereal font-medium">Notifications</h4>
                 <p className="text-sm text-abyss-ethereal/70">XP and progress notifications</p>
+                <p className="text-xs text-abyss-ethereal/50">Debug: {user?.notificationsEnabled ? "ON" : "OFF"}</p>
               </div>
-              <Switch
-                checked={user?.notificationsEnabled ?? true}
-                onCheckedChange={(checked) => notificationsMutation.mutate(checked)}
-                disabled={notificationsMutation.isPending}
-              />
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-abyss-ethereal/70">
+                  {user?.notificationsEnabled ? "ON" : "OFF"}
+                </span>
+                <Switch
+                  checked={user?.notificationsEnabled ?? true}
+                  onCheckedChange={(checked) => {
+                    console.log("Switch clicked:", checked);
+                    notificationsMutation.mutate(checked);
+                  }}
+                  disabled={notificationsMutation.isPending}
+                  className="data-[state=checked]:bg-abyss-amber data-[state=unchecked]:bg-abyss-purple/50 scale-125"
+                />
+              </div>
             </div>
             
             <div className="flex items-center justify-between">
