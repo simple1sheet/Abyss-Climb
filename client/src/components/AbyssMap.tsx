@@ -103,42 +103,42 @@ export default function AbyssMap() {
       <div className="absolute top-60 right-20 w-3 h-3 bg-abyss-teal/20 rounded-full blur-sm floating-animation" style={{animationDelay: '2s'}} />
       <div className="absolute bottom-40 left-16 w-1 h-1 bg-abyss-purple/40 rounded-full blur-sm floating-animation" style={{animationDelay: '4s'}} />
       
-      <div className="relative z-10 container mx-auto px-4 py-6">
+      <div className="relative z-10 container mx-auto px-4 py-4 lg:py-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 lg:mb-8 space-y-4 lg:space-y-0">
+          <div className="flex items-center space-x-3 lg:space-x-4">
             <Button
               variant="ghost"
               onClick={() => setLocation('/')}
-              className="text-abyss-ethereal hover:bg-abyss-teal/10 group"
+              className="text-abyss-ethereal hover:bg-abyss-teal/10 group px-2 lg:px-3"
             >
-              <ArrowLeft className="w-4 h-4 mr-2 group-hover:text-abyss-amber transition-colors" />
-              Return to Surface
+              <ArrowLeft className="w-4 h-4 mr-1 lg:mr-2 group-hover:text-abyss-amber transition-colors" />
+              <span className="text-sm lg:text-base">Return to Surface</span>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-abyss-ethereal mystical-glow">The Abyss</h1>
-              <p className="text-abyss-muted flex items-center">
-                <Compass className="w-4 h-4 mr-2 text-abyss-amber relic-glow" />
+              <h1 className="text-xl lg:text-3xl font-bold text-abyss-ethereal mystical-glow">The Abyss</h1>
+              <p className="text-abyss-muted flex items-center text-sm lg:text-base">
+                <Compass className="w-3 h-3 lg:w-4 lg:h-4 mr-1 lg:mr-2 text-abyss-amber relic-glow" />
                 Current Depth: Layer {currentLayer} • {currentXP.toLocaleString()} XP
               </p>
-              <div className="mt-1 text-xs text-abyss-amber/60 italic">
+              <div className="mt-1 text-xs lg:text-sm text-abyss-amber/60 italic">
                 "The Abyss is a place of mystery and wonder, where relics of the past await discovery"
               </div>
             </div>
           </div>
           <div className="flex items-center space-x-2 text-abyss-amber">
-            <Eye className="w-5 h-5" />
-            <span className="text-sm">Explorer's View</span>
+            <Eye className="w-4 h-4 lg:w-5 lg:h-5" />
+            <span className="text-xs lg:text-sm">Explorer's View</span>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
           {/* Map Section */}
           <div className="lg:col-span-2">
             <Card className="bg-abyss-purple/10 backdrop-blur-sm border-abyss-teal/20 relative overflow-hidden abyss-shimmer">
-              <CardContent className="p-8">
-                <div className="relative w-full h-[600px] bg-gradient-to-b from-amber-100 via-slate-200 to-slate-800 rounded-lg overflow-hidden relic-shimmer">
+              <CardContent className="p-4 lg:p-8">
+                <div className="relative w-full h-[400px] lg:h-[600px] bg-gradient-to-b from-amber-100 via-slate-200 to-slate-800 rounded-lg overflow-hidden relic-shimmer">
                   {/* Map Background */}
                   <img
                     src={abyssSvg}
@@ -157,7 +157,7 @@ export default function AbyssMap() {
                         layer.id <= currentLayer ? 'ring-4 ring-abyss-amber/50' : 'opacity-50'
                       } shadow-lg group-hover:scale-125 transition-transform`} />
                       <div className="absolute left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="bg-abyss-dark/90 text-abyss-ethereal px-3 py-1 rounded text-sm whitespace-nowrap">
+                        <div className="bg-abyss-dark/90 text-abyss-ethereal px-2 py-1 rounded text-xs lg:text-sm whitespace-nowrap">
                           {layer.name}
                         </div>
                       </div>
@@ -171,7 +171,7 @@ export default function AbyssMap() {
                 </div>
                 
                 <div className="mt-4 text-center">
-                  <p className="text-abyss-muted text-sm italic">
+                  <p className="text-abyss-muted text-xs lg:text-sm italic">
                     "The Abyss... it calls to those who dare to explore its depths."
                   </p>
                 </div>
@@ -180,19 +180,19 @@ export default function AbyssMap() {
           </div>
 
           {/* Layer Details */}
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-6">
             <Card className="bg-abyss-purple/10 backdrop-blur-sm border-abyss-teal/20">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-bold text-abyss-ethereal mb-4 flex items-center">
-                  <ChevronDown className="w-5 h-5 mr-2 text-abyss-amber" />
+              <CardContent className="p-4 lg:p-6">
+                <h2 className="text-lg lg:text-xl font-bold text-abyss-ethereal mb-3 lg:mb-4 flex items-center">
+                  <ChevronDown className="w-4 h-4 lg:w-5 lg:h-5 mr-2 text-abyss-amber" />
                   Layer Details
                 </h2>
                 
-                <div className="space-y-4">
+                <div className="space-y-3 lg:space-y-4">
                   {layers.map((layer) => (
                     <div
                       key={layer.id}
-                      className={`p-4 rounded-lg border transition-all cursor-pointer hover:bg-abyss-teal/5 ${
+                      className={`p-3 lg:p-4 rounded-lg border transition-all cursor-pointer hover:bg-abyss-teal/5 ${
                         layer.id === currentLayer
                           ? 'border-abyss-amber bg-abyss-amber/10'
                           : layer.id < currentLayer
@@ -200,14 +200,14 @@ export default function AbyssMap() {
                           : 'border-gray-600 bg-gray-800/30 opacity-60'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-abyss-ethereal">{layer.name}</h3>
-                        <span className="text-xs text-abyss-muted">{layer.depth}</span>
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-abyss-ethereal text-sm lg:text-base">{layer.name}</h3>
+                        <span className="text-xs lg:text-sm text-abyss-muted ml-2 shrink-0">{layer.depth}</span>
                       </div>
                       
-                      <p className="text-sm text-abyss-muted mb-2">{layer.description}</p>
+                      <p className="text-xs lg:text-sm text-abyss-muted mb-2 leading-relaxed">{layer.description}</p>
                       
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-xs lg:text-sm">
                         <span className="text-abyss-amber">
                           {layer.xpRequired.toLocaleString()} XP Required
                         </span>
@@ -228,24 +228,24 @@ export default function AbyssMap() {
             {/* Legend */}
             <Card className="bg-abyss-purple/10 backdrop-blur-sm border-abyss-teal/20">
               <CardContent className="p-4">
-                <h3 className="font-semibold text-abyss-ethereal mb-3">Explorer's Notes</h3>
-                <div className="space-y-2 text-sm">
+                <h3 className="font-semibold text-abyss-ethereal mb-3 text-sm lg:text-base">Explorer's Notes</h3>
+                <div className="space-y-2 text-xs lg:text-sm">
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-abyss-amber rounded-full ring-2 ring-abyss-amber/30" />
+                    <div className="w-3 h-3 bg-abyss-amber rounded-full ring-2 ring-abyss-amber/30 shrink-0" />
                     <span className="text-abyss-muted">Current Position</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-abyss-teal rounded-full" />
+                    <div className="w-3 h-3 bg-abyss-teal rounded-full shrink-0" />
                     <span className="text-abyss-muted">Accessible Layer</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-gray-600 rounded-full opacity-50" />
+                    <div className="w-3 h-3 bg-gray-600 rounded-full opacity-50 shrink-0" />
                     <span className="text-abyss-muted">Requires More XP</span>
                   </div>
                 </div>
                 
                 <div className="mt-4 p-3 bg-abyss-dark/30 rounded border border-abyss-teal/20">
-                  <p className="text-xs text-abyss-muted italic">
+                  <p className="text-xs lg:text-sm text-abyss-muted italic leading-relaxed">
                     "The deeper you go, the stronger the curse becomes. Only those who have proven themselves worthy may descend further into the Abyss."
                   </p>
                 </div>
