@@ -1421,6 +1421,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      log(`Food scan request received for user ${userId}`, "debug");
+      log(`Request file info: ${req.file ? 'File present' : 'No file'}`, "debug");
+      if (req.file) {
+        log(`File details: ${req.file.originalname}, ${req.file.mimetype}, ${req.file.size} bytes`, "debug");
+      }
+
       if (!req.file) {
         return res.status(400).json({ message: "No image file provided" });
       }
