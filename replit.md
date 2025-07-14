@@ -18,9 +18,13 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced Generation Logic**: Added comprehensive console logging and proper quest count validation to prevent over-generation
 - **Daily Quest Control**: Fixed logic to check for existing daily quests and generate exactly 3 per day (not more, not less)
 - **Weekly Quest Control**: Weekly quests now generate only if user has no active weekly quest and hasn't completed one in the last 7 days
+- **Expired Quest Cleanup**: Implemented automatic cleanup of expired quests before generating new ones
+- **24-Hour Daily Quest Regeneration**: Daily quests now properly expire after 24 hours and are automatically regenerated
+- **7-Day Weekly Quest Regeneration**: Weekly quests now properly expire after 7 days and are automatically regenerated
 - **Improved Error Handling**: Added proper error logging and fallback mechanisms in quest generation system
 - **Updated UI Messages**: Changed home tab text to reflect automatic quest generation instead of manual button prompts
 - **Background Generation**: Quests are generated automatically when users visit the app through authentication endpoint
+- **Consistent Quest Counting**: Updated all quest count endpoints to properly filter expired quests and only count active ones
 
 ### ✓ AbyssMap Component Optimization (January 2025)
 - **Performance Optimization**: Moved LAYERS array outside component to prevent recreation on each render
