@@ -65,6 +65,7 @@ function QuestContent() {
       return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
     onSuccess: (data) => {
+      // Force refetch all quest-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
@@ -73,6 +74,11 @@ function QuestContent() {
       queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
       queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
+      
+      // Force refetch immediately
+      queryClient.refetchQueries({ queryKey: ["/api/quests"] });
+      queryClient.refetchQueries({ queryKey: ["/api/quests/daily-count"] });
+      queryClient.refetchQueries({ queryKey: ["/api/quests/completion-count"] });
       
       // Show achievement notifications if any were unlocked
       if (data.achievements && data.achievements.length > 0) {
@@ -98,9 +104,17 @@ function QuestContent() {
       return await apiRequest("POST", `/api/quests/${questId}/discard`, {});
     },
     onSuccess: () => {
+      // Force refetch all quest-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
+      
+      // Force refetch immediately
+      queryClient.refetchQueries({ queryKey: ["/api/quests"] });
+      queryClient.refetchQueries({ queryKey: ["/api/quests/daily-count"] });
+      queryClient.refetchQueries({ queryKey: ["/api/quests/completion-count"] });
+      
       toast({
         title: "Quest Discarded",
         description: "The quest has been removed from your journey.",
