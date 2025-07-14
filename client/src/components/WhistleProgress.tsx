@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, Award, Target, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
+import { Sparkles, Award, Target, ChevronDown, ChevronRight, ExternalLink, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
+import { CLIMBING_SKILL_TREE } from "@shared/skillTree";
 
 export default function WhistleProgress() {
   const { user } = useAuth();
@@ -41,14 +42,12 @@ export default function WhistleProgress() {
   };
 
   const groupSkillsByCategory = (skills: any[]) => {
-    const categories = {
-      'Movement': [],
-      'Strength': [],
-      'Mental': [],
-      'Technical': [],
-      'Endurance': [],
-      'Strategy': []
-    };
+    const categories = {};
+    
+    // Initialize categories from skill tree
+    CLIMBING_SKILL_TREE.forEach(category => {
+      categories[category.name] = [];
+    });
     
     if (!skills) return categories;
     
@@ -77,6 +76,11 @@ export default function WhistleProgress() {
     });
     
     return categories;
+  };
+
+  const getCategoryIcon = (categoryName: string) => {
+    const category = CLIMBING_SKILL_TREE.find(cat => cat.name === categoryName);
+    return category?.icon || TrendingUp;
   };
 
   const getWhistleName = (level: number): string => {
@@ -239,12 +243,17 @@ export default function WhistleProgress() {
                         className="w-full" 
                         onClick={() => toggleCategory(category)}
                       >
-                        <div className="bg-abyss-dark/40 border border-abyss-teal/10 rounded-lg p-3 flex items-center justify-between hover:bg-abyss-dark/60 transition-colors">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm font-medium text-abyss-ethereal">{category}</span>
-                            <Badge variant="outline" className="text-xs text-abyss-amber border-abyss-amber/30">
-                              {categorySkills.length} skills
-                            </Badge>
+                        <div className="bg-abyss-dark/40 border border-abyss-teal/10 rounded-lg p-3 flex items-center justify-between hover:bg-abyss-dark/60 transition-all duration-200 hover:shadow-sm">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 rounded-full bg-abyss-teal/20 flex items-center justify-center">
+                              <TrendingUp className="h-4 w-4 text-abyss-teal" />
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-abyss-ethereal">{category}</span>
+                              <Badge variant="outline" className="text-xs text-abyss-amber border-abyss-amber/30">
+                                {categorySkills.length} skills
+                              </Badge>
+                            </div>
                           </div>
                           {openCategories.includes(category) ? (
                             <ChevronDown className="h-4 w-4 text-abyss-ethereal/60" />
@@ -253,21 +262,27 @@ export default function WhistleProgress() {
                           )}
                         </div>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-2">
-                        <div className="ml-4 space-y-1">
+                      <CollapsibleContent className="mt-3">
+                        <div className="ml-4 space-y-2">
                           {categorySkills.map((skill: any) => (
-                            <div key={skill.id} className="bg-abyss-dark/20 border border-abyss-teal/5 rounded p-2 flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                <span className="text-xs text-abyss-ethereal/90">⤷</span>
-                                <span className="text-sm text-abyss-ethereal capitalize">{skill.skillType}</span>
-                                <span className="text-xs text-abyss-ethereal/50">
-                                  ({skill.category} – {skill.totalProblems || 0} completed)
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="outline" className="text-xs text-abyss-amber border-abyss-amber/30">
-                                  {gradeConverter.convertGrade(skill.maxGrade || "V0", 'V-Scale', gradeSystem)}
-                                </Badge>
+                            <div key={skill.id} className="bg-abyss-dark/20 border border-abyss-teal/5 rounded-lg p-3 hover:bg-abyss-dark/30 transition-colors duration-200">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-medium text-abyss-ethereal capitalize">
+                                    {skill.skillType?.replace(/_/g, ' ') || skill.subCategory || 'General'}
+                                  </h4>
+                                  <p className="text-xs text-abyss-ethereal/60 mt-1">
+                                    Max Grade: {gradeConverter.convertGrade(skill.maxGrade || 'V0', 'V-Scale', gradeSystem)}
+                                  </p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <Badge variant="outline" className="text-xs text-abyss-teal border-abyss-teal/30">
+                                    {skill.totalProblems || 0}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs text-abyss-amber border-abyss-amber/30">
+                                    Lvl {skill.level || 1}
+                                  </Badge>
+                                </div>
                               </div>
                             </div>
                           ))}
