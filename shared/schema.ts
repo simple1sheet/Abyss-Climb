@@ -66,7 +66,7 @@ export const boulderProblems = pgTable("boulder_problems", {
   sessionId: integer("session_id").references(() => climbingSessions.id).notNull(),
   grade: varchar("grade").notNull(), // V0, V1, etc.
   gradeSystem: varchar("grade_system").default("V-Scale"), // V-Scale, Font, German
-  style: varchar("style"), // crimps, dynos, overhangs, etc.
+  style: varchar("style"), // crimps, dynos, overhangs, etc. (can be comma-separated for multiple styles)
   holdType: varchar("hold_type"), // crimps, slopers, pinches, jugs, etc.
   wallAngle: varchar("wall_angle"), // overhang, vertical, slab
   completed: boolean("completed").default(false),

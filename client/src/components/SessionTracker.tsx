@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -39,7 +40,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
   const { gradeSystem: userGradeSystem } = useGradeSystem();
 
   const [grade, setGrade] = useState("");
-  const [style, setStyle] = useState("");
+  const [styles, setStyles] = useState<string[]>([]);
   const [completed, setCompleted] = useState(false);
   const [attempts, setAttempts] = useState(1);
   const [notes, setNotes] = useState("");
@@ -87,7 +88,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       
       // Reset form
       setGrade("");
-      setStyle("");
+      setStyles([]);
       setCompleted(false);
       setAttempts(1);
       setNotes("");
@@ -145,7 +146,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       sessionId,
       grade: gradeInVScale,
       gradeSystem: 'V-Scale',
-      style: style || undefined,
+      style: styles.length > 0 ? styles.join(', ') : undefined,
       completed,
       attempts,
       notes: notes || undefined,
@@ -225,20 +226,40 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-abyss-ethereal">Style (Optional)</Label>
-            <Select value={style} onValueChange={setStyle}>
-              <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
-                <SelectValue placeholder="Select climbing style" />
-              </SelectTrigger>
-              <SelectContent>
-                {STYLE_OPTIONS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
+          <div className="space-y-3">
+            <Label className="text-abyss-ethereal">Climbing Styles (Optional)</Label>
+            <div className="max-h-48 overflow-y-auto bg-[#1a1a1a] border border-abyss-teal/30 rounded-lg p-3">
+              <div className="grid grid-cols-2 gap-3">
+                {STYLE_OPTIONS.map((styleName) => (
+                  <div key={styleName} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={styleName}
+                      checked={styles.includes(styleName)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setStyles([...styles, styleName]);
+                        } else {
+                          setStyles(styles.filter(s => s !== styleName));
+                        }
+                      }}
+                      className="data-[state=checked]:bg-abyss-amber data-[state=checked]:border-abyss-amber"
+                    />
+                    <Label htmlFor={styleName} className="text-sm text-abyss-ethereal cursor-pointer">
+                      {styleName}
+                    </Label>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            </div>
+            {styles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {styles.map((styleName) => (
+                  <Badge key={styleName} variant="secondary" className="text-xs bg-abyss-teal/20 text-abyss-teal">
+                    {styleName}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -327,9 +348,17 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
                         ) : (
                           <Target className="h-4 w-4 text-yellow-400" />
                         )}
-                        <span className="text-sm text-abyss-ethereal">
-                          {problem.style || "Mixed"}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {problem.style ? (
+                            problem.style.split(', ').map((style, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs bg-abyss-teal/20 text-abyss-teal">
+                                {style}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-abyss-ethereal">Mixed</span>
+                          )}
+                        </div>
                       </div>
                       <p className="text-xs text-abyss-ethereal/60">
                         {problem.attempts} attempt{problem.attempts !== 1 ? 's' : ''}

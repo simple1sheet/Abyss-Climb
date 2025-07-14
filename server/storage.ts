@@ -488,8 +488,8 @@ export class DatabaseStorage implements IStorage {
           skillType,
           maxGrade: grade,
           totalProblems: 1,
-          xp: newGradeNum * 10,
-          level: Math.min(10, Math.floor((newGradeNum * 10) / 100) + 1),
+          xp: gradeNumeric * 10,
+          level: Math.min(10, Math.floor((gradeNumeric * 10) / 100) + 1),
         })
         .returning();
       return newSkill;

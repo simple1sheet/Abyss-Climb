@@ -243,9 +243,17 @@ export default function SessionDetail() {
                         <Badge className={getGradeColor(problem.grade)}>
                           {gradeConverter.convertGrade(problem.grade, 'V-Scale', gradeSystem)}
                         </Badge>
-                        <span className="text-sm text-abyss-ethereal/70 capitalize">
-                          {problem.style}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {problem.style ? (
+                            problem.style.split(', ').map((style, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs bg-abyss-teal/20 text-abyss-teal">
+                                {style}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-abyss-ethereal/70">Mixed</span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center space-x-3">
                         <XPDisplay xpEarned={problem.xpEarned || 0} size="sm" />
