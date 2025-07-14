@@ -357,7 +357,7 @@ export default function Home() {
               {searchResults && searchResults.locations.length === 0 && showResults && (
                 <div className="text-center py-4">
                   <p className="text-abyss-muted text-sm">
-                    No climbing locations found in this area. Try expanding your search radius or searching a different location.
+                    No climbing locations found in this area. Try searching in a major city like "New York", "San Francisco", or "Denver".
                   </p>
                 </div>
               )}
