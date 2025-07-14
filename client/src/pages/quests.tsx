@@ -35,7 +35,7 @@ function QuestContent() {
   };
   
   const { data: quests, isLoading } = useQuery({
-    queryKey: ["/api/quests"],
+    queryKey: ["/api/quests?status=active"],
     enabled: !!user,
   });
 
@@ -65,37 +65,42 @@ function QuestContent() {
       return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
     onSuccess: (data) => {
-      // Force refetch all quest-related queries
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/skills"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
       queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
       
-      // Force refetch immediately
-      queryClient.refetchQueries({ queryKey: ["/api/quests"] });
-      queryClient.refetchQueries({ queryKey: ["/api/quests/daily-count"] });
-      queryClient.refetchQueries({ queryKey: ["/api/quests/completion-count"] });
+      // Handle both old format (just quest) and new format (quest + achievements)
+      const quest = data.quest || data;
+      const achievements = data.newAchievements || [];
       
-      // Show achievement notifications if any were unlocked
-      if (data.achievements && data.achievements.length > 0) {
-        showMultipleAchievementNotifications(data.achievements);
+      // Show achievement notifications first
+      if (achievements.length > 0) {
+        showMultipleAchievementNotifications(achievements);
       }
       
       toast({
-        title: "Quest Completed! 🎉",
-        description: `You earned ${data.quest.xpReward} XP!`,
+        title: "Quest Completed!",
+        description: `Quest completed successfully! +${quest.xpReward} XP`,
       });
     },
-    onError: (error) => {
-      toast({
-        title: "Quest Completion Failed",
-        description: "Unable to complete quest. Please try again.",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      if (error.response?.status === 400 && error.response?.data?.completionLimitReached) {
+        toast({
+          title: "Daily Completion Limit Reached",
+          description: "You can only complete 3 quests per day. Come back tomorrow!",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to complete quest. Try again later.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -104,27 +109,12 @@ function QuestContent() {
       return await apiRequest("POST", `/api/quests/${questId}/discard`, {});
     },
     onSuccess: () => {
-      // Force refetch all quest-related queries
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
-      
-      // Force refetch immediately
-      queryClient.refetchQueries({ queryKey: ["/api/quests"] });
-      queryClient.refetchQueries({ queryKey: ["/api/quests/daily-count"] });
-      queryClient.refetchQueries({ queryKey: ["/api/quests/completion-count"] });
-      
       toast({
         title: "Quest Discarded",
-        description: "The quest has been removed from your journey.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Quest Discard Failed",
-        description: "Unable to discard quest. Please try again.",
-        variant: "destructive",
+        description: "The quest has been removed from your active quests.",
       });
     },
   });
