@@ -13,13 +13,13 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (January 2025)
 
 ### ✓ Location Finder Implementation & Real Data Integration (Latest - January 2025)
-- **Interactive Location Finder Tab**: Added "Find Locations" tab alongside climbing and workout tabs in session form
+- **Home Page Location Finder**: Moved location finder to home page after tab visibility issues - now accessible to all users
 - **GPS Integration**: Implemented GPS location access with proper permission handling and error messages
-- **Manual Location Search**: Added manual location input for city, address, or custom location searches
+- **Manual Location Search**: Added manual location input placeholder for future Google Places API integration
 - **Real Data Only Policy**: Removed AI-generated fake locations - system now shows clear message about API requirements
 - **Professional Implementation**: Ready for Google Places API integration for real climbing location data
 - **Enhanced User Experience**: Clear messaging about real location services instead of placeholder data
-- **Fixed JSX Structure**: Resolved tab visibility issues and corrected component structure in SessionForm
+- **Simplified Session Form**: Reduced session form to two tabs (Climbing Session, Home Workout) for better usability
 - **Location Service Architecture**: Prepared backend for real location API integration with proper error handling
 
 ### ✓ Enhanced Skill System & AI-Powered Quest Completion (January 2025)

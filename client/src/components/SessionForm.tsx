@@ -204,29 +204,18 @@ export default function SessionForm() {
               }`}
             >
               <Mountain className="w-4 h-4 mr-2 inline" />
-              Climbing
+              Climbing Session
             </button>
             <button
               onClick={() => setActiveTab('workout')}
-              className={`flex-1 py-3 px-4 transition-colors ${
+              className={`flex-1 py-3 px-4 rounded-r-lg transition-colors ${
                 activeTab === 'workout'
                   ? 'bg-abyss-teal/20 text-abyss-ethereal'
                   : 'text-abyss-muted hover:text-abyss-ethereal'
               }`}
             >
               <Dumbbell className="w-4 h-4 mr-2 inline" />
-              Workout
-            </button>
-            <button
-              onClick={() => setActiveTab('locations')}
-              className={`flex-1 py-3 px-4 rounded-r-lg transition-colors ${
-                activeTab === 'locations'
-                  ? 'bg-abyss-teal/20 text-abyss-ethereal'
-                  : 'text-abyss-muted hover:text-abyss-ethereal'
-              }`}
-            >
-              <MapPin className="w-4 h-4 mr-2 inline" />
-              Locations
+              Home Workout
             </button>
           </div>
 
@@ -513,36 +502,6 @@ export default function SessionForm() {
                 </div>
               </CardContent>
             </Card>
-            </div>
-          )}
-
-          {activeTab === 'locations' && (
-            <div className="space-y-6">
-              <div className="max-w-md mx-auto">
-              <Card className="bg-abyss-purple/20 border-abyss-teal/30">
-                <CardHeader>
-                  <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
-                    <MapPin className="w-5 h-5 text-abyss-amber" />
-                    <span>Find Climbing Locations</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="text-center py-8">
-                  <MapPin className="w-16 h-16 text-abyss-muted mx-auto mb-4" />
-                  <p className="text-abyss-ethereal mb-4">
-                    Location Finder Tab
-                  </p>
-                  <p className="text-abyss-muted text-sm mb-4">
-                    This feature will help you find nearby climbing gyms and outdoor climbing areas.
-                  </p>
-                  <Button 
-                    onClick={() => console.log('Location finder clicked')}
-                    className="bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark"
-                  >
-                    Test Location Finder
-                  </Button>
-                </CardContent>
-              </Card>
-              </div>
             </div>
           )}
         </div>

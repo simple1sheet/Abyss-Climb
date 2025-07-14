@@ -9,9 +9,16 @@ import StatsOverview from "@/components/StatsOverview";
 import BottomNavigation from "@/components/BottomNavigation";
 import SessionIndicator from "@/components/SessionIndicator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { MapPin, Navigation, Search } from "lucide-react";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const [isGpsLoading, setIsGpsLoading] = useState(false);
   
   const { data: stats } = useQuery({
     queryKey: ["/api/user/stats"],
@@ -21,6 +28,46 @@ export default function Home() {
   const getInitials = (name?: string) => {
     if (!name) return "CR"; // Cave Raider
     return name.split(" ").map(n => n[0]?.toUpperCase()).join("").slice(0, 2) || "CR";
+  };
+
+  const handleGpsLocation = async () => {
+    setIsGpsLoading(true);
+    try {
+      if (!navigator.geolocation) {
+        toast({
+          title: "GPS Not Supported",
+          description: "Your browser doesn't support GPS location access.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          toast({
+            title: "Location Found",
+            description: `Your location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+          });
+          setIsGpsLoading(false);
+        },
+        (error) => {
+          toast({
+            title: "Location Error",
+            description: "Unable to access GPS location. Please check your browser permissions.",
+            variant: "destructive",
+          });
+          setIsGpsLoading(false);
+        }
+      );
+    } catch (error) {
+      toast({
+        title: "GPS Error",
+        description: "Failed to access location services.",
+        variant: "destructive",
+      });
+      setIsGpsLoading(false);
+    }
   };
 
   return (
@@ -74,6 +121,50 @@ export default function Home() {
         <QuickActions />
         <ActiveQuests />
         <RecentSessions />
+        
+        {/* Location Finder */}
+        <div className="px-6 mb-6">
+          <Card className="bg-abyss-purple/20 backdrop-blur-sm border-abyss-teal/20">
+            <CardHeader>
+              <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
+                <MapPin className="w-5 h-5 text-abyss-amber" />
+                <span>Find Climbing Locations</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-abyss-muted text-sm">
+                Find nearby climbing gyms and outdoor climbing areas using GPS or search by location.
+              </p>
+              <div className="flex space-x-3">
+                <Button
+                  onClick={handleGpsLocation}
+                  disabled={isGpsLoading}
+                  className="flex-1 bg-abyss-teal hover:bg-abyss-teal/80 text-white"
+                >
+                  <Navigation className="w-4 h-4 mr-2" />
+                  {isGpsLoading ? "Getting Location..." : "Use GPS"}
+                </Button>
+                <Button
+                  onClick={() => toast({
+                    title: "Coming Soon",
+                    description: "Manual location search will be available soon with Google Places API integration.",
+                  })}
+                  variant="outline"
+                  className="flex-1 border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Search
+                </Button>
+              </div>
+              <div className="text-center">
+                <p className="text-abyss-muted text-xs">
+                  This feature requires real location API integration for authentic climbing location data.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
         <StatsOverview />
       </div>
 
