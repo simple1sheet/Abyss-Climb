@@ -6,7 +6,35 @@ import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ChevronDown, ChevronRight, TrendingUp, Target, Star, Award, Zap, Trophy, Brain } from "lucide-react";
+import { 
+  ChevronDown, 
+  ChevronRight, 
+  TrendingUp, 
+  Target, 
+  Star, 
+  Award, 
+  Zap, 
+  Trophy, 
+  Brain,
+  Mountain,
+  Dumbbell,
+  Focus,
+  Lightbulb,
+  Timer,
+  Route,
+  Move,
+  Grip,
+  Power,
+  Eye,
+  Clock,
+  Map,
+  Compass,
+  Flame,
+  Shield,
+  Sparkles,
+  Activity,
+  Heart
+} from "lucide-react";
 import { CLIMBING_SKILL_TREE, type SkillCategory } from "@shared/skillTree";
 import { type Skill } from "@shared/schema";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
@@ -65,6 +93,60 @@ export default function SkillTree({ className }: SkillTreeProps) {
     return Target;
   };
 
+  const getCategoryIcon = (categoryId: string) => {
+    const iconMap = {
+      'movement': Mountain,
+      'strength': Dumbbell,
+      'mental': Brain,
+      'technical': Lightbulb,
+      'endurance': Heart,
+      'strategy': Map
+    };
+    return iconMap[categoryId as keyof typeof iconMap] || Target;
+  };
+
+  const getSubcategoryIcon = (subcategoryId: string) => {
+    const iconMap = {
+      'balance': Shield,
+      'flexibility': Activity,
+      'coordination': Compass,
+      'footwork': Move,
+      'body_positioning': Target,
+      'dynamic_movement': Zap,
+      'finger_strength': Grip,
+      'core_strength': Power,
+      'arm_strength': Dumbbell,
+      'leg_strength': Mountain,
+      'power_endurance': Flame,
+      'explosive_power': Sparkles,
+      'focus': Focus,
+      'confidence': Star,
+      'problem_solving': Lightbulb,
+      'risk_assessment': Shield,
+      'mental_endurance': Brain,
+      'visualization': Eye,
+      'crimp_grips': Grip,
+      'sloper_grips': Grip,
+      'pinch_grips': Grip,
+      'pocket_grips': Grip,
+      'mantle_techniques': Move,
+      'heel_hooks': Target,
+      'aerobic_capacity': Heart,
+      'anaerobic_power': Flame,
+      'recovery_rate': Clock,
+      'pump_resistance': Shield,
+      'session_endurance': Timer,
+      'multi_day_endurance': Activity,
+      'route_reading': Map,
+      'beta_optimization': Lightbulb,
+      'rest_positioning': Shield,
+      'sequence_planning': Route,
+      'gear_placement': Target,
+      'fall_practice': Focus
+    };
+    return iconMap[subcategoryId as keyof typeof iconMap] || Target;
+  };
+
   const getSkillProgressPercent = (skill: Skill): number => {
     const xp = skill.xp || 0;
     const level = skill.level || 1;
@@ -120,7 +202,10 @@ export default function SkillTree({ className }: SkillTreeProps) {
                           className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-lg hover:scale-105 transition-transform duration-200 flex-shrink-0"
                           style={{ backgroundColor: category.color }}
                         >
-                          {category.icon}
+                          {(() => {
+                            const CategoryIcon = getCategoryIcon(category.id);
+                            return <CategoryIcon className="w-6 h-6 sm:w-7 sm:h-7" />;
+                          })()}
                         </div>
                         <div className="min-w-0 flex-1">
                           <CardTitle className="text-base sm:text-lg text-abyss-ethereal leading-tight">{category.name}</CardTitle>
@@ -160,11 +245,14 @@ export default function SkillTree({ className }: SkillTreeProps) {
                         const SkillIcon = getSkillIcon(Math.round(avgLevel));
                         
                         return (
-                          <div key={subcategory.id} className="border border-abyss-teal/20 rounded-lg p-4 sm:p-5 bg-abyss-dark/20 hover:bg-abyss-dark/30 transition-colors duration-200">
+                          <div key={subcategory.id} className="border border-abyss-teal/20 rounded-lg p-4 sm:p-5 bg-gradient-to-r from-abyss-dark/20 to-abyss-purple/10 hover:from-abyss-dark/30 hover:to-abyss-purple/20 transition-colors duration-200 shadow-sm hover:shadow-md">
                             {/* Subcategory header */}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
                               <div className="flex items-center gap-2 sm:gap-3">
-                                <SkillIcon className="w-5 h-5 text-abyss-amber flex-shrink-0" />
+                                {(() => {
+                                  const SubcategoryIcon = getSubcategoryIcon(subcategory.id);
+                                  return <SubcategoryIcon className="w-5 h-5 text-abyss-amber flex-shrink-0" />;
+                                })()}
                                 <h4 className="font-medium text-sm sm:text-base text-abyss-ethereal">{subcategory.name}</h4>
                               </div>
                               <Badge 
@@ -193,8 +281,8 @@ export default function SkillTree({ className }: SkillTreeProps) {
                                         onClick={() => setSelectedSkill(isSelected ? null : skillKey)}
                                         className={`p-4 sm:p-3 rounded-lg cursor-pointer transition-all duration-200 min-h-[80px] sm:min-h-[70px] ${
                                           isSelected 
-                                            ? 'bg-abyss-teal/20 border-abyss-teal/50 border scale-105' 
-                                            : 'bg-abyss-dark/40 hover:bg-abyss-dark/60 border border-abyss-teal/10'
+                                            ? 'bg-gradient-to-r from-abyss-teal/20 to-abyss-purple/20 border-abyss-teal/50 border scale-105 shadow-lg' 
+                                            : 'bg-gradient-to-r from-abyss-dark/40 to-abyss-purple/10 hover:from-abyss-dark/60 hover:to-abyss-purple/20 border border-abyss-teal/10 hover:border-abyss-teal/20'
                                         }`}
                                       >
                                         <div className="font-medium capitalize text-abyss-ethereal text-sm sm:text-xs mb-1 leading-tight">

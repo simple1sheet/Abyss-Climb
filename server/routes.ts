@@ -290,6 +290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update skill for each style
         for (const style of styles) {
           const categoryInfo = gradeConverter.getSkillCategoryForStyle(style);
+          console.log(`Updating skill for style: ${style}, category: ${categoryInfo.mainCategory}, subCategory: ${categoryInfo.subCategory}`);
           await storage.upsertUserSkill(userId, style, problem.grade, categoryInfo.mainCategory, categoryInfo.subCategory);
         }
       }

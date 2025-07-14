@@ -74,6 +74,9 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "problems"] });
       queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/skills"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/whistle-progress"] });
       
       // Show XP animation if XP was earned
       if (data.xpEarned && data.xpEarned > 0) {

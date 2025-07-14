@@ -21,6 +21,9 @@ Preferred communication style: Simple, everyday language.
 - **Real-time Skill Updates**: Skills now update immediately when boulder problems are completed or quests are finished
 - **Comprehensive Skill Tracking**: Each skill shows current level, total problems completed, and progress to next level
 - **Grade System Integration**: All skill grades display in user's preferred grade system (V-Scale, Font, German)
+- **Fixed Skill Cache Invalidation**: Added proper cache invalidation in SessionTracker to ensure skills update immediately
+- **Improved Visual Design**: Added appropriate icons for each skill category and subcategory with gradient backgrounds
+- **Enhanced Mobile Experience**: Single-column layout on mobile with larger touch targets and better spacing
 
 ### ✓ Layer Quest System Implementation (January 2025)
 - **Database Schema**: Created layerQuests table with proper structure for layer-specific quest tracking
