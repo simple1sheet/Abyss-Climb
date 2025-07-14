@@ -1,5 +1,6 @@
 import { storage } from "../storage";
 import { LayerQuest, InsertLayerQuest } from "@shared/schema";
+import { gradeConverter } from "./gradeConverter";
 
 export interface LayerQuestDefinition {
   layer: number;
@@ -27,7 +28,7 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
         const problems = await storage.getBoulderProblemsForSession(session.id);
         completedProblems += problems.filter(p => 
           p.completed && 
-          storage.getGradeNumericValue(p.grade) >= 2
+          gradeConverter.getGradeNumericValue(p.grade, 'V-Scale') >= 2
         ).length;
       }
       
@@ -72,7 +73,7 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
         const problems = await storage.getBoulderProblemsForSession(session.id);
         completedProblems += problems.filter(p => 
           p.completed && 
-          storage.getGradeNumericValue(p.grade) >= 4
+          gradeConverter.getGradeNumericValue(p.grade, 'V-Scale') >= 4
         ).length;
       }
       
@@ -95,7 +96,7 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
         problems.filter(p => 
           p.completed && 
           p.holdType &&
-          storage.getGradeNumericValue(p.grade) >= 4
+          gradeConverter.getGradeNumericValue(p.grade, 'V-Scale') >= 4
         ).forEach(p => {
           if (p.holdType && ['crimps', 'jugs', 'slopers', 'pinches'].includes(p.holdType.toLowerCase())) {
             usedGripTypes.add(p.holdType.toLowerCase());
@@ -125,7 +126,7 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
         const problems = await storage.getBoulderProblemsForSession(session.id);
         const validProblems = problems.filter(p => 
           p.completed && 
-          storage.getGradeNumericValue(p.grade) >= 5
+          gradeConverter.getGradeNumericValue(p.grade, 'V-Scale') >= 5
         );
         
         if (validProblems.length > 0) {
@@ -166,7 +167,7 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
         const problems = await storage.getBoulderProblemsForSession(session.id);
         const validProblems = problems.filter(p => 
           p.completed && 
-          storage.getGradeNumericValue(p.grade) >= 4
+          gradeConverter.getGradeNumericValue(p.grade, 'V-Scale') >= 4
         );
         
         if (validProblems.length > 0) {
@@ -212,14 +213,14 @@ export const LAYER_QUEST_DEFINITIONS: LayerQuestDefinition[] = [
         // Check for V6+ problems
         const v6Plus = problems.filter(p => 
           p.completed && 
-          storage.getGradeNumericValue(p.grade) >= 6
+          gradeConverter.getGradeNumericValue(p.grade, 'V-Scale') >= 6
         );
         v6PlusProblems += v6Plus.length;
         
         // Check for V7+ overhang
         const v7PlusOverhangs = problems.filter(p => 
           p.completed && 
-          storage.getGradeNumericValue(p.grade) >= 7 &&
+          gradeConverter.getGradeNumericValue(p.grade, 'V-Scale') >= 7 &&
           (p.wallAngle === 'overhang' || p.style?.toLowerCase().includes('overhang'))
         );
         if (v7PlusOverhangs.length > 0) {
