@@ -430,6 +430,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUserSkill(userId: string, skillType: string, grade: string, mainCategory: string, subCategory: string): Promise<Skill> {
+    console.log(`[SKILL UPDATE] Processing skill: ${skillType}, grade: ${grade}, mainCategory: ${mainCategory}, subCategory: ${subCategory}`);
+    
     // Check if skill exists
     const existingSkill = await db
       .select()
@@ -449,6 +451,8 @@ export class DatabaseStorage implements IStorage {
       const newGradeNum = this.getGradeNumericValue(grade);
       const xpGained = newGradeNum * 10; // 10 XP per grade level
       
+      console.log(`[SKILL UPDATE] Existing skill found: ${skill.skillType}, current grade: ${skill.maxGrade} (${currentGradeNum}), new grade: ${grade} (${newGradeNum})`);
+      
       if (newGradeNum > currentGradeNum) {
         const [updatedSkill] = await db
           .update(skills)
@@ -461,6 +465,7 @@ export class DatabaseStorage implements IStorage {
           })
           .where(eq(skills.id, skill.id))
           .returning();
+        console.log(`[SKILL UPDATE] Updated skill with new max grade: ${updatedSkill.maxGrade}, XP: ${updatedSkill.xp}, Level: ${updatedSkill.level}`);
         return updatedSkill;
       } else {
         // Just increment problem count and XP
@@ -474,6 +479,7 @@ export class DatabaseStorage implements IStorage {
           })
           .where(eq(skills.id, skill.id))
           .returning();
+        console.log(`[SKILL UPDATE] Updated skill with same grade: problems: ${updatedSkill.totalProblems}, XP: ${updatedSkill.xp}, Level: ${updatedSkill.level}`);
         return updatedSkill;
       }
     } else {
@@ -493,6 +499,7 @@ export class DatabaseStorage implements IStorage {
           level: Math.min(10, Math.floor((newGradeNum * 10) / 100) + 1),
         })
         .returning();
+      console.log(`[SKILL UPDATE] Created new skill: ${newSkill.skillType}, grade: ${newSkill.maxGrade}, XP: ${newSkill.xp}, Level: ${newSkill.level}`);
       return newSkill;
     }
   }

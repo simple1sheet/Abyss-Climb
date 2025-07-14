@@ -136,40 +136,66 @@ export class GradeConverter {
 
   getSkillCategoryForStyle(style: string): { mainCategory: string; subCategory: string } {
     const styleMap = {
+      // Movement styles
       'overhangs': { mainCategory: 'strength', subCategory: 'core_strength' },
       'slabs': { mainCategory: 'movement', subCategory: 'balance' },
-      'technical': { mainCategory: 'technical', subCategory: 'technique_refinement' },
       'dynos': { mainCategory: 'movement', subCategory: 'dynamic' },
-      'crimps': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'slopers': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'pinches': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'jugs': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'pockets': { mainCategory: 'strength', subCategory: 'finger_strength' },
       'heel_hooks': { mainCategory: 'movement', subCategory: 'coordination' },
       'toe_hooks': { mainCategory: 'movement', subCategory: 'coordination' },
       'mantles': { mainCategory: 'movement', subCategory: 'balance' },
       'flagging': { mainCategory: 'movement', subCategory: 'coordination' },
       'stemming': { mainCategory: 'movement', subCategory: 'coordination' },
-      'compression': { mainCategory: 'strength', subCategory: 'core_strength' },
       'balance': { mainCategory: 'movement', subCategory: 'balance' },
-      'endurance': { mainCategory: 'endurance', subCategory: 'power_endurance' },
       'coordination': { mainCategory: 'movement', subCategory: 'coordination' },
       'flexibility': { mainCategory: 'movement', subCategory: 'flexibility' },
-      'power': { mainCategory: 'strength', subCategory: 'upper_body' },
-      'route_reading': { mainCategory: 'technical', subCategory: 'route_reading' },
-      'confidence': { mainCategory: 'mental', subCategory: 'confidence' },
       'footwork': { mainCategory: 'movement', subCategory: 'footwork' },
       'mantling': { mainCategory: 'movement', subCategory: 'balance' },
+      
+      // Strength styles
+      'crimps': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'slopers': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'pinches': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'jugs': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'pockets': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'compression': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'power': { mainCategory: 'strength', subCategory: 'upper_body' },
       'roofs': { mainCategory: 'strength', subCategory: 'core_strength' },
       'campus': { mainCategory: 'strength', subCategory: 'contact_strength' },
       'lockoffs': { mainCategory: 'strength', subCategory: 'upper_body' },
       'core': { mainCategory: 'strength', subCategory: 'core_strength' },
+      'underclings': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'gaston': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      
+      // Technical styles
+      'technical': { mainCategory: 'technical', subCategory: 'technique_refinement' },
+      'route_reading': { mainCategory: 'technical', subCategory: 'route_reading' },
       'reading': { mainCategory: 'technical', subCategory: 'route_reading' },
       'sequencing': { mainCategory: 'technical', subCategory: 'route_reading' },
+      'beta': { mainCategory: 'technical', subCategory: 'route_reading' },
+      'efficiency': { mainCategory: 'technical', subCategory: 'efficiency' },
+      'adaptation': { mainCategory: 'technical', subCategory: 'adaptation' },
+      
+      // Mental styles
+      'confidence': { mainCategory: 'mental', subCategory: 'confidence' },
       'risk_management': { mainCategory: 'mental', subCategory: 'fear_management' },
       'mental_game': { mainCategory: 'mental', subCategory: 'confidence' },
-      'underclings': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'gaston': { mainCategory: 'strength', subCategory: 'finger_strength' }
+      'focus': { mainCategory: 'mental', subCategory: 'focus' },
+      'fear': { mainCategory: 'mental', subCategory: 'fear_management' },
+      'persistence': { mainCategory: 'mental', subCategory: 'persistence' },
+      
+      // Endurance styles
+      'endurance': { mainCategory: 'endurance', subCategory: 'power_endurance' },
+      'pump': { mainCategory: 'endurance', subCategory: 'power_endurance' },
+      'recovery': { mainCategory: 'endurance', subCategory: 'recovery' },
+      'aerobic': { mainCategory: 'endurance', subCategory: 'aerobic_capacity' },
+      
+      // Strategy styles
+      'strategy': { mainCategory: 'strategy', subCategory: 'problem_solving' },
+      'tactics': { mainCategory: 'strategy', subCategory: 'problem_solving' },
+      'planning': { mainCategory: 'strategy', subCategory: 'problem_solving' },
+      'risk_assessment': { mainCategory: 'strategy', subCategory: 'risk_assessment' },
+      'training': { mainCategory: 'strategy', subCategory: 'training_planning' },
+      'competition': { mainCategory: 'strategy', subCategory: 'competition_strategy' }
     };
     
     return styleMap[style as keyof typeof styleMap] || { mainCategory: 'technical', subCategory: 'technique_refinement' };
