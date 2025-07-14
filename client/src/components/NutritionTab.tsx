@@ -67,10 +67,26 @@ export default function NutritionTab() {
       });
     },
     onSuccess: (data) => {
+      // Clear the scan image after successful scan
+      setScanImage(null);
+      
       toast({
-        title: "Food Scanned Successfully",
-        description: `${data.foodName} - ${data.calories} calories`,
+        title: "Food Added to Daily Macros! 🍽️",
+        description: data.message || `${data.foodName} (${data.calories} calories) has been added to your daily nutrition!`,
+        duration: 5000,
       });
+      
+      // Show additional feedback if confidence is low
+      if (data.confidence && data.confidence < 0.7) {
+        setTimeout(() => {
+          toast({
+            title: "Scan Confidence Notice",
+            description: "Food analysis had lower confidence. You can adjust the nutrition info manually if needed.",
+            variant: "default",
+          });
+        }, 1000);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/nutrition"] });
     },
     onError: (error) => {

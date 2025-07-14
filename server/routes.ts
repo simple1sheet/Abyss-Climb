@@ -1431,7 +1431,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { nanachiNutritionService } = await import("./services/nanachiNutrition");
       const analysis = await nanachiNutritionService.analyzeFoodFromImage(base64Image, userId);
       
-      res.json(analysis);
+      // Automatically add the analyzed food to daily macros
+      const mealType = req.body.mealType || 'snack'; // Default to snack if not specified
+      const nutritionEntry = {
+        userId,
+        foodName: analysis.foodName,
+        calories: analysis.calories,
+        protein: analysis.protein.toString(),
+        carbs: analysis.carbs.toString(),
+        fat: analysis.fat.toString(),
+        fiber: analysis.fiber.toString(),
+        sugar: analysis.sugar.toString(),
+        sodium: analysis.sodium,
+        servingSize: analysis.servingSize,
+        mealType,
+        consumedAt: new Date(),
+        scanData: {
+          scannedFromImage: true,
+          confidence: analysis.confidence,
+          nanachiComment: analysis.nanachiComment,
+          scanTimestamp: new Date().toISOString()
+        }
+      };
+
+      // Save the nutrition entry to the database
+      const savedEntry = await storage.createNutritionEntry(nutritionEntry);
+      
+      // Get updated nutrition summary for the day
+      const today = new Date();
+      const updatedSummary = await storage.getNutritionSummary(userId, today);
+      
+      res.json({
+        ...analysis,
+        addedToMacros: true,
+        nutritionEntry: savedEntry,
+        dailySummary: updatedSummary,
+        message: `${analysis.foodName} has been added to your daily macros! ${analysis.nanachiComment}`
+      });
     } catch (error) {
       log(`Error scanning food image: ${error}`, "error");
       res.status(500).json({ message: "Failed to scan food image" });

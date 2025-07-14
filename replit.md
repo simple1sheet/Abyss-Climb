@@ -12,7 +12,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Automatic Quest Generation System Optimization (Latest - January 2025)
+### ✓ Enhanced Food Scan Functionality (Latest - January 2025)
+- **Automatic Macro Addition**: Fixed food scan function to automatically add scanned food to daily macros instead of just analyzing
+- **Enhanced Feedback System**: Updated client-side to show comprehensive feedback including Nanachi's personality-driven comments about food
+- **Improved Nutrition Tracking**: Scanned food now creates nutrition entries with complete macro breakdown and scan metadata
+- **Confidence-Based Notifications**: Low confidence scans show additional warnings to users for manual adjustment if needed
+- **Real-time Macro Updates**: Food scanning now provides immediate daily nutrition summary updates
+- **Database Integration**: Enhanced scan data storage with confidence scores, timestamps, and Nanachi's nutritional insights
+
+### ✓ Automatic Quest Generation System Optimization (January 2025)
 - **Fixed Quest Generation Limits**: Corrected automatic quest generation to create exactly 3 daily quests and 1 weekly quest per user
 - **Removed Manual Generation Buttons**: Eliminated manual quest generation buttons from home tab since quests are now fully automated
 - **Enhanced Generation Logic**: Added comprehensive console logging and proper quest count validation to prevent over-generation
