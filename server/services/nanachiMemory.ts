@@ -60,8 +60,7 @@ export class NanachiMemoryService {
       userId,
       memoryType: 'achievement',
       title: achievement,
-      content: `User achieved: ${achievement}`,
-      context,
+      content: `User achieved: ${achievement}. Context: ${JSON.stringify(context)}`,
       importance: 5,
     });
   }
@@ -72,8 +71,7 @@ export class NanachiMemoryService {
       userId,
       memoryType: 'goal',
       title: goal,
-      content: `User set goal: ${goal}`,
-      context,
+      content: `User set goal: ${goal}. Context: ${JSON.stringify(context)}`,
       importance: 4,
     });
   }
