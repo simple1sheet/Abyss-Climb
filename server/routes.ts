@@ -520,14 +520,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Apply skill improvements from AI analysis
       for (const improvement of skillAnalysis.skillImprovements) {
-        const categoryInfo = gradeConverter.getSkillCategoryForStyle(improvement.skillType);
+        console.log(`AI quest analysis updating skill: ${improvement.skillType} in ${improvement.mainCategory}/${improvement.subCategory}`);
+        
         // Update skill with small XP gain for quest completion
         await storage.upsertUserSkill(
           userId, 
           improvement.skillType, 
           'V0', // Base grade for quest-based improvements
-          improvement.category.toLowerCase(), 
-          improvement.subcategory.toLowerCase()
+          improvement.mainCategory.toLowerCase(),
+          improvement.subCategory.toLowerCase()
         );
       }
       

@@ -23,8 +23,8 @@ export async function analyzeQuestCompletion(
 ): Promise<{
   skillImprovements: {
     skillType: string;
-    category: string;
-    subcategory: string;
+    mainCategory: string;
+    subCategory: string;
     improvement: string;
     xpGain: number;
   }[];
@@ -40,15 +40,47 @@ Quest Details:
 Current User Skills:
 ${userSkills.map(skill => `- ${skill.skillType}: Level ${skill.level || 1}, Max Grade: ${skill.maxGrade || 'V0'}, Problems: ${skill.totalProblems || 0}`).join('\n')}
 
-Available Skill Categories:
-- Movement: balance, flexibility, coordination, footwork, body_positioning, dynamic_movement
-- Strength: finger_strength, core_strength, arm_strength, leg_strength, power_endurance, explosive_power
-- Mental: focus, confidence, problem_solving, risk_assessment, mental_endurance, visualization
-- Technical: crimp_grips, sloper_grips, pinch_grips, pocket_grips, mantle_techniques, heel_hooks
-- Endurance: aerobic_capacity, anaerobic_power, recovery_rate, pump_resistance, session_endurance, multi_day_endurance
-- Strategy: route_reading, beta_optimization, rest_positioning, sequence_planning, gear_placement, fall_practice
+Available Skill Categories (use exact skillType names from this list):
 
-Based on the quest completion, suggest 2-3 specific skills that would have been developed. Consider:
+MOVEMENT:
+- Balance: slab, balance_beam, mantles, highsteps
+- Coordination: cross_through, heel_hooks, toe_hooks, flagging  
+- Flexibility: high_steps, wide_spans, hip_flexibility, shoulder_mobility
+- Dynamic: dynos, dead_points, matching, jumping
+- Footwork: smearing, edging, foot_jams, precise_placement
+
+STRENGTH:
+- Finger Strength: crimps, pinches, slopers, pockets
+- Core Strength: compression, tension, body_positioning, overhangs
+- Upper Body: pull_ups, lockoffs, mantles, pressing
+- Contact Strength: dead_points, latching, first_moves, power_endurance
+
+MENTAL:
+- Focus: route_reading, sequencing, precision, mindfulness
+- Confidence: commitment, risk_taking, bold_moves, trust
+- Fear Management: high_balls, exposure, falling, composure
+- Persistence: projecting, working_moves, patience, grit
+
+TECHNICAL:
+- Route Reading: beta_reading, sequence_planning, hold_identification, movement_preview
+- Efficiency: rest_positions, flow, energy_management, relaxation
+- Technique Refinement: body_positioning, weight_distribution, timing, precision
+- Adaptation: style_switching, conditions, rock_types, hold_variations
+
+ENDURANCE:
+- Power Endurance: circuits, linked_problems, volume, pump_tolerance
+- Aerobic Capacity: long_sessions, base_fitness, recovery, breathing
+- Recovery: active_recovery, rest_positions, shaking_out, pacing
+
+STRATEGY:
+- Problem Solving: beta_development, alternative_sequences, creative_solutions, troubleshooting
+- Risk Assessment: safety_awareness, fall_consequences, gear_placement, conditions
+- Training Planning: periodization, weakness_identification, goal_setting, progress_tracking
+- Competition Strategy: time_management, energy_allocation, pressure_handling, observation
+
+Based on the quest completion, suggest 2-3 specific skills that would have been developed. Use EXACT skillType names from the list above.
+
+Consider:
 - What climbing skills were likely practiced during this quest?
 - Which skills align with the quest's focus and requirements?
 - How would completing this quest improve the climber's abilities?
@@ -57,9 +89,9 @@ Respond with JSON:
 {
   "skillImprovements": [
     {
-      "skillType": "specific_skill_name",
-      "category": "Movement/Strength/Mental/Technical/Endurance/Strategy",
-      "subcategory": "balance/power/focus/grips/aerobic/reading",
+      "skillType": "exact_skill_name_from_list",
+      "mainCategory": "movement/strength/mental/technical/endurance/strategy",
+      "subCategory": "balance/finger_strength/focus/route_reading/power_endurance/problem_solving",
       "improvement": "Brief description of how this skill improved",
       "xpGain": 20
     }
