@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import WhistleProgress from "@/components/WhistleProgress";
 import CurrentLayer from "@/components/CurrentLayer";
 import QuickActions from "@/components/QuickActions";
@@ -11,92 +11,18 @@ import SessionIndicator from "@/components/SessionIndicator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation, Search, Clock, Star, ExternalLink } from "lucide-react";
+import { MapPin, Navigation, Search } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-
-interface Location {
-  id: string;
-  name: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  type: 'gym' | 'outdoor' | 'mixed';
-  distance?: number;
-  rating?: number;
-  phone?: string;
-  website?: string;
-  hours?: string;
-  description?: string;
-}
-
-interface LocationSearchResult {
-  locations: Location[];
-  total: number;
-  searchQuery: string;
-  searchLocation?: {
-    latitude: number;
-    longitude: number;
-    address: string;
-  };
-}
 
 export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isGpsLoading, setIsGpsLoading] = useState(false);
-  const [searchAddress, setSearchAddress] = useState("");
-  const [searchResults, setSearchResults] = useState<LocationSearchResult | null>(null);
-  const [showResults, setShowResults] = useState(false);
   
   const { data: stats } = useQuery({
     queryKey: ["/api/user/stats"],
     enabled: !!user,
-  });
-
-  const locationSearchMutation = useMutation({
-    mutationFn: async (searchData: { latitude: number; longitude: number; radius?: number; query?: string }) => {
-      return await apiRequest("POST", "/api/locations/search", searchData);
-    },
-    onSuccess: (data: LocationSearchResult) => {
-      setSearchResults(data);
-      setShowResults(true);
-      toast({
-        title: "Locations Found",
-        description: `Found ${data.total} climbing locations nearby`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Search Error",
-        description: "Failed to search for climbing locations. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const addressSearchMutation = useMutation({
-    mutationFn: async (searchData: { address: string; radius?: number }) => {
-      return await apiRequest("POST", "/api/locations/search-by-address", searchData);
-    },
-    onSuccess: (data: LocationSearchResult) => {
-      setSearchResults(data);
-      setShowResults(true);
-      toast({
-        title: "Locations Found",
-        description: `Found ${data.total} climbing locations near ${data.searchLocation?.address}`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Search Error",
-        description: "Failed to search for climbing locations. Please check your address and try again.",
-        variant: "destructive",
-      });
-    },
   });
 
   const getInitials = (name?: string) => {
@@ -113,18 +39,15 @@ export default function Home() {
           description: "Your browser doesn't support GPS location access.",
           variant: "destructive",
         });
-        setIsGpsLoading(false);
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          locationSearchMutation.mutate({
-            latitude,
-            longitude,
-            radius: 10000, // 10km radius
-            query: "climbing gym"
+          toast({
+            title: "Location Found",
+            description: `Your location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
           });
           setIsGpsLoading(false);
         },
@@ -144,31 +67,6 @@ export default function Home() {
         variant: "destructive",
       });
       setIsGpsLoading(false);
-    }
-  };
-
-  const handleAddressSearch = () => {
-    if (!searchAddress.trim()) {
-      toast({
-        title: "Search Error",
-        description: "Please enter a location to search.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    addressSearchMutation.mutate({
-      address: searchAddress,
-      radius: 10000, // 10km radius
-    });
-  };
-
-  const getTypeColor = (type: 'gym' | 'outdoor' | 'mixed') => {
-    switch (type) {
-      case 'gym': return 'bg-abyss-teal/20 text-abyss-teal';
-      case 'outdoor': return 'bg-abyss-amber/20 text-abyss-amber';
-      case 'mixed': return 'bg-abyss-purple/20 text-abyss-purple';
-      default: return 'bg-abyss-muted/20 text-abyss-muted';
     }
   };
 
@@ -237,124 +135,32 @@ export default function Home() {
               <p className="text-abyss-muted text-sm">
                 Find nearby climbing gyms and outdoor climbing areas using GPS or search by location.
               </p>
-              
-              {/* GPS and Search Controls */}
               <div className="flex space-x-3">
                 <Button
                   onClick={handleGpsLocation}
-                  disabled={isGpsLoading || locationSearchMutation.isPending}
+                  disabled={isGpsLoading}
                   className="flex-1 bg-abyss-teal hover:bg-abyss-teal/80 text-white"
                 >
                   <Navigation className="w-4 h-4 mr-2" />
                   {isGpsLoading ? "Getting Location..." : "Use GPS"}
                 </Button>
                 <Button
-                  onClick={() => setShowResults(!showResults)}
+                  onClick={() => toast({
+                    title: "Coming Soon",
+                    description: "Manual location search will be available soon with Google Places API integration.",
+                  })}
                   variant="outline"
-                  className="border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10"
+                  className="flex-1 border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10"
                 >
                   <Search className="w-4 h-4 mr-2" />
-                  {showResults ? "Hide" : "Search"}
+                  Search
                 </Button>
               </div>
-
-              {/* Manual Search */}
-              {showResults && (
-                <div className="space-y-4">
-                  <div className="flex space-x-2">
-                    <Input
-                      placeholder="Enter city, address, or location..."
-                      value={searchAddress}
-                      onChange={(e) => setSearchAddress(e.target.value)}
-                      className="bg-abyss-dark/50 border-abyss-teal/30 text-abyss-ethereal"
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddressSearch()}
-                    />
-                    <Button
-                      onClick={handleAddressSearch}
-                      disabled={addressSearchMutation.isPending}
-                      className="bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark"
-                    >
-                      <Search className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Loading State */}
-              {(locationSearchMutation.isPending || addressSearchMutation.isPending) && (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-abyss-teal mx-auto"></div>
-                  <p className="text-abyss-muted text-sm mt-2">Searching for climbing locations...</p>
-                </div>
-              )}
-
-              {/* Search Results */}
-              {searchResults && showResults && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-abyss-ethereal font-medium">
-                      Found {searchResults.total} locations
-                    </h3>
-                    {searchResults.searchLocation && (
-                      <p className="text-abyss-muted text-xs">
-                        Near: {searchResults.searchLocation.address}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="max-h-96 overflow-y-auto space-y-3">
-                    {searchResults.locations.map((location) => (
-                      <Card key={location.id} className="bg-abyss-dark/50 border-abyss-teal/20 p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h4 className="text-abyss-ethereal font-medium text-sm">
-                                {location.name}
-                              </h4>
-                              <Badge className={getTypeColor(location.type)}>
-                                {location.type}
-                              </Badge>
-                            </div>
-                            <p className="text-abyss-muted text-xs mb-1">
-                              {location.address}
-                            </p>
-                            {location.distance && (
-                              <p className="text-abyss-amber text-xs">
-                                📍 {location.distance.toFixed(1)} km away
-                              </p>
-                            )}
-                            {location.description && (
-                              <p className="text-abyss-muted text-xs mt-1">
-                                {location.description}
-                              </p>
-                            )}
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${location.latitude},${location.longitude}`;
-                              window.open(mapsUrl, '_blank');
-                            }}
-                            className="text-abyss-teal hover:bg-abyss-teal/10"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* No Results */}
-              {searchResults && searchResults.locations.length === 0 && showResults && (
-                <div className="text-center py-4">
-                  <p className="text-abyss-muted text-sm">
-                    No climbing locations found in this area. Try searching in a major city like "New York", "San Francisco", or "Denver".
-                  </p>
-                </div>
-              )}
+              <div className="text-center">
+                <p className="text-abyss-muted text-xs">
+                  This feature requires real location API integration for authentic climbing location data.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
