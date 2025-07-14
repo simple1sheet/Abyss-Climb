@@ -101,10 +101,12 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       
       // Show relic notification if found
       if (foundRelic) {
+        console.log("🏺 RELIC FOUND! Showing toast notification:", foundRelic);
         toast({
-          title: "🏺 Relic Found!",
-          description: `You discovered ${foundRelic.name} (${foundRelic.rarity.toUpperCase()})! Check the Delver Tent to view your relic.`,
-          duration: 6000, // Show for 6 seconds
+          title: "🏺 RELIC DISCOVERED!",
+          description: `You found a ${foundRelic.rarity.toUpperCase()} relic: ${foundRelic.name}! Check the Delver Tent to view your collection.`,
+          duration: 8000, // Show for 8 seconds
+          className: "border-yellow-400 bg-yellow-50 text-yellow-900",
         });
       }
       
