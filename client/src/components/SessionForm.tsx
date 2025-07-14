@@ -47,10 +47,6 @@ export default function SessionForm() {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState('climbing');
-  
-  // Debug logging
-  console.log('Active tab:', activeTab);
-  console.log('Tabs rendering...');
 
   const createSessionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -197,24 +193,46 @@ export default function SessionForm() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-abyss-dark/50 border border-abyss-teal/20 mb-6">
-            <TabsTrigger value="climbing" className="data-[state=active]:bg-abyss-teal/20 text-xs sm:text-sm">
-              <Mountain className="w-4 h-4 mr-1" />
+        <div className="w-full">
+          <div className="flex w-full bg-abyss-dark/50 border border-abyss-teal/20 mb-6 rounded-lg">
+            <button
+              onClick={() => setActiveTab('climbing')}
+              className={`flex-1 py-3 px-4 rounded-l-lg transition-colors ${
+                activeTab === 'climbing'
+                  ? 'bg-abyss-teal/20 text-abyss-ethereal'
+                  : 'text-abyss-muted hover:text-abyss-ethereal'
+              }`}
+            >
+              <Mountain className="w-4 h-4 mr-2 inline" />
               Climbing
-            </TabsTrigger>
-            <TabsTrigger value="workout" className="data-[state=active]:bg-abyss-teal/20 text-xs sm:text-sm">
-              <Dumbbell className="w-4 h-4 mr-1" />
+            </button>
+            <button
+              onClick={() => setActiveTab('workout')}
+              className={`flex-1 py-3 px-4 transition-colors ${
+                activeTab === 'workout'
+                  ? 'bg-abyss-teal/20 text-abyss-ethereal'
+                  : 'text-abyss-muted hover:text-abyss-ethereal'
+              }`}
+            >
+              <Dumbbell className="w-4 h-4 mr-2 inline" />
               Workout
-            </TabsTrigger>
-            <TabsTrigger value="locations" className="data-[state=active]:bg-abyss-teal/20 text-xs sm:text-sm">
-              <MapPin className="w-4 h-4 mr-1" />
+            </button>
+            <button
+              onClick={() => setActiveTab('locations')}
+              className={`flex-1 py-3 px-4 rounded-r-lg transition-colors ${
+                activeTab === 'locations'
+                  ? 'bg-abyss-teal/20 text-abyss-ethereal'
+                  : 'text-abyss-muted hover:text-abyss-ethereal'
+              }`}
+            >
+              <MapPin className="w-4 h-4 mr-2 inline" />
               Locations
-            </TabsTrigger>
-          </TabsList>
+            </button>
+          </div>
 
-          <TabsContent value="climbing" className="space-y-6">
-            <div className="max-w-md mx-auto space-y-6">
+          {activeTab === 'climbing' && (
+            <div className="space-y-6">
+              <div className="max-w-md mx-auto space-y-6">
               {/* Session Controls */}
               <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
                 <CardHeader>
@@ -445,11 +463,13 @@ export default function SessionForm() {
                   <><i className="fas fa-save mr-2"></i>Complete Session</>
                 )}
               </Button>
+              </div>
             </div>
-          </TabsContent>
+          )}
 
-          <TabsContent value="workout" className="space-y-6">
-            <Card className="bg-layer-gradient backdrop-blur-sm border-abyss-teal/20">
+          {activeTab === 'workout' && (
+            <div className="space-y-6">
+              <Card className="bg-layer-gradient backdrop-blur-sm border-abyss-teal/20">
               <CardHeader>
                 <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
                   <Dumbbell className="w-5 h-5 text-abyss-amber" />
@@ -493,10 +513,12 @@ export default function SessionForm() {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+            </div>
+          )}
 
-          <TabsContent value="locations" className="space-y-6">
-            <div className="max-w-md mx-auto">
+          {activeTab === 'locations' && (
+            <div className="space-y-6">
+              <div className="max-w-md mx-auto">
               <Card className="bg-abyss-purple/20 border-abyss-teal/30">
                 <CardHeader>
                   <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
@@ -520,9 +542,10 @@ export default function SessionForm() {
                   </Button>
                 </CardContent>
               </Card>
+              </div>
             </div>
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
 
       <BottomNavigation />
