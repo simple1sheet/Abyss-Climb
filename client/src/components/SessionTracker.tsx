@@ -80,10 +80,13 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
       queryClient.invalidateQueries({ queryKey: ["/api/whistle-progress"] });
       queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/relics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/relics/stats"] });
       
-      // Handle both old format (just problem) and new format (problem + achievements)
+      // Handle both old format (just problem) and new format (problem + achievements + relic)
       const problem = data.problem || data;
       const achievements = data.newAchievements || [];
+      const foundRelic = data.foundRelic;
       
       // Show XP animation if XP was earned
       if (problem.xpEarned && problem.xpEarned > 0) {
@@ -94,6 +97,15 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       // Show achievement notifications first
       if (achievements.length > 0) {
         showMultipleAchievementNotifications(achievements);
+      }
+      
+      // Show relic notification if found
+      if (foundRelic) {
+        toast({
+          title: "🏺 Relic Found!",
+          description: `You discovered ${foundRelic.name} (${foundRelic.rarity.toUpperCase()})! Check the Delver Tent to view your relic.`,
+          duration: 6000, // Show for 6 seconds
+        });
       }
       
       toast({

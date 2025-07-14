@@ -15,6 +15,20 @@ export interface RelicDefinition {
 const RELIC_DEFINITIONS: RelicDefinition[] = [
   // Common relics (10% chance)
   {
+    name: "Novice's Rope",
+    description: "A sturdy rope that never frays. Perfect for beginning delvers.",
+    rarity: "common",
+    category: "artifact",
+    loreText: "Every delver's first tool. Though simple, it has saved countless lives in the Abyss.",
+  },
+  {
+    name: "Apprentice Whistle",
+    description: "A simple whistle that echoes loudly in the depths.",
+    rarity: "common",
+    category: "artifact",
+    loreText: "Used to signal other delvers or scare away small creatures. A delver's best friend.",
+  },
+  {
     name: "Crimson Splitjaw",
     description: "A small, sturdy blade that never dulls. Useful for delving preparations.",
     rarity: "common",
@@ -206,44 +220,68 @@ export class RelicService {
     // Generate random number for relic finding
     const roll = Math.random();
     
-    // Check each rarity tier (legendary first for best chance)
-    const rarityTiers = ['legendary', 'epic', 'rare', 'uncommon', 'common'] as const;
+    console.log(`[RELIC DROP] User ${userId} rolled ${roll.toFixed(4)} for grade ${grade} on layer ${currentLayer}`);
     
-    for (const rarity of rarityTiers) {
-      if (roll <= RELIC_PROBABILITIES[rarity]) {
-        // Filter available relics by rarity, layer, and grade requirements
-        const availableRelics = RELIC_DEFINITIONS.filter(relic => {
-          if (relic.rarity !== rarity) return false;
-          if (relic.layerRequirement && currentLayer < relic.layerRequirement) return false;
-          if (relic.gradeRequirement && !this.meetsGradeRequirement(grade, relic.gradeRequirement)) return false;
-          return true;
-        });
-        
-        if (availableRelics.length > 0) {
-          // Select random relic from available ones
-          const selectedRelic = availableRelics[Math.floor(Math.random() * availableRelics.length)];
-          
-          // Create relic entry
-          const relicEntry: InsertRelic = {
-            userId,
-            sessionId,
-            boulderProblemId,
-            name: selectedRelic.name,
-            description: selectedRelic.description,
-            rarity: selectedRelic.rarity,
-            category: selectedRelic.category,
-            layer: currentLayer,
-            grade,
-            loreText: selectedRelic.loreText,
-          };
-          
-          // Save to database
-          return await storage.createRelic(relicEntry);
-        }
-      }
+    // Check if any relic should drop (10% chance total)
+    if (roll > RELIC_PROBABILITIES.common) {
+      console.log(`[RELIC DROP] No relic dropped (roll ${roll.toFixed(4)} > ${RELIC_PROBABILITIES.common})`);
+      return null;
     }
     
-    return null;
+    // Determine rarity based on roll (from rarest to most common)
+    let selectedRarity: string;
+    if (roll <= RELIC_PROBABILITIES.legendary) {
+      selectedRarity = 'legendary';
+    } else if (roll <= RELIC_PROBABILITIES.epic) {
+      selectedRarity = 'epic';
+    } else if (roll <= RELIC_PROBABILITIES.rare) {
+      selectedRarity = 'rare';
+    } else if (roll <= RELIC_PROBABILITIES.uncommon) {
+      selectedRarity = 'uncommon';
+    } else {
+      selectedRarity = 'common';
+    }
+    
+    console.log(`[RELIC DROP] Relic rarity determined: ${selectedRarity}`);
+    
+    // Filter available relics by rarity, layer, and grade requirements
+    const availableRelics = RELIC_DEFINITIONS.filter(relic => {
+      if (relic.rarity !== selectedRarity) return false;
+      if (relic.layerRequirement && currentLayer < relic.layerRequirement) return false;
+      if (relic.gradeRequirement && !this.meetsGradeRequirement(grade, relic.gradeRequirement)) return false;
+      return true;
+    });
+    
+    console.log(`[RELIC DROP] Available ${selectedRarity} relics for layer ${currentLayer}: ${availableRelics.length}`);
+    
+    if (availableRelics.length > 0) {
+      // Select random relic from available ones
+      const selectedRelic = availableRelics[Math.floor(Math.random() * availableRelics.length)];
+      
+      console.log(`[RELIC DROP] Selected relic: ${selectedRelic.name} (${selectedRelic.rarity})`);
+      
+      // Create relic entry
+      const relicEntry: InsertRelic = {
+        userId,
+        sessionId,
+        boulderProblemId,
+        name: selectedRelic.name,
+        description: selectedRelic.description,
+        rarity: selectedRelic.rarity,
+        category: selectedRelic.category,
+        layer: currentLayer,
+        grade,
+        loreText: selectedRelic.loreText,
+      };
+      
+      // Save to database
+      const savedRelic = await storage.createRelic(relicEntry);
+      console.log(`[RELIC DROP] Relic saved to database: ${savedRelic.name} (ID: ${savedRelic.id})`);
+      return savedRelic;
+    } else {
+      console.log(`[RELIC DROP] No available ${selectedRarity} relics for current layer/grade requirements`);
+      return null;
+    }
   }
   
   // Check if current grade meets the requirement
