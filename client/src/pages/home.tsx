@@ -59,10 +59,7 @@ export default function Home() {
 
   const locationSearchMutation = useMutation({
     mutationFn: async (searchData: { latitude: number; longitude: number; radius?: number; query?: string }) => {
-      return await apiRequest("/api/locations/search", {
-        method: "POST",
-        body: searchData,
-      });
+      return await apiRequest("POST", "/api/locations/search", searchData);
     },
     onSuccess: (data: LocationSearchResult) => {
       setSearchResults(data);
@@ -83,10 +80,7 @@ export default function Home() {
 
   const addressSearchMutation = useMutation({
     mutationFn: async (searchData: { address: string; radius?: number }) => {
-      return await apiRequest("/api/locations/search-by-address", {
-        method: "POST",
-        body: searchData,
-      });
+      return await apiRequest("POST", "/api/locations/search-by-address", searchData);
     },
     onSuccess: (data: LocationSearchResult) => {
       setSearchResults(data);
