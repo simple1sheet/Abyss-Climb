@@ -71,9 +71,9 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
+    <div className="max-w-md mx-auto ancient-stone min-h-screen relative overflow-hidden">
       {/* Made in Abyss Map Background */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 abyss-overlay opacity-5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-abyss-teal/10 to-abyss-purple/20"></div>
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full">
           <div className="relative w-full h-full">
@@ -97,20 +97,27 @@ export default function Home() {
         </div>
       </div>
       
+      {/* Curse Lines Effect */}
+      <div className="curse-lines"></div>
+      
       {/* Floating mystical particles */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-10 w-40 h-40 bg-abyss-teal rounded-full blur-3xl"></div>
-        <div className="absolute top-40 left-5 w-2 h-2 bg-abyss-amber/40 rounded-full blur-sm floating-animation"></div>
-        <div className="absolute top-60 right-8 w-1 h-1 bg-abyss-teal/30 rounded-full blur-sm floating-animation" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-40 right-12 w-3 h-3 bg-abyss-purple/20 rounded-full blur-sm floating-animation" style={{animationDelay: '4s'}}></div>
+        <div className="curse-particle top-40 left-5" style={{animationDelay: '0s'}}></div>
+        <div className="curse-particle top-60 right-8" style={{animationDelay: '2s'}}></div>
+        <div className="curse-particle bottom-40 right-12" style={{animationDelay: '4s'}}></div>
+        <div className="curse-particle top-20 left-1/2" style={{animationDelay: '6s'}}></div>
       </div>
+      
+      {/* Depth Fog Effect */}
+      <div className="depth-fog"></div>
 
       {/* Header */}
       <header className="relative z-20 px-6 pt-12 pb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Avatar className="w-12 h-12 border-2 border-abyss-amber mystical-glow">
+            <Avatar className="w-12 h-12 relic-border">
               <AvatarImage 
                 src={user?.profileImageUrl}
                 alt="Delver Profile"
@@ -122,11 +129,11 @@ export default function Home() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-lg font-semibold text-abyss-ethereal">
+              <h1 className="text-lg font-semibold text-abyss-ethereal ancient-text">
                 {user?.firstName || "Delver"}
               </h1>
               <p className="text-sm text-abyss-amber">
-                Layer {user?.currentLayer || 1} Explorer • The Abyss Calls
+                Layer {user?.currentLayer || 1} Explorer • <span className="italic opacity-80">The Abyss Calls</span>
               </p>
             </div>
           </div>
@@ -152,53 +159,50 @@ export default function Home() {
         
         {/* Location Finder */}
         <div className="px-6 mb-6">
-          <Card className="bg-abyss-purple/20 backdrop-blur-sm border-abyss-teal/20">
+          <Card className="abyss-card">
             <CardHeader>
               <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
-                <MapPin className="w-5 h-5 text-abyss-amber" />
-                <span>Find Climbing Locations</span>
+                <MapPin className="w-5 h-5 text-abyss-amber mystical-glow" />
+                <span className="ancient-text">Find Climbing Locations</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-abyss-muted text-sm">
+              <p className="text-abyss-muted text-sm italic">
                 Find nearby climbing gyms and outdoor areas using trusted climbing databases and maps.
               </p>
               <div className="flex space-x-3">
-                <Button
+                <button
                   onClick={handleGpsLocation}
                   disabled={isGpsLoading}
-                  className="flex-1 bg-abyss-teal hover:bg-abyss-teal/80 text-white"
+                  className="flex-1 abyss-button text-abyss-ethereal flex items-center justify-center"
                 >
                   <Navigation className="w-4 h-4 mr-2" />
                   {isGpsLoading ? "Getting Location..." : "Use GPS"}
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={() => window.open('https://www.google.com/maps/search/climbing+gym+near+me', '_blank')}
-                  variant="outline"
-                  className="flex-1 border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10"
+                  className="flex-1 abyss-button text-abyss-ethereal flex items-center justify-center"
                 >
                   <Search className="w-4 h-4 mr-2" />
                   Search Maps
-                </Button>
+                </button>
               </div>
               <div className="grid grid-cols-2 gap-3 mt-4">
-                <Button
+                <button
                   onClick={() => window.open('https://www.mountainproject.com/route-finder', '_blank')}
-                  variant="outline"
-                  className="border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10 text-sm"
+                  className="abyss-button text-abyss-ethereal text-sm py-2"
                 >
                   🏔️ Mountain Project
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={() => window.open('https://www.thecrag.com/climbing', '_blank')}
-                  variant="outline"
-                  className="border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10 text-sm"
+                  className="abyss-button text-abyss-ethereal text-sm py-2"
                 >
                   🧗 theCrag
-                </Button>
+                </button>
               </div>
               <div className="text-center">
-                <p className="text-abyss-muted text-xs">
+                <p className="text-abyss-muted text-xs italic">
                   Links to trusted climbing resources with real, up-to-date location data.
                 </p>
               </div>

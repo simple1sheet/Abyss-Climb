@@ -50,15 +50,15 @@ export default function CurrentLayer() {
 
   return (
     <section className="px-6 mb-8 relative z-10">
-      <Card className="bg-layer-gradient border-abyss-teal/30 depth-layer">
+      <Card className="abyss-card">
         <CardContent className="p-6">
           <div className="flex items-center space-x-4 mb-4">
             <div className={`w-16 h-16 ${layerInfo.color}/50 rounded-full flex items-center justify-center`}>
               <IconComponent className="text-2xl text-abyss-amber" size={24} />
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-abyss-ethereal">Layer {currentLayer}</h3>
-              <p className="text-abyss-amber">{layerInfo.name}</p>
+              <h3 className="text-xl font-semibold text-abyss-ethereal ancient-text">Layer {currentLayer}</h3>
+              <p className="text-abyss-amber font-semibold">{layerInfo.name}</p>
               <p className="text-sm text-abyss-ethereal/70">{layerInfo.grades}</p>
             </div>
           </div>
