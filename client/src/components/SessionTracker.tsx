@@ -110,15 +110,17 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
         });
       }
       
-      // Delay the "Problem Added" toast slightly so relic toast appears first
-      setTimeout(() => {
-        toast({
-          title: "Problem Added",
-          description: problem.xpEarned ? `+${problem.xpEarned} XP` : "Logged!",
-          duration: 2000, // Show for 2 seconds
-          className: "text-sm max-w-xs",
-        });
-      }, foundRelic ? 500 : 0);
+      // Show minimal XP notification if XP was earned
+      if (problem.xpEarned) {
+        setTimeout(() => {
+          toast({
+            title: `+${problem.xpEarned} XP`,
+            description: undefined,
+            duration: 1500, // Show for 1.5 seconds
+            className: "text-xs bg-black/70 text-white border-none shadow-none max-w-fit px-2 py-1 rounded-full",
+          });
+        }, foundRelic ? 500 : 0);
+      }
       
       // Reset form
       setGrade("");
