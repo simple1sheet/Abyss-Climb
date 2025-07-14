@@ -12,7 +12,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Notification Toggle System & Grade System Readability Fix (Latest - January 2025)
+### ✓ Enhanced Relic System - Rarity & Variety Overhaul (Latest - January 2025)
+- **Made Relics Much More Rare**: Reduced drop rate from 10% to 3% (70% reduction) - now truly rare and exciting to find
+- **Massive Variety Expansion**: Increased total relics from 21 to 50 (more than doubled) with authentic Made in Abyss theming
+- **Enhanced Rarity Distribution**: Common 15 relics, Uncommon 12 relics, Rare 12 relics, Epic 6 relics, Legendary 5 relics
+- **Fixed Accessibility Issues**: Added many uncommon/rare relics accessible at lower layers (2-3) and grades (V2-V3)
+- **Better Rarity Chances**: Rebalanced all rarity probabilities - Common 3%, Uncommon 1.5%, Rare 0.5%, Epic 0.2%, Legendary 0.1%
+- **Authentic Lore Integration**: All new relics feature deep Made in Abyss lore with character connections and unique abilities
+- **Comprehensive Debugging**: Enhanced logging system for relic drop monitoring and troubleshooting
+
+### ✓ Notification Toggle System & Grade System Readability Fix (January 2025)
 - **Notification Toggle Feature**: Added toggleable notification system in profile settings with database persistence
 - **Database Schema Update**: Added `notificationsEnabled` field to users table with default value of `true`
 - **API Integration**: Created `/api/user/notifications` endpoint for updating user notification preferences
