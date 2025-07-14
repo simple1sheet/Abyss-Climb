@@ -421,8 +421,27 @@ export default function LocationFinder() {
         <Card className="bg-abyss-purple/20 border-abyss-teal/30">
           <CardContent className="text-center py-8">
             <Mountain className="w-12 h-12 text-abyss-muted mx-auto mb-4" />
-            <p className="text-abyss-muted">
-              No climbing locations found in the selected area. Try increasing the search radius or searching a different location.
+            <p className="text-abyss-muted mb-4">
+              Real climbing location data requires API integration
+            </p>
+            <p className="text-abyss-muted text-sm">
+              This feature would normally use Google Places API or similar services to find real climbing gyms and outdoor locations. 
+              Currently showing placeholder message instead of fake data.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Initial State */}
+      {!userLocation && (
+        <Card className="bg-abyss-purple/20 border-abyss-teal/30">
+          <CardContent className="text-center py-8">
+            <MapPin className="w-12 h-12 text-abyss-muted mx-auto mb-4" />
+            <p className="text-abyss-muted mb-4">
+              Find Real Climbing Locations
+            </p>
+            <p className="text-abyss-muted text-sm">
+              Use your GPS location or enter a location manually to search for nearby climbing gyms and outdoor climbing areas.
             </p>
           </CardContent>
         </Card>

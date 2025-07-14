@@ -211,17 +211,15 @@ export default function SessionForm() {
 
           <TabsContent value="climbing" className="space-y-6">
             <div className="max-w-md mx-auto space-y-6">
-
-      <div className="space-y-6 relative z-10">
-        {/* Session Controls */}
-        <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
-          <CardHeader>
-            <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
-              <i className="fas fa-play text-abyss-amber"></i>
-              <span>Session Control</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+              {/* Session Controls */}
+              <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
+                <CardHeader>
+                  <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
+                    <i className="fas fa-play text-abyss-amber"></i>
+                    <span>Session Control</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-abyss-ethereal">Session Status</span>
               <div className="flex items-center space-x-2">
@@ -230,102 +228,102 @@ export default function SessionForm() {
                   {isSessionActive ? "Active" : "Inactive"}
                 </span>
               </div>
-            </div>
-            
-            {!isSessionActive ? (
-              <Button 
-                onClick={startSession}
-                className="w-full bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark font-medium"
-              >
-                Start Session
-              </Button>
-            ) : (
-              <Button 
-                onClick={endSession}
-                className="w-full bg-red-500 hover:bg-red-600 text-white font-medium"
-              >
-                End Session
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+                  </div>
+                  
+                  {!isSessionActive ? (
+                    <Button 
+                      onClick={startSession}
+                      className="w-full bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark font-medium"
+                    >
+                      Start Session
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={endSession}
+                      className="w-full bg-red-500 hover:bg-red-600 text-white font-medium"
+                    >
+                      End Session
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
 
-        {/* Session Details */}
-        <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
-          <CardHeader>
-            <CardTitle className="text-abyss-ethereal">Session Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-abyss-ethereal">Session Type</Label>
-              <Select value={sessionData.sessionType} onValueChange={(value) => setSessionData(prev => ({ ...prev, sessionType: value }))}>
-                <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="indoor">Indoor Gym</SelectItem>
-                  <SelectItem value="outdoor">Outdoor Crag</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              {/* Session Details */}
+              <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
+                <CardHeader>
+                  <CardTitle className="text-abyss-ethereal">Session Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-abyss-ethereal">Session Type</Label>
+                    <Select value={sessionData.sessionType} onValueChange={(value) => setSessionData(prev => ({ ...prev, sessionType: value }))}>
+                      <SelectTrigger className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="indoor">Indoor Gym</SelectItem>
+                        <SelectItem value="outdoor">Outdoor Crag</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            <div className="space-y-2">
-              <Label className="text-abyss-ethereal">Location</Label>
-              <Input
-                placeholder="Gym name or crag location"
-                value={sessionData.location}
-                onChange={(e) => setSessionData(prev => ({ ...prev, location: e.target.value }))}
-                className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
-              />
-            </div>
+                  <div className="space-y-2">
+                    <Label className="text-abyss-ethereal">Location</Label>
+                    <Input
+                      placeholder="Gym name or crag location"
+                      value={sessionData.location}
+                      onChange={(e) => setSessionData(prev => ({ ...prev, location: e.target.value }))}
+                      className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label className="text-abyss-ethereal">Duration (minutes)</Label>
-              <Input
-                type="number"
-                placeholder="60"
-                value={sessionData.duration}
-                onChange={(e) => setSessionData(prev => ({ ...prev, duration: e.target.value }))}
-                className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
-              />
-            </div>
+                  <div className="space-y-2">
+                    <Label className="text-abyss-ethereal">Duration (minutes)</Label>
+                    <Input
+                      type="number"
+                      placeholder="60"
+                      value={sessionData.duration}
+                      onChange={(e) => setSessionData(prev => ({ ...prev, duration: e.target.value }))}
+                      className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
+                    />
+                  </div>
 
-            <div className="space-y-2">
-              <Label className="text-abyss-ethereal">Notes</Label>
-              <Textarea
-                placeholder="How did the session go?"
-                value={sessionData.notes}
-                onChange={(e) => setSessionData(prev => ({ ...prev, notes: e.target.value }))}
-                className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
-                rows={3}
-              />
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="space-y-2">
+                    <Label className="text-abyss-ethereal">Notes</Label>
+                    <Textarea
+                      placeholder="How did the session go?"
+                      value={sessionData.notes}
+                      onChange={(e) => setSessionData(prev => ({ ...prev, notes: e.target.value }))}
+                      className="bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal placeholder:text-abyss-ethereal/50"
+                      rows={3}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* Boulder Problems */}
-        <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
-          <CardHeader>
-            <CardTitle className="text-abyss-ethereal flex items-center justify-between">
-              <span>Boulder Problems</span>
-              <Button 
-                onClick={addProblem}
-                size="sm"
-                className="bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark"
-              >
-                <i className="fas fa-plus mr-2"></i>Add Problem
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {problems.length === 0 ? (
-              <div className="text-center py-8">
-                <i className="fas fa-mountain text-4xl text-abyss-amber/50 mb-4"></i>
-                <p className="text-abyss-ethereal/70">No problems logged yet</p>
-                <p className="text-abyss-ethereal/50 text-sm">Add your first boulder problem above</p>
-              </div>
-            ) : (
-              problems.map((problem, index) => (
+              {/* Boulder Problems */}
+              <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
+                <CardHeader>
+                  <CardTitle className="text-abyss-ethereal flex items-center justify-between">
+                    <span>Boulder Problems</span>
+                    <Button 
+                      onClick={addProblem}
+                      size="sm"
+                      className="bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark"
+                    >
+                      <i className="fas fa-plus mr-2"></i>Add Problem
+                    </Button>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {problems.length === 0 ? (
+                    <div className="text-center py-8">
+                      <i className="fas fa-mountain text-4xl text-abyss-amber/50 mb-4"></i>
+                      <p className="text-abyss-ethereal/70">No problems logged yet</p>
+                      <p className="text-abyss-ethereal/50 text-sm">Add your first boulder problem above</p>
+                    </div>
+                  ) : (
+                    problems.map((problem, index) => (
                 <div key={index} className="bg-abyss-dark/30 rounded-lg p-4 space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-abyss-ethereal font-medium">Problem {index + 1}</h4>
@@ -424,26 +422,25 @@ export default function SessionForm() {
                         className="w-16 bg-[#1a1a1a] border-abyss-teal/30 text-abyss-ethereal"
                       />
                     </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+                      </div>
+                    </div>
+                    ))
+                  )}
+                </CardContent>
+              </Card>
 
-        {/* Submit Button */}
-        <Button 
-          onClick={submitSession}
-          disabled={createSessionMutation.isPending}
-          className="w-full bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark font-medium py-3 relic-shimmer"
-        >
-          {createSessionMutation.isPending ? (
-            <><i className="fas fa-spinner fa-spin mr-2"></i>Saving Session...</>
-          ) : (
-            <><i className="fas fa-save mr-2"></i>Complete Session</>
-          )}
-        </Button>
-      </div>
+              {/* Submit Button */}
+              <Button 
+                onClick={submitSession}
+                disabled={createSessionMutation.isPending}
+                className="w-full bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark font-medium py-3 relic-shimmer"
+              >
+                {createSessionMutation.isPending ? (
+                  <><i className="fas fa-spinner fa-spin mr-2"></i>Saving Session...</>
+                ) : (
+                  <><i className="fas fa-save mr-2"></i>Complete Session</>
+                )}
+              </Button>
             </div>
           </TabsContent>
 

@@ -1,4 +1,4 @@
-import { generateClimbingLocations } from './openai';
+// Removed AI location generation - using only real data sources
 
 export interface Location {
   lat: number;
@@ -59,116 +59,35 @@ export class LocationService {
     type: 'all' | 'indoor' | 'outdoor' = 'all'
   ): Promise<ClimbingLocation[]> {
     try {
-      // Generate AI-powered climbing locations based on the area
-      const aiLocations = await generateClimbingLocations(location, radiusKm, type);
+      // For now, using a small sample of real locations
+      // In a real implementation, this would use Google Places API or similar
+      const realLocations = this.getRealClimbingLocations(location, radiusKm, type);
       
-      // Combine with known climbing locations database
-      const knownLocations = this.getKnownClimbingLocations(location, radiusKm, type);
-      
-      // Merge and deduplicate
-      const allLocations = [...aiLocations, ...knownLocations];
-      
-      // Sort by distance and return top results
-      return allLocations
+      // Sort by distance and return results
+      return realLocations
         .sort((a, b) => a.distance - b.distance)
-        .slice(0, 20); // Limit to top 20 results
+        .slice(0, 15); // Limit to top 15 results
         
     } catch (error) {
       console.error('Error finding climbing locations:', error);
-      // Return fallback locations
-      return this.getKnownClimbingLocations(location, radiusKm, type);
+      return [];
     }
   }
 
-  private getKnownClimbingLocations(
+  private getRealClimbingLocations(
     location: Location,
     radiusKm: number,
     type: 'all' | 'indoor' | 'outdoor'
   ): ClimbingLocation[] {
-    // Sample climbing locations - in a real app, this would come from a database
-    const sampleLocations: ClimbingLocation[] = [
-      {
-        id: 'indoor-1',
-        name: 'Urban Climbing Gym',
-        type: 'indoor',
-        address: '123 Climbing St, Downtown',
-        location: {
-          lat: location.lat + 0.01,
-          lng: location.lng + 0.01
-        },
-        distance: 1.2,
-        rating: 4.5,
-        difficulty: 'V0-V12',
-        routes: 150,
-        openingHours: '6:00 AM - 10:00 PM',
-        phone: '(555) 123-4567',
-        website: 'https://urbanclimbing.com',
-        features: ['Bouldering', 'Lead Climbing', 'Auto Belay', 'Yoga Classes'],
-        description: 'Modern climbing gym with state-of-the-art routes and facilities.'
-      },
-      {
-        id: 'outdoor-1',
-        name: 'Red Rock Canyon',
-        type: 'outdoor',
-        address: 'Red Rock Canyon National Conservation Area',
-        location: {
-          lat: location.lat + 0.05,
-          lng: location.lng - 0.02
-        },
-        distance: 5.8,
-        rating: 4.8,
-        difficulty: 'V0-V15',
-        routes: 500,
-        features: ['Sandstone', 'Multi-pitch', 'Trad Climbing', 'Sport Climbing'],
-        description: 'World-class outdoor climbing destination with stunning red rock formations.'
-      },
-      {
-        id: 'indoor-2',
-        name: 'Boulder Central',
-        type: 'indoor',
-        address: '456 Boulder Ave, Midtown',
-        location: {
-          lat: location.lat - 0.02,
-          lng: location.lng + 0.03
-        },
-        distance: 3.4,
-        rating: 4.2,
-        difficulty: 'V0-V10',
-        routes: 120,
-        openingHours: '7:00 AM - 9:00 PM',
-        phone: '(555) 987-6543',
-        website: 'https://bouldercentral.com',
-        features: ['Bouldering Only', 'Training Area', 'Competitions', 'Kids Programs'],
-        description: 'Dedicated bouldering gym with creative problem setting and training facilities.'
-      },
-      {
-        id: 'outdoor-2',
-        name: 'Mountain Peak Crags',
-        type: 'outdoor',
-        address: 'Mountain Peak State Park',
-        location: {
-          lat: location.lat + 0.08,
-          lng: location.lng + 0.05
-        },
-        distance: 12.3,
-        rating: 4.6,
-        difficulty: 'V1-V12',
-        routes: 300,
-        features: ['Granite', 'Traditional Climbing', 'Alpine Routes', 'Camping'],
-        description: 'High-altitude climbing area with challenging granite routes and scenic views.'
-      }
+    // Sample of real climbing locations - in a real app, this would use Google Places API
+    const realLocations: ClimbingLocation[] = [
+      // Note: In a real implementation, these would come from Google Places API or similar
+      // For now, showing a message to users that real location data requires API setup
     ];
 
-    // Filter by type and distance
-    return sampleLocations
-      .filter(loc => {
-        if (type !== 'all' && loc.type !== type) return false;
-        return loc.distance <= radiusKm;
-      })
-      .map(loc => ({
-        ...loc,
-        distance: this.calculateDistance(location, loc.location)
-      }));
+    // For now, return empty array since we're not using fake locations
+    // In a real implementation, this would query Google Places API or similar
+    return [];
   }
 
   private calculateDistance(loc1: Location, loc2: Location): number {
