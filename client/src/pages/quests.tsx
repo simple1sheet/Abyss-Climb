@@ -64,6 +64,21 @@ function QuestContent() {
     mutationFn: async (questId: number) => {
       return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
+    onMutate: async (questId: number) => {
+      // Cancel any outgoing refetches to avoid optimistic update conflicts
+      await queryClient.cancelQueries({ queryKey: ["/api/quests?status=active"] });
+      
+      // Snapshot the previous value
+      const previousQuests = queryClient.getQueryData(["/api/quests?status=active"]);
+      
+      // Optimistically update to remove the quest immediately
+      queryClient.setQueryData(["/api/quests?status=active"], (old: any) => {
+        if (!old) return old;
+        return old.filter((quest: any) => quest.id !== questId);
+      });
+      
+      return { previousQuests };
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
@@ -87,7 +102,12 @@ function QuestContent() {
         description: `Quest completed successfully! +${quest.xpReward} XP`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, questId: number, context: any) => {
+      // Rollback optimistic update on error
+      if (context?.previousQuests) {
+        queryClient.setQueryData(["/api/quests?status=active"], context.previousQuests);
+      }
+      
       if (error.response?.status === 400 && error.response?.data?.completionLimitReached) {
         toast({
           title: "Daily Completion Limit Reached",
@@ -108,6 +128,21 @@ function QuestContent() {
     mutationFn: async (questId: number) => {
       return await apiRequest("POST", `/api/quests/${questId}/discard`, {});
     },
+    onMutate: async (questId: number) => {
+      // Cancel any outgoing refetches to avoid optimistic update conflicts
+      await queryClient.cancelQueries({ queryKey: ["/api/quests?status=active"] });
+      
+      // Snapshot the previous value
+      const previousQuests = queryClient.getQueryData(["/api/quests?status=active"]);
+      
+      // Optimistically update to remove the quest immediately
+      queryClient.setQueryData(["/api/quests?status=active"], (old: any) => {
+        if (!old) return old;
+        return old.filter((quest: any) => quest.id !== questId);
+      });
+      
+      return { previousQuests };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
@@ -115,6 +150,18 @@ function QuestContent() {
       toast({
         title: "Quest Discarded",
         description: "The quest has been removed from your active quests.",
+      });
+    },
+    onError: (error: any, questId: number, context: any) => {
+      // Rollback optimistic update on error
+      if (context?.previousQuests) {
+        queryClient.setQueryData(["/api/quests?status=active"], context.previousQuests);
+      }
+      
+      toast({
+        title: "Quest Discard Failed",
+        description: "Unable to discard quest. Please try again.",
+        variant: "destructive",
       });
     },
   });
