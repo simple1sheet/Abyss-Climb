@@ -194,7 +194,7 @@ export default function SessionForm() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-abyss-dark/50 border border-abyss-teal/20 mb-6">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-abyss-dark/50 border border-abyss-teal/20 mb-6">
             <TabsTrigger value="climbing" className="data-[state=active]:bg-abyss-teal/20">
               <Mountain className="w-4 h-4 mr-2" />
               Climbing Session
@@ -492,7 +492,23 @@ export default function SessionForm() {
           </TabsContent>
 
           <TabsContent value="locations" className="space-y-6">
-            <LocationFinder />
+            <Card className="bg-abyss-purple/20 border-abyss-teal/30">
+              <CardHeader>
+                <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
+                  <MapPin className="w-5 h-5 text-abyss-amber" />
+                  <span>Find Climbing Locations</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-center py-8">
+                <MapPin className="w-16 h-16 text-abyss-muted mx-auto mb-4" />
+                <p className="text-abyss-ethereal mb-4">
+                  Location Finder - Coming Soon
+                </p>
+                <p className="text-abyss-muted text-sm">
+                  This feature will help you find nearby climbing gyms and outdoor climbing areas using GPS or manual search.
+                </p>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
