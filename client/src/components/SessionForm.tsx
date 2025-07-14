@@ -12,10 +12,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { Mountain, Dumbbell, ArrowLeft } from "lucide-react";
+import { Mountain, Dumbbell, ArrowLeft, MapPin } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import SessionIndicator from "@/components/SessionIndicator";
 import WorkoutGenerator from "@/components/WorkoutGenerator";
+import LocationFinder from "@/components/LocationFinder";
 import { calculateProblemXP, calculateSessionXP } from "@shared/xpUtils";
 
 interface BoulderProblem {
@@ -193,7 +194,7 @@ export default function SessionForm() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-abyss-dark/50 border border-abyss-teal/20 mb-6">
+          <TabsList className="grid w-full grid-cols-3 bg-abyss-dark/50 border border-abyss-teal/20 mb-6">
             <TabsTrigger value="climbing" className="data-[state=active]:bg-abyss-teal/20">
               <Mountain className="w-4 h-4 mr-2" />
               Climbing Session
@@ -201,6 +202,10 @@ export default function SessionForm() {
             <TabsTrigger value="workout" className="data-[state=active]:bg-abyss-teal/20">
               <Dumbbell className="w-4 h-4 mr-2" />
               Home Workout
+            </TabsTrigger>
+            <TabsTrigger value="locations" className="data-[state=active]:bg-abyss-teal/20">
+              <MapPin className="w-4 h-4 mr-2" />
+              Find Locations
             </TabsTrigger>
           </TabsList>
 
@@ -487,6 +492,10 @@ export default function SessionForm() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="locations" className="space-y-6">
+            <LocationFinder />
           </TabsContent>
         </Tabs>
       </div>

@@ -462,3 +462,92 @@ export async function generateWorkout(
     };
   }
 }
+
+export async function generateClimbingLocations(
+  location: { lat: number; lng: number; address?: string },
+  radiusKm: number = 10,
+  type: 'all' | 'indoor' | 'outdoor' = 'all'
+): Promise<{
+  id: string;
+  name: string;
+  type: 'indoor' | 'outdoor';
+  address: string;
+  location: { lat: number; lng: number };
+  distance: number;
+  rating: number;
+  difficulty: string;
+  routes: number;
+  openingHours?: string;
+  phone?: string;
+  website?: string;
+  features: string[];
+  description: string;
+}[]> {
+  try {
+    const prompt = `Generate realistic climbing locations within ${radiusKm}km of coordinates ${location.lat}, ${location.lng}. 
+    
+Location type filter: ${type}
+Search radius: ${radiusKm}km
+Area context: ${location.address || 'Unknown area'}
+
+Generate 3-8 realistic climbing locations that would exist in this area. For each location, provide:
+- Realistic name that fits the local geography/culture
+- Type (indoor gym OR outdoor crag/area)
+- Realistic address near the coordinates
+- GPS coordinates within the search radius
+- Distance from search center (calculate based on coordinates)
+- Rating (1-5 stars)
+- Difficulty range (V-scale for bouldering)
+- Number of routes/problems
+- Opening hours (for indoor gyms only)
+- Phone number (realistic format)
+- Website URL (realistic domain)
+- Features array (specific climbing features)
+- Description (2-3 sentences)
+
+Make locations diverse and realistic for the geographic area. Consider local geography, population density, and climbing culture.
+
+Return as JSON array with exact format:
+[
+  {
+    "id": "unique-id-1",
+    "name": "Location Name",
+    "type": "indoor" | "outdoor",
+    "address": "Street Address, City, State/Province",
+    "location": {"lat": 40.123, "lng": -74.456},
+    "distance": 2.3,
+    "rating": 4.5,
+    "difficulty": "V0-V8",
+    "routes": 120,
+    "openingHours": "6:00 AM - 10:00 PM",
+    "phone": "(555) 123-4567",
+    "website": "https://example.com",
+    "features": ["Bouldering", "Lead Climbing", "Training Area"],
+    "description": "Modern climbing facility with excellent route setting and training facilities."
+  }
+]`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are a climbing location expert. Generate realistic climbing locations based on geographic data and local climbing culture. Return only valid JSON array."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.8
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '[]');
+    return Array.isArray(result) ? result : result.locations || [];
+    
+  } catch (error) {
+    console.error('Error generating climbing locations:', error);
+    return [];
+  }
+}

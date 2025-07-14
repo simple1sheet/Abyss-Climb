@@ -1162,6 +1162,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Location API routes
+  app.post("/api/locations/geocode", async (req, res) => {
+    try {
+      const { address } = req.body;
+      
+      if (!address) {
+        return res.status(400).json({ error: "Address is required" });
+      }
+
+      const { locationService } = await import("./services/locationService");
+      const location = await locationService.geocodeAddress(address);
+      
+      if (!location) {
+        return res.status(404).json({ error: "Location not found" });
+      }
+      
+      res.json({ location });
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      res.status(500).json({ error: "Failed to geocode address" });
+    }
+  });
+
+  app.post("/api/locations/find", async (req, res) => {
+    try {
+      const { location, radius, type } = req.body;
+      
+      if (!location || !location.lat || !location.lng) {
+        return res.status(400).json({ error: "Valid location coordinates are required" });
+      }
+
+      const { locationService } = await import("./services/locationService");
+      const locations = await locationService.findNearbyClimbingLocations(
+        location,
+        radius || 10,
+        type || 'all'
+      );
+      
+      res.json({ locations });
+    } catch (error) {
+      console.error("Location search error:", error);
+      res.status(500).json({ error: "Failed to find climbing locations" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
