@@ -4,7 +4,7 @@
 
 Abyss Climber is a full-stack web application that gamifies rock climbing progress tracking. Built with a "Made in Abyss" anime theme, it allows users to log climbing sessions, track boulder problems, complete quests, and progress through different "layers" of difficulty. The app combines climbing data with RPG-style elements like experience points, achievements, and a whistle-based level system.
 
-**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Complete layer quest system implementation with predefined quests for each layer, proper database schema, and UI integration - users must complete both XP thresholds AND layer-specific quests to advance through the 7 layers of the Abyss.
+**Current Status**: Fully functional with completely redesigned skill system using grade-based progression instead of XP. Features 5 organized skill categories with accordion-style UI, independent quest management with complete/discard functionality, and grade-based whistle advancement. All components display real user data with no placeholder content. **Latest Update**: Enhanced skill system with improved readability, fixed multi-style progression, and AI-powered quest completion analysis - skills now progress both from boulder problems and quest completions with intelligent skill development recommendations.
 
 ## User Preferences
 
@@ -12,7 +12,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Layer Quest System Implementation (Latest - January 2025)
+### ✓ Enhanced Skill System & AI-Powered Quest Completion (Latest - January 2025)
+- **Fixed Multi-Style Skill Progression**: Boulder problems with multiple climbing styles now properly update all relevant skills
+- **Improved Skill Tree Readability**: Complete UI redesign with better visual hierarchy, progress bars, and skill level indicators
+- **AI-Powered Quest Completion Analysis**: Implemented OpenAI integration to analyze completed quests and automatically improve relevant skills
+- **Enhanced Skill Display**: Added XP progress bars, level indicators, and grade system integration throughout skill tree
+- **Better Skill Organization**: Cleaner category presentation with collapsible sections and intuitive skill grouping
+- **Real-time Skill Updates**: Skills now update immediately when boulder problems are completed or quests are finished
+- **Comprehensive Skill Tracking**: Each skill shows current level, total problems completed, and progress to next level
+- **Grade System Integration**: All skill grades display in user's preferred grade system (V-Scale, Font, German)
+
+### ✓ Layer Quest System Implementation (January 2025)
 - **Database Schema**: Created layerQuests table with proper structure for layer-specific quest tracking
 - **Predefined Layer Quests**: Implemented 7 unique layer quests themed to each layer with escalating difficulty:
   - Layer 1 (Edge of Abyss): Send 3 V2+ problems (150 XP)

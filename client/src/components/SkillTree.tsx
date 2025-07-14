@@ -6,9 +6,11 @@ import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { ChevronDown, ChevronRight, TrendingUp, Target, Star, Award } from "lucide-react";
+import { ChevronDown, ChevronRight, TrendingUp, Target, Star, Award, Zap, Trophy, Brain } from "lucide-react";
 import { CLIMBING_SKILL_TREE, type SkillCategory } from "@shared/skillTree";
 import { type Skill } from "@shared/schema";
+import { useGradeSystem } from "@/hooks/useGradeSystem";
+import { gradeConverter } from "@/utils/gradeConverter";
 
 interface SkillTreeProps {
   className?: string;
@@ -17,6 +19,7 @@ interface SkillTreeProps {
 export default function SkillTree({ className }: SkillTreeProps) {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
+  const { gradeSystem } = useGradeSystem();
   
   const { data: skills, isLoading } = useQuery<Skill[]>({
     queryKey: ["/api/skills"],
@@ -42,17 +45,17 @@ export default function SkillTree({ className }: SkillTreeProps) {
     const categorySkills = skills.filter(skill => skill.mainCategory === category.id);
     if (categorySkills.length === 0) return 0;
     
-    const totalLevel = categorySkills.reduce((sum, skill) => sum + (skill.level || 1), 0);
-    const maxLevel = categorySkills.length * 10;
-    return Math.round((totalLevel / maxLevel) * 100);
+    const totalXP = categorySkills.reduce((sum, skill) => sum + (skill.xp || 0), 0);
+    const totalProblems = categorySkills.reduce((sum, skill) => sum + (skill.totalProblems || 0), 0);
+    return Math.min(100, Math.round((totalXP / 1000) * 100));
   };
 
   const getSkillLevelColor = (level: number): string => {
-    if (level >= 8) return "bg-purple-500 border-purple-300";
-    if (level >= 6) return "bg-blue-500 border-blue-300";
-    if (level >= 4) return "bg-green-500 border-green-300";
-    if (level >= 2) return "bg-yellow-500 border-yellow-300";
-    return "bg-gray-500 border-gray-300";
+    if (level >= 8) return "bg-purple-500/80 text-purple-100 border-purple-400";
+    if (level >= 6) return "bg-blue-500/80 text-blue-100 border-blue-400";
+    if (level >= 4) return "bg-green-500/80 text-green-100 border-green-400";
+    if (level >= 2) return "bg-yellow-500/80 text-yellow-100 border-yellow-400";
+    return "bg-gray-500/80 text-gray-100 border-gray-400";
   };
 
   const getSkillIcon = (level: number) => {
@@ -60,6 +63,14 @@ export default function SkillTree({ className }: SkillTreeProps) {
     if (level >= 6) return Award;
     if (level >= 4) return TrendingUp;
     return Target;
+  };
+
+  const getSkillProgressPercent = (skill: Skill): number => {
+    const xp = skill.xp || 0;
+    const level = skill.level || 1;
+    const currentLevelXP = (level - 1) * 100;
+    const nextLevelXP = level * 100;
+    return Math.round(((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100);
   };
 
   if (isLoading) {
@@ -182,8 +193,17 @@ export default function SkillTree({ className }: SkillTreeProps) {
                                           {skillType.replace(/_/g, ' ')}
                                         </div>
                                         <div className="text-abyss-ethereal/70 mt-1">
-                                          {skill ? `${skill.maxGrade} (${skill.totalProblems})` : 'V0 (0)'}
+                                          {skill ? `${gradeConverter.convertGrade(skill.maxGrade, 'V-Scale', gradeSystem)} (${skill.totalProblems})` : 'V0 (0)'}
                                         </div>
+                                        {skill && (
+                                          <div className="mt-2">
+                                            <div className="flex items-center justify-between text-xs text-abyss-ethereal/60 mb-1">
+                                              <span>Level {skill.level || 1}</span>
+                                              <span>{skill.xp || 0} XP</span>
+                                            </div>
+                                            <Progress value={getSkillProgressPercent(skill)} className="h-1 bg-abyss-dark/50" />
+                                          </div>
+                                        )}
                                       </div>
                                     </TooltipTrigger>
                                     <TooltipContent>

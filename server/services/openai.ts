@@ -15,6 +15,86 @@ function getGradeNumeric(grade: string): number {
   return 0;
 }
 
+export async function analyzeQuestCompletion(
+  questTitle: string,
+  questDescription: string,
+  userSkills: any[],
+  questType: string
+): Promise<{
+  skillImprovements: {
+    skillType: string;
+    category: string;
+    subcategory: string;
+    improvement: string;
+    xpGain: number;
+  }[];
+  summary: string;
+}> {
+  const prompt = `Analyze this completed climbing quest and determine which skills should be improved based on the quest's focus and requirements.
+
+Quest Details:
+- Title: ${questTitle}
+- Description: ${questDescription}
+- Type: ${questType}
+
+Current User Skills:
+${userSkills.map(skill => `- ${skill.skillType}: Level ${skill.level || 1}, Max Grade: ${skill.maxGrade || 'V0'}, Problems: ${skill.totalProblems || 0}`).join('\n')}
+
+Available Skill Categories:
+- Movement: balance, flexibility, coordination, footwork, body_positioning, dynamic_movement
+- Strength: finger_strength, core_strength, arm_strength, leg_strength, power_endurance, explosive_power
+- Mental: focus, confidence, problem_solving, risk_assessment, mental_endurance, visualization
+- Technical: crimp_grips, sloper_grips, pinch_grips, pocket_grips, mantle_techniques, heel_hooks
+- Endurance: aerobic_capacity, anaerobic_power, recovery_rate, pump_resistance, session_endurance, multi_day_endurance
+- Strategy: route_reading, beta_optimization, rest_positioning, sequence_planning, gear_placement, fall_practice
+
+Based on the quest completion, suggest 2-3 specific skills that would have been developed. Consider:
+- What climbing skills were likely practiced during this quest?
+- Which skills align with the quest's focus and requirements?
+- How would completing this quest improve the climber's abilities?
+
+Respond with JSON:
+{
+  "skillImprovements": [
+    {
+      "skillType": "specific_skill_name",
+      "category": "Movement/Strength/Mental/Technical/Endurance/Strategy",
+      "subcategory": "balance/power/focus/grips/aerobic/reading",
+      "improvement": "Brief description of how this skill improved",
+      "xpGain": 20
+    }
+  ],
+  "summary": "Brief summary of overall skill development from this quest"
+}`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a climbing coach analyzing quest completion for skill development. Provide practical, climbing-specific skill improvements."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 500
+    });
+
+    const result = JSON.parse(response.choices[0].message.content);
+    return result;
+  } catch (error) {
+    console.error("Error analyzing quest completion:", error);
+    return {
+      skillImprovements: [],
+      summary: "Unable to analyze quest completion at this time."
+    };
+  }
+}
+
 export async function generateQuest(
   layer: number,
   whistleLevel: number,

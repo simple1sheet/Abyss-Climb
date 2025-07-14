@@ -5,7 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
 import { xpCalculator } from "./services/xpCalculator";
-import { analyzeClimbingProgress, generateWorkout } from "./services/openai";
+import { analyzeClimbingProgress, generateWorkout, analyzeQuestCompletion } from "./services/openai";
 import { achievementService } from "./services/achievementService";
 import { layerQuestService } from "./services/layerQuestService";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
@@ -283,10 +283,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const userId = req.user.claims.sub;
       
-      // Update skill progression if the problem has a style and was completed
+      // Update skill progression if the problem has styles and was completed
       if (problem.style && problem.completed) {
-        const categoryInfo = gradeConverter.getSkillCategoryForStyle(problem.style);
-        await storage.upsertUserSkill(userId, problem.style, problem.grade, categoryInfo.mainCategory, categoryInfo.subCategory);
+        const styles = problem.style.split(', ').map(s => s.trim());
+        
+        // Update skill for each style
+        for (const style of styles) {
+          const categoryInfo = gradeConverter.getSkillCategoryForStyle(style);
+          await storage.upsertUserSkill(userId, style, problem.grade, categoryInfo.mainCategory, categoryInfo.subCategory);
+        }
       }
       
       // Update session XP if problem was completed
@@ -502,6 +507,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "completed",
         completedAt: new Date(),
       });
+      
+      // AI-powered skill progression analysis
+      const userSkills = await storage.getUserSkills(userId);
+      const skillAnalysis = await analyzeQuestCompletion(
+        quest.title,
+        quest.description,
+        userSkills,
+        quest.type || 'general'
+      );
+      
+      // Apply skill improvements from AI analysis
+      for (const improvement of skillAnalysis.skillImprovements) {
+        const categoryInfo = gradeConverter.getSkillCategoryForStyle(improvement.skillType);
+        // Update skill with small XP gain for quest completion
+        await storage.upsertUserSkill(
+          userId, 
+          improvement.skillType, 
+          'V0', // Base grade for quest-based improvements
+          improvement.category.toLowerCase(), 
+          improvement.subcategory.toLowerCase()
+        );
+      }
       
       // Award XP to user and check for layer advancement
       const user = await storage.getUser(userId);
