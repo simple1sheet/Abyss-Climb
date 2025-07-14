@@ -393,13 +393,14 @@ export const ACHIEVEMENT_DEFINITIONS: AchievementDefinition[] = [
 ];
 
 export class AchievementService {
-  async checkAndUnlockAchievements(userId: string): Promise<void> {
+  async checkAndUnlockAchievements(userId: string): Promise<Achievement[]> {
     const user = await storage.getUser(userId);
-    if (!user) return;
+    if (!user) return [];
 
     const stats = await storage.getUserStats(userId);
     const userAchievements = await storage.getUserAchievements(userId);
     const unlockedAchievementIds = userAchievements.map(a => a.achievementId);
+    const newlyUnlocked: Achievement[] = [];
 
     // Check each achievement definition
     for (const definition of ACHIEVEMENT_DEFINITIONS) {
@@ -421,7 +422,8 @@ export class AchievementService {
           unlockedAt: new Date(),
         };
 
-        await storage.createAchievement(achievement);
+        const createdAchievement = await storage.createAchievement(achievement);
+        newlyUnlocked.push(createdAchievement);
         
         // Award XP for unlocking achievement
         if (definition.xpReward > 0) {
@@ -432,6 +434,8 @@ export class AchievementService {
         }
       }
     }
+
+    return newlyUnlocked;
   }
 
   async getAvailableAchievements(userId: string): Promise<Array<AchievementDefinition & { isUnlocked: boolean; progress?: number }>> {

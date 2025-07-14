@@ -18,6 +18,7 @@ import { Trophy, Target, Zap, AlertCircle } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
+import { useAchievementNotification } from "@/hooks/useAchievementNotification";
 
 interface SessionTrackerProps {
   sessionId: number;
@@ -38,6 +39,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { gradeSystem: userGradeSystem } = useGradeSystem();
+  const { showMultipleAchievementNotifications } = useAchievementNotification();
 
   const [grade, setGrade] = useState("");
   const [styles, setStyles] = useState<string[]>([]);
@@ -77,16 +79,26 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/skills"] });
       queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
       queryClient.invalidateQueries({ queryKey: ["/api/whistle-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
+      
+      // Handle both old format (just problem) and new format (problem + achievements)
+      const problem = data.problem || data;
+      const achievements = data.newAchievements || [];
       
       // Show XP animation if XP was earned
-      if (data.xpEarned && data.xpEarned > 0) {
-        setLastXPGained(data.xpEarned);
+      if (problem.xpEarned && problem.xpEarned > 0) {
+        setLastXPGained(problem.xpEarned);
         setShowXPAnimation(true);
+      }
+      
+      // Show achievement notifications first
+      if (achievements.length > 0) {
+        showMultipleAchievementNotifications(achievements);
       }
       
       toast({
         title: "Problem Added",
-        description: data.xpEarned ? `Your climb has been logged! +${data.xpEarned} XP` : "Your climb has been logged!",
+        description: problem.xpEarned ? `Your climb has been logged! +${problem.xpEarned} XP` : "Your climb has been logged!",
       });
       
       // Reset form

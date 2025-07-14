@@ -42,21 +42,7 @@ export default function Profile() {
     enabled: !!user,
   });
 
-  const checkAchievements = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", "/api/achievements/check", {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/achievements/available"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
-      toast({
-        title: "Achievements Updated",
-        description: "Your achievements have been checked and updated!",
-      });
-    },
-  });
+
 
   const getWhistleLevel = (whistleLevel: number) => {
     const levels = {
@@ -230,20 +216,9 @@ export default function Profile() {
         {(isLoadingProgress || layerProgress) && (
           <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <Zap className="h-4 w-4 text-abyss-amber" />
-                  <span className="text-sm font-medium text-abyss-ethereal">Layer Progress</span>
-                </div>
-                <Button
-                  onClick={() => checkAchievements.mutate()}
-                  disabled={checkAchievements.isPending}
-                  variant="outline"
-                  size="sm"
-                  className="border-abyss-amber/30 text-abyss-amber hover:bg-abyss-amber/10"
-                >
-                  {checkAchievements.isPending ? "Checking..." : "Check Achievements"}
-                </Button>
+              <div className="flex items-center space-x-2 mb-2">
+                <Zap className="h-4 w-4 text-abyss-amber" />
+                <span className="text-sm font-medium text-abyss-ethereal">Layer Progress</span>
               </div>
               
               {isLoadingProgress ? (

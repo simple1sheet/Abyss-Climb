@@ -214,7 +214,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check for achievements when session is completed
       if (updates.status === "completed") {
         const userId = req.user.claims.sub;
-        await achievementService.checkAndUnlockAchievements(userId);
+        const newAchievements = await achievementService.checkAndUnlockAchievements(userId);
+        
+        // Include newly unlocked achievements in the response
+        if (newAchievements.length > 0) {
+          return res.json({ session, newAchievements });
+        }
       }
       
       res.json(session);
@@ -322,7 +327,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`User XP updated successfully for user ${userId}`);
             
             // Check for achievements after updating XP
-            await achievementService.checkAndUnlockAchievements(userId);
+            const newAchievements = await achievementService.checkAndUnlockAchievements(userId);
+            
+            // Include newly unlocked achievements in the response
+            if (newAchievements.length > 0) {
+              return res.json({ problem, newAchievements });
+            }
           } else {
             console.error(`User ${userId} not found when trying to update XP`);
           }
@@ -542,7 +552,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         // Check for achievements after quest completion
-        await achievementService.checkAndUnlockAchievements(userId);
+        const newAchievements = await achievementService.checkAndUnlockAchievements(userId);
+        
+        // Include newly unlocked achievements in the response
+        if (newAchievements.length > 0) {
+          return res.json({ quest, newAchievements });
+        }
       }
       
       res.json(quest);

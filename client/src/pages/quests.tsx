@@ -14,6 +14,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
+import { useAchievementNotification } from "@/hooks/useAchievementNotification";
 
 function Quests() {
   const [, setLocation] = useLocation();
@@ -21,6 +22,7 @@ function Quests() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { gradeSystem } = useGradeSystem();
+  const { showMultipleAchievementNotifications } = useAchievementNotification();
 
   // Helper function to convert grade mentions in quest descriptions
   const convertGradesInText = (text: string): string => {
@@ -80,7 +82,7 @@ function Quests() {
     mutationFn: async (questId: number) => {
       return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
@@ -88,9 +90,20 @@ function Quests() {
       queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
+      
+      // Handle both old format (just quest) and new format (quest + achievements)
+      const quest = data.quest || data;
+      const achievements = data.newAchievements || [];
+      
+      // Show achievement notifications first
+      if (achievements.length > 0) {
+        showMultipleAchievementNotifications(achievements);
+      }
+      
       toast({
         title: "Quest Completed!",
-        description: "Quest completed successfully and removed from active quests.",
+        description: `Quest completed successfully! +${quest.xpReward} XP`,
       });
     },
     onError: (error: any) => {

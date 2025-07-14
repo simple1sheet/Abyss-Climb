@@ -9,11 +9,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, X, Plus, Clock, Target } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useAchievementNotification } from "@/hooks/useAchievementNotification";
 
 function ActiveQuests() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { showMultipleAchievementNotifications } = useAchievementNotification();
   
   const { data: quests, isLoading: isLoadingQuests } = useQuery({
     queryKey: ["/api/quests?status=active"],
@@ -64,16 +66,27 @@ function ActiveQuests() {
     mutationFn: async (questId: number) => {
       return await apiRequest("POST", `/api/quests/${questId}/complete`, {});
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/quests/completion-count"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
+      
+      // Handle both old format (just quest) and new format (quest + achievements)
+      const quest = data.quest || data;
+      const achievements = data.newAchievements || [];
+      
+      // Show achievement notifications first
+      if (achievements.length > 0) {
+        showMultipleAchievementNotifications(achievements);
+      }
+      
       toast({
         title: "Quest Completed!",
-        description: "Quest completed successfully and removed from active quests.",
+        description: `Quest completed successfully! +${quest.xpReward} XP`,
       });
     },
     onError: (error: any) => {
