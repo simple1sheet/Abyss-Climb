@@ -154,15 +154,15 @@ export default function WhistleProgress() {
 
   return (
     <section className="px-6 mb-8 relative z-10">
-      <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer whistle-pulse">
+      <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer abyss-shimmer">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-abyss-ethereal">Whistle Progress</h2>
             <div className="flex items-center space-x-2">
-              <Badge className={`${getWhistleColor(currentLevel)} bg-abyss-dark/50`}>
+              <Badge className={`${getWhistleColor(currentLevel)} bg-abyss-dark/50 relic-glow`}>
                 {getWhistleName(currentLevel)}
               </Badge>
-              <Award className={`h-5 w-5 ${getWhistleColor(currentLevel)}`} />
+              <Award className={`h-5 w-5 ${getWhistleColor(currentLevel)} mystical-glow`} />
             </div>
           </div>
           

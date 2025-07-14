@@ -82,10 +82,10 @@ export default function Home() {
       <header className="relative z-20 px-6 pt-12 pb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Avatar className="w-12 h-12 border-2 border-abyss-amber abyss-glow">
+            <Avatar className="w-12 h-12 border-2 border-abyss-amber mystical-glow">
               <AvatarImage 
                 src={user?.profileImageUrl}
-                alt="Climber Profile"
+                alt="Delver Profile"
                 className="object-cover"
                 key={user?.profileImageUrl} // Force re-render when image changes
               />
@@ -95,15 +95,15 @@ export default function Home() {
             </Avatar>
             <div>
               <h1 className="text-lg font-semibold text-abyss-ethereal">
-                {user?.firstName || "Cave Raider"}
+                {user?.firstName || "Delver"}
               </h1>
               <p className="text-sm text-abyss-amber">
-                Layer {user?.currentLayer || 1} Explorer
+                Layer {user?.currentLayer || 1} Explorer • The Abyss Calls
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="text-abyss-amber hover:text-abyss-ethereal transition-colors">
+            <button className="text-abyss-amber hover:text-abyss-ethereal transition-colors relic-glow">
               <i className="fas fa-bell text-xl"></i>
             </button>
             <button className="text-abyss-amber hover:text-abyss-ethereal transition-colors">

@@ -31,6 +31,16 @@
   --abyss-brown: hsl(25, 50%, 35%);
   --abyss-amber: hsl(39, 100%, 50%);
   --abyss-ethereal: hsl(202, 84%, 95%);
+  --abyss-muted: hsl(216, 12%, 64%);
+  --abyss-crimson: hsl(348, 83%, 47%);
+  --abyss-gold: hsl(45, 100%, 60%);
+  --abyss-emerald: hsl(160, 84%, 39%);
+  --abyss-indigo: hsl(238, 84%, 53%);
+  --abyss-lavender: hsl(258, 100%, 84%);
+  --abyss-coral: hsl(350, 100%, 72%);
+  --abyss-sage: hsl(145, 40%, 58%);
+  --abyss-slate: hsl(220, 13%, 18%);
+  --abyss-frost: hsl(195, 100%, 85%);
   --layer-1: hsl(82, 35%, 30%);
   --layer-2: hsl(120, 25%, 25%);
   --layer-3: hsl(25, 50%, 35%);
@@ -123,13 +133,77 @@
     bottom: -2px;
     background: linear-gradient(45deg, transparent, var(--abyss-amber), transparent);
     border-radius: inherit;
-    z-index: -1;
-    animation: curse-rotate 2s linear infinite;
   }
 
-  @keyframes curse-rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  /* Enhanced mystical effects */
+  .mystical-glow {
+    animation: mystical-pulse 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px var(--abyss-teal));
+  }
+
+  @keyframes mystical-pulse {
+    0%, 100% { filter: drop-shadow(0 0 12px var(--abyss-teal)); }
+    50% { filter: drop-shadow(0 0 24px var(--abyss-amber)); }
+  }
+
+  .abyss-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .abyss-shimmer::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(20, 184, 166, 0.1), transparent);
+    animation: shimmer 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%); }
+    100% { transform: translateX(100%) translateY(100%); }
+  }
+
+  .depth-indicator {
+    position: relative;
+    background: linear-gradient(135deg, var(--abyss-dark) 0%, var(--abyss-purple) 100%);
+    border: 1px solid var(--abyss-teal);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .relic-glow {
+    position: relative;
+    animation: relic-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes relic-pulse {
+    0%, 100% { box-shadow: 0 0 20px var(--abyss-amber); }
+    50% { box-shadow: 0 0 40px var(--abyss-gold); }
+  }
+
+  .curse-distortion {
+    animation: curse-distort 5s ease-in-out infinite;
+  }
+
+  @keyframes curse-distort {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.02) rotate(0.5deg); }
+    50% { transform: scale(0.98) rotate(-0.5deg); }
+    75% { transform: scale(1.01) rotate(0.25deg); }
+  }
+
+  .layer-transition {
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .mystical-border {
+    border: 2px solid transparent;
+    background: linear-gradient(var(--abyss-dark), var(--abyss-dark)) padding-box,
+                linear-gradient(45deg, var(--abyss-amber), var(--abyss-teal)) border-box;
   }
 
   .relic-shimmer {
@@ -151,6 +225,11 @@
   @keyframes shimmer {
     0% { left: -100%; }
     100% { left: 100%; }
+  }
+
+  @keyframes curse-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
   @keyframes fadeIn {

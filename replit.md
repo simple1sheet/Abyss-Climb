@@ -12,7 +12,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Location Finder Implementation & Real Data Integration (Latest - January 2025)
+### ✓ Mystical Made in Abyss Visual Enhancements (Latest - January 2025)
+- **Enhanced CSS Mystical Effects**: Added mystical-glow, abyss-shimmer, curse-distortion, and relic-glow animations for immersive atmosphere
+- **Mystical Color Palette**: Added additional Made in Abyss themed colors (abyss-lavender, abyss-coral, abyss-sage, abyss-slate, abyss-frost)
+- **Mystical Background Animations**: Added floating particles, shimmer effects, and curse-like distortions to create mystical atmosphere
+- **Abyss Map Component**: Created interactive AbyssMap component with actual Made in Abyss map display accessible via "View Abyss Map" button
+- **Mystical User Interface**: Applied mystical effects to home page header, whistle progress, and map components for authentic Made in Abyss feel
+- **Atmospheric Depth Indicators**: Added depth-layer, relic-glow, and mystical-border classes for enhanced visual depth
+- **Enchanted Navigation**: Updated current layer component to redirect to Abyss Map instead of layers overview
+- **Mystical Whistle Effects**: Enhanced whistle progress with shimmer and glow effects representing the mystical nature of the whistles
+- **Anime-Inspired Theming**: Added proper Made in Abyss references and mystical quotes throughout the interface
+- **Immersive Visual Effects**: Applied curse-distortion to map images and mystical-glow to key UI elements for authentic anime atmosphere
+
+### ✓ Location Finder Implementation & Real Data Integration (January 2025)
 - **Home Page Location Finder**: Moved location finder to home page after tab visibility issues - now accessible to all users
 - **GPS Integration**: Implemented GPS location access with proper permission handling and error messages
 - **Manual Location Search**: Added manual location input placeholder for future Google Places API integration

@@ -20,6 +20,7 @@ import WhistleOverview from "@/pages/whistle-overview";
 import WorkoutPage from "@/pages/workout";
 import Skills from "@/pages/skills";
 import SessionForm from "@/components/SessionForm";
+import AbyssMap from "@/components/AbyssMap";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -38,6 +39,7 @@ function Router() {
           <Route path="/quests" component={Quests} />
           <Route path="/progress" component={Progress} />
           <Route path="/layers" component={LayerOverview} />
+          <Route path="/abyss-map" component={AbyssMap} />
           <Route path="/whistles" component={WhistleOverview} />
           <Route path="/workout" component={WorkoutPage} />
           <Route path="/skills" component={Skills} />

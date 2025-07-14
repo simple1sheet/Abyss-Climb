@@ -86,12 +86,12 @@ export default function CurrentLayer() {
           </div>
           
           <Button
-            onClick={() => setLocation("/layers")}
+            onClick={() => setLocation("/abyss-map")}
             variant="outline"
             className="w-full mt-4 border-abyss-teal/30 text-abyss-teal hover:bg-abyss-teal/10"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
-            View All Layers
+            View Abyss Map
           </Button>
           
           <div className="mt-6">
