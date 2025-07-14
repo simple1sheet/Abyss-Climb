@@ -60,11 +60,8 @@ export default function NutritionTab() {
     mutationFn: async (imageFile: File) => {
       const formData = new FormData();
       formData.append('image', imageFile);
-      return await apiRequest("POST", "/api/nutrition/scan", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Don't set Content-Type header - let the browser handle it automatically for FormData
+      return await apiRequest("POST", "/api/nutrition/scan", formData);
     },
     onSuccess: (data) => {
       // Clear the scan image after successful scan
