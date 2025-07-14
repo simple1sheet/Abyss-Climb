@@ -25,6 +25,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       const user = await storage.getUser(userId);
+      
+      // Generate automatic quests for this user if they don't have enough
+      try {
+        await questGenerator.generateAutomaticQuests(userId);
+      } catch (error) {
+        console.error("Failed to generate automatic quests:", error);
+      }
+      
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
