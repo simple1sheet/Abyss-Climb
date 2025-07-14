@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -7,16 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import BottomNavigation from "@/components/BottomNavigation";
-import { CheckCircle, X, ArrowLeft } from "lucide-react";
+import { CheckCircle, X, ArrowLeft, Camera, Utensils, Target, TrendingUp } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
 import { useAchievementNotification } from "@/hooks/useAchievementNotification";
 
-function Quests() {
+// Quest Component (existing functionality)
+function QuestTab() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -354,6 +356,85 @@ function Quests() {
           </div>
         )}
       </div>
+
+        <BottomNavigation />
+      </div>
+    </ErrorBoundary>
+  );
+}
+
+// Nutrition Component Import
+import NutritionTab from "@/components/NutritionTab";
+
+// Main Delver Tent Component
+function Quests() {
+  const [activeTab, setActiveTab] = useState<'quests' | 'nutrition'>('quests');
+  const [, setLocation] = useLocation();
+
+  return (
+    <ErrorBoundary>
+      <div className="max-w-md mx-auto nature-background min-h-screen relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-10 w-40 h-40 bg-abyss-teal rounded-full blur-3xl"></div>
+        </div>
+
+        {/* Header */}
+        <header className="relative z-20 px-6 pt-12 pb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setLocation("/")}
+                className="text-abyss-amber hover:text-abyss-ethereal transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div>
+                <h1 className="text-lg font-semibold text-abyss-ethereal">Delver Tent</h1>
+                <p className="text-sm text-abyss-ethereal/60">
+                  Quests & Nutrition
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Tabs Navigation */}
+        <div className="relative z-10 px-6 mb-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'quests' | 'nutrition')}>
+            <TabsList className="grid w-full grid-cols-2 bg-abyss-dark/30 backdrop-blur-sm border-abyss-teal/20">
+              <TabsTrigger 
+                value="quests"
+                className="data-[state=active]:bg-abyss-teal data-[state=active]:text-abyss-dark text-abyss-ethereal"
+              >
+                <Target className="h-4 w-4 mr-2" />
+                Quests
+              </TabsTrigger>
+              <TabsTrigger 
+                value="nutrition"
+                className="data-[state=active]:bg-abyss-teal data-[state=active]:text-abyss-dark text-abyss-ethereal"
+              >
+                <Utensils className="h-4 w-4 mr-2" />
+                Nutrition
+              </TabsTrigger>
+            </TabsList>
+            
+            {/* Quest Tab Content */}
+            <TabsContent value="quests" className="mt-0">
+              <div className="pb-24">
+                <QuestTab />
+              </div>
+            </TabsContent>
+            
+            {/* Nutrition Tab Content */}
+            <TabsContent value="nutrition" className="mt-0">
+              <div className="pb-24">
+                <NutritionTab />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
 
         <BottomNavigation />
       </div>

@@ -1270,6 +1270,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Nutrition API routes
+  app.get("/api/nutrition/summary", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const today = new Date();
+      const summary = await storage.getNutritionSummary(userId, today);
+      res.json(summary);
+    } catch (error) {
+      log(`Error getting nutrition summary: ${error}`, "error");
+      res.status(500).json({ message: "Failed to get nutrition summary" });
+    }
+  });
+
+  app.get("/api/nutrition/entries", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const date = req.query.date ? new Date(req.query.date as string) : new Date();
+      const entries = await storage.getUserNutritionEntries(userId, date);
+      res.json(entries);
+    } catch (error) {
+      log(`Error getting nutrition entries: ${error}`, "error");
+      res.status(500).json({ message: "Failed to get nutrition entries" });
+    }
+  });
+
+  app.post("/api/nutrition/entries", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const entryData = { ...req.body, userId };
+      const entry = await storage.createNutritionEntry(entryData);
+      res.json(entry);
+    } catch (error) {
+      log(`Error creating nutrition entry: ${error}`, "error");
+      res.status(500).json({ message: "Failed to create nutrition entry" });
+    }
+  });
+
+  app.get("/api/nutrition/goal", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const goal = await storage.getUserNutritionGoal(userId);
+      res.json(goal);
+    } catch (error) {
+      log(`Error getting nutrition goal: ${error}`, "error");
+      res.status(500).json({ message: "Failed to get nutrition goal" });
+    }
+  });
+
+  app.post("/api/nutrition/goals", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { nanachiNutritionService } = await import("./services/nanachiNutrition");
+      const goalData = await nanachiNutritionService.createPersonalizedNutritionGoal(userId, req.body);
+      const goal = await storage.createNutritionGoal(goalData);
+      res.json(goal);
+    } catch (error) {
+      log(`Error creating nutrition goal: ${error}`, "error");
+      res.status(500).json({ message: "Failed to create nutrition goal" });
+    }
+  });
+
+  app.get("/api/nutrition/recommendations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const recommendations = await storage.getUserNutritionRecommendations(userId);
+      res.json(recommendations);
+    } catch (error) {
+      log(`Error getting nutrition recommendations: ${error}`, "error");
+      res.status(500).json({ message: "Failed to get nutrition recommendations" });
+    }
+  });
+
+  app.post("/api/nutrition/recommendations/generate", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { nanachiNutritionService } = await import("./services/nanachiNutrition");
+      const recommendations = await nanachiNutritionService.generateNutritionRecommendations(userId);
+      
+      // Store recommendations in database
+      const stored = await Promise.all(
+        recommendations.map(rec => storage.createNutritionRecommendation(rec))
+      );
+      
+      res.json(stored);
+    } catch (error) {
+      log(`Error generating nutrition recommendations: ${error}`, "error");
+      res.status(500).json({ message: "Failed to generate nutrition recommendations" });
+    }
+  });
+
+  app.get("/api/nutrition/analysis", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { nanachiNutritionService } = await import("./services/nanachiNutrition");
+      const analysis = await nanachiNutritionService.getNutritionAnalysis(userId);
+      res.json(analysis);
+    } catch (error) {
+      log(`Error getting nutrition analysis: ${error}`, "error");
+      res.status(500).json({ message: "Failed to get nutrition analysis" });
+    }
+  });
+
+  app.post("/api/nutrition/scan", isAuthenticated, nanachiUpload.single('image'), async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      // Convert file buffer to base64
+      const base64Image = req.file.buffer.toString('base64');
+
+      const { nanachiNutritionService } = await import("./services/nanachiNutrition");
+      const analysis = await nanachiNutritionService.analyzeFoodFromImage(base64Image, userId);
+      
+      res.json(analysis);
+    } catch (error) {
+      log(`Error scanning food image: ${error}`, "error");
+      res.status(500).json({ message: "Failed to scan food image" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

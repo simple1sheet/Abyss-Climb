@@ -9,6 +9,7 @@ import {
   integer,
   boolean,
   real,
+  decimal,
   primaryKey,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
@@ -259,3 +260,82 @@ export const nanachiMemoriesRelations = relations(nanachiMemories, ({ one }) => 
 export const insertNanachiMemorySchema = createInsertSchema(nanachiMemories);
 export type InsertNanachiMemory = z.infer<typeof insertNanachiMemorySchema>;
 export type NanachiMemory = typeof nanachiMemories.$inferSelect;
+
+// Nutrition Tracking System
+export const nutritionEntries = pgTable("nutrition_entries", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  foodName: varchar("food_name").notNull(),
+  brand: varchar("brand"),
+  servingSize: varchar("serving_size").notNull(),
+  servingWeight: integer("serving_weight"), // in grams
+  calories: integer("calories").notNull(),
+  protein: decimal("protein").notNull(), // in grams
+  carbs: decimal("carbs").notNull(), // in grams
+  fat: decimal("fat").notNull(), // in grams
+  fiber: decimal("fiber").default('0'),
+  sugar: decimal("sugar").default('0'),
+  sodium: integer("sodium").default(0), // in mg
+  imageUrl: varchar("image_url"),
+  scanData: jsonb("scan_data"), // Store AI analysis from scanning
+  mealType: varchar("meal_type").notNull(), // breakfast, lunch, dinner, snack
+  consumedAt: timestamp("consumed_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const nutritionGoals = pgTable("nutrition_goals", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  goalType: varchar("goal_type").notNull(), // weight_loss, muscle_gain, maintenance, performance
+  activityLevel: varchar("activity_level").notNull(), // sedentary, light, moderate, heavy, extreme
+  currentWeight: integer("current_weight"), // in kg
+  targetWeight: integer("target_weight"), // in kg
+  height: integer("height"), // in cm
+  age: integer("age"),
+  gender: varchar("gender"),
+  dailyCalories: integer("daily_calories").notNull(),
+  dailyProtein: decimal("daily_protein").notNull(),
+  dailyCarbs: decimal("daily_carbs").notNull(),
+  dailyFat: decimal("daily_fat").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const nutritionRecommendations = pgTable("nutrition_recommendations", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  recommendationType: varchar("recommendation_type").notNull(), // meal_plan, supplement, timing, hydration
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  priority: integer("priority").default(1), // 1-5 scale
+  nanachiPersonality: text("nanachi_personality"), // Nanachi's personality-driven explanation
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+});
+
+// Relations
+export const nutritionEntriesRelations = relations(nutritionEntries, ({ one }) => ({
+  user: one(users, { fields: [nutritionEntries.userId], references: [users.id] }),
+}));
+
+export const nutritionGoalsRelations = relations(nutritionGoals, ({ one }) => ({
+  user: one(users, { fields: [nutritionGoals.userId], references: [users.id] }),
+}));
+
+export const nutritionRecommendationsRelations = relations(nutritionRecommendations, ({ one }) => ({
+  user: one(users, { fields: [nutritionRecommendations.userId], references: [users.id] }),
+}));
+
+// Insert schemas
+export const insertNutritionEntrySchema = createInsertSchema(nutritionEntries);
+export const insertNutritionGoalSchema = createInsertSchema(nutritionGoals);
+export const insertNutritionRecommendationSchema = createInsertSchema(nutritionRecommendations);
+
+// Types
+export type InsertNutritionEntry = z.infer<typeof insertNutritionEntrySchema>;
+export type NutritionEntry = typeof nutritionEntries.$inferSelect;
+export type InsertNutritionGoal = z.infer<typeof insertNutritionGoalSchema>;
+export type NutritionGoal = typeof nutritionGoals.$inferSelect;
+export type InsertNutritionRecommendation = z.infer<typeof insertNutritionRecommendationSchema>;
+export type NutritionRecommendation = typeof nutritionRecommendations.$inferSelect;

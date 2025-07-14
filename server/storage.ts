@@ -7,6 +7,10 @@ import {
   skills,
   workoutSessions,
   layerQuests,
+  nanachiMemories,
+  nutritionEntries,
+  nutritionGoals,
+  nutritionRecommendations,
   type User,
   type UpsertUser,
   type ClimbingSession,
@@ -23,9 +27,14 @@ import {
   type InsertWorkoutSession,
   type LayerQuest,
   type InsertLayerQuest,
-  nanachiMemories,
   type NanachiMemory,
   type InsertNanachiMemory,
+  type NutritionEntry,
+  type InsertNutritionEntry,
+  type NutritionGoal,
+  type InsertNutritionGoal,
+  type NutritionRecommendation,
+  type InsertNutritionRecommendation,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, gte, lte, lt, sql, inArray, isNotNull } from "drizzle-orm";
@@ -159,6 +168,37 @@ export interface IStorage {
   updateNanachiMemory(id: number, updates: Partial<NanachiMemory>): Promise<NanachiMemory>;
   cleanupExpiredNanachiMemories(): Promise<void>;
   getImportantNanachiMemories(userId: string, limit: number): Promise<NanachiMemory[]>;
+
+  // Nutrition operations
+  createNutritionEntry(entry: InsertNutritionEntry): Promise<NutritionEntry>;
+  getUserNutritionEntries(userId: string, date?: Date): Promise<NutritionEntry[]>;
+  getNutritionEntriesByMealType(userId: string, mealType: string, date?: Date): Promise<NutritionEntry[]>;
+  updateNutritionEntry(id: number, updates: Partial<NutritionEntry>): Promise<NutritionEntry>;
+  deleteNutritionEntry(id: number): Promise<void>;
+  
+  createNutritionGoal(goal: InsertNutritionGoal): Promise<NutritionGoal>;
+  getUserNutritionGoal(userId: string): Promise<NutritionGoal | undefined>;
+  updateNutritionGoal(id: number, updates: Partial<NutritionGoal>): Promise<NutritionGoal>;
+  
+  createNutritionRecommendation(recommendation: InsertNutritionRecommendation): Promise<NutritionRecommendation>;
+  getUserNutritionRecommendations(userId: string): Promise<NutritionRecommendation[]>;
+  updateNutritionRecommendation(id: number, updates: Partial<NutritionRecommendation>): Promise<NutritionRecommendation>;
+  deleteNutritionRecommendation(id: number): Promise<void>;
+  
+  // Nutrition analytics
+  getNutritionSummary(userId: string, date?: Date): Promise<{
+    totalCalories: number;
+    totalProtein: number;
+    totalCarbs: number;
+    totalFat: number;
+    totalFiber: number;
+    mealBreakdown: {
+      breakfast: { calories: number; protein: number; carbs: number; fat: number; };
+      lunch: { calories: number; protein: number; carbs: number; fat: number; };
+      dinner: { calories: number; protein: number; carbs: number; fat: number; };
+      snack: { calories: number; protein: number; carbs: number; fat: number; };
+    };
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1346,6 +1386,171 @@ export class DatabaseStorage implements IStorage {
       .where(eq(nanachiMemories.userId, userId))
       .orderBy(desc(nanachiMemories.importance), desc(nanachiMemories.createdAt))
       .limit(limit);
+  }
+
+  // Nutrition operations
+  async createNutritionEntry(entry: InsertNutritionEntry): Promise<NutritionEntry> {
+    const [result] = await db.insert(nutritionEntries).values(entry).returning();
+    return result;
+  }
+
+  async getUserNutritionEntries(userId: string, date?: Date): Promise<NutritionEntry[]> {
+    let query = db.select().from(nutritionEntries)
+      .where(eq(nutritionEntries.userId, userId));
+    
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      query = query.where(and(
+        eq(nutritionEntries.userId, userId),
+        gte(nutritionEntries.consumedAt, startOfDay),
+        lte(nutritionEntries.consumedAt, endOfDay)
+      ));
+    }
+    
+    return await query.orderBy(desc(nutritionEntries.consumedAt));
+  }
+
+  async getNutritionEntriesByMealType(userId: string, mealType: string, date?: Date): Promise<NutritionEntry[]> {
+    let query = db.select().from(nutritionEntries)
+      .where(and(
+        eq(nutritionEntries.userId, userId),
+        eq(nutritionEntries.mealType, mealType)
+      ));
+    
+    if (date) {
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      query = query.where(and(
+        eq(nutritionEntries.userId, userId),
+        eq(nutritionEntries.mealType, mealType),
+        gte(nutritionEntries.consumedAt, startOfDay),
+        lte(nutritionEntries.consumedAt, endOfDay)
+      ));
+    }
+    
+    return await query.orderBy(desc(nutritionEntries.consumedAt));
+  }
+
+  async updateNutritionEntry(id: number, updates: Partial<NutritionEntry>): Promise<NutritionEntry> {
+    const [result] = await db.update(nutritionEntries)
+      .set(updates)
+      .where(eq(nutritionEntries.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteNutritionEntry(id: number): Promise<void> {
+    await db.delete(nutritionEntries)
+      .where(eq(nutritionEntries.id, id));
+  }
+
+  async createNutritionGoal(goal: InsertNutritionGoal): Promise<NutritionGoal> {
+    const [result] = await db.insert(nutritionGoals).values(goal).returning();
+    return result;
+  }
+
+  async getUserNutritionGoal(userId: string): Promise<NutritionGoal | undefined> {
+    const [goal] = await db.select().from(nutritionGoals)
+      .where(eq(nutritionGoals.userId, userId))
+      .orderBy(desc(nutritionGoals.createdAt))
+      .limit(1);
+    return goal;
+  }
+
+  async updateNutritionGoal(id: number, updates: Partial<NutritionGoal>): Promise<NutritionGoal> {
+    const [result] = await db.update(nutritionGoals)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(nutritionGoals.id, id))
+      .returning();
+    return result;
+  }
+
+  async createNutritionRecommendation(recommendation: InsertNutritionRecommendation): Promise<NutritionRecommendation> {
+    const [result] = await db.insert(nutritionRecommendations).values(recommendation).returning();
+    return result;
+  }
+
+  async getUserNutritionRecommendations(userId: string): Promise<NutritionRecommendation[]> {
+    return await db.select().from(nutritionRecommendations)
+      .where(and(
+        eq(nutritionRecommendations.userId, userId),
+        eq(nutritionRecommendations.isActive, true)
+      ))
+      .orderBy(desc(nutritionRecommendations.priority), desc(nutritionRecommendations.createdAt));
+  }
+
+  async updateNutritionRecommendation(id: number, updates: Partial<NutritionRecommendation>): Promise<NutritionRecommendation> {
+    const [result] = await db.update(nutritionRecommendations)
+      .set(updates)
+      .where(eq(nutritionRecommendations.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteNutritionRecommendation(id: number): Promise<void> {
+    await db.delete(nutritionRecommendations)
+      .where(eq(nutritionRecommendations.id, id));
+  }
+
+  async getNutritionSummary(userId: string, date?: Date): Promise<{
+    totalCalories: number;
+    totalProtein: number;
+    totalCarbs: number;
+    totalFat: number;
+    totalFiber: number;
+    mealBreakdown: {
+      breakfast: { calories: number; protein: number; carbs: number; fat: number; };
+      lunch: { calories: number; protein: number; carbs: number; fat: number; };
+      dinner: { calories: number; protein: number; carbs: number; fat: number; };
+      snack: { calories: number; protein: number; carbs: number; fat: number; };
+    };
+  }> {
+    const entries = await this.getUserNutritionEntries(userId, date);
+    
+    const summary = {
+      totalCalories: 0,
+      totalProtein: 0,
+      totalCarbs: 0,
+      totalFat: 0,
+      totalFiber: 0,
+      mealBreakdown: {
+        breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+        lunch: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+        dinner: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+        snack: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+      }
+    };
+
+    for (const entry of entries) {
+      const calories = entry.calories || 0;
+      const protein = parseFloat(entry.protein) || 0;
+      const carbs = parseFloat(entry.carbs) || 0;
+      const fat = parseFloat(entry.fat) || 0;
+      const fiber = parseFloat(entry.fiber) || 0;
+      
+      summary.totalCalories += calories;
+      summary.totalProtein += protein;
+      summary.totalCarbs += carbs;
+      summary.totalFat += fat;
+      summary.totalFiber += fiber;
+      
+      const mealType = entry.mealType as keyof typeof summary.mealBreakdown;
+      if (summary.mealBreakdown[mealType]) {
+        summary.mealBreakdown[mealType].calories += calories;
+        summary.mealBreakdown[mealType].protein += protein;
+        summary.mealBreakdown[mealType].carbs += carbs;
+        summary.mealBreakdown[mealType].fat += fat;
+      }
+    }
+
+    return summary;
   }
 }
 

@@ -5,7 +5,7 @@ export default function BottomNavigation() {
 
   const navItems = [
     { path: "/", icon: "fas fa-home", label: "Home" },
-    { path: "/quests", icon: "fas fa-scroll", label: "Quests" },
+    { path: "/quests", icon: "fas fa-campground", label: "Delver Tent" },
     { path: "/session", icon: "fas fa-plus", label: "Climb", special: true },
     { path: "/progress", icon: "fas fa-chart-bar", label: "Progress" },
     { path: "/profile", icon: "fas fa-user", label: "Profile" },
