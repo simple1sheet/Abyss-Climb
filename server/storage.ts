@@ -11,6 +11,9 @@ import {
   nutritionEntries,
   nutritionGoals,
   nutritionRecommendations,
+  progressionSnapshots,
+  difficultyRecommendations,
+  learningPathMilestones,
   type User,
   type UpsertUser,
   type ClimbingSession,
@@ -35,6 +38,12 @@ import {
   type InsertNutritionGoal,
   type NutritionRecommendation,
   type InsertNutritionRecommendation,
+  type ProgressionSnapshot,
+  type InsertProgressionSnapshot,
+  type DifficultyRecommendation,
+  type InsertDifficultyRecommendation,
+  type LearningPathMilestone,
+  type InsertLearningPathMilestone,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, gte, lte, lt, sql, inArray, isNotNull } from "drizzle-orm";
@@ -202,6 +211,19 @@ export interface IStorage {
       snack: { calories: number; protein: number; carbs: number; fat: number; };
     };
   }>;
+  
+  // Progression tracking operations
+  createProgressionSnapshot(snapshot: InsertProgressionSnapshot): Promise<ProgressionSnapshot>;
+  getUserProgressionSnapshots(userId: string, limit?: number): Promise<ProgressionSnapshot[]>;
+  getLatestProgressionSnapshot(userId: string): Promise<ProgressionSnapshot | undefined>;
+  
+  createDifficultyRecommendation(recommendation: InsertDifficultyRecommendation): Promise<DifficultyRecommendation>;
+  getUserDifficultyRecommendations(userId: string, activeOnly?: boolean): Promise<DifficultyRecommendation[]>;
+  getLatestDifficultyRecommendation(userId: string): Promise<DifficultyRecommendation | undefined>;
+  
+  createLearningPathMilestone(milestone: InsertLearningPathMilestone): Promise<LearningPathMilestone>;
+  getUserLearningPathMilestones(userId: string, completed?: boolean): Promise<LearningPathMilestone[]>;
+  updateLearningPathMilestone(id: number, updates: Partial<LearningPathMilestone>): Promise<LearningPathMilestone>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1587,6 +1609,108 @@ export class DatabaseStorage implements IStorage {
     }
 
     return summary;
+  }
+
+  // Progression tracking operations
+  async createProgressionSnapshot(snapshot: InsertProgressionSnapshot): Promise<ProgressionSnapshot> {
+    const [newSnapshot] = await db
+      .insert(progressionSnapshots)
+      .values(snapshot)
+      .returning();
+    return newSnapshot;
+  }
+
+  async getUserProgressionSnapshots(userId: string, limit: number = 10): Promise<ProgressionSnapshot[]> {
+    return await db
+      .select()
+      .from(progressionSnapshots)
+      .where(eq(progressionSnapshots.userId, userId))
+      .orderBy(desc(progressionSnapshots.createdAt))
+      .limit(limit);
+  }
+
+  async getLatestProgressionSnapshot(userId: string): Promise<ProgressionSnapshot | undefined> {
+    const [snapshot] = await db
+      .select()
+      .from(progressionSnapshots)
+      .where(eq(progressionSnapshots.userId, userId))
+      .orderBy(desc(progressionSnapshots.createdAt))
+      .limit(1);
+    return snapshot;
+  }
+
+  async createDifficultyRecommendation(recommendation: InsertDifficultyRecommendation): Promise<DifficultyRecommendation> {
+    // Deactivate previous recommendations
+    await db
+      .update(difficultyRecommendations)
+      .set({ isActive: false })
+      .where(eq(difficultyRecommendations.userId, recommendation.userId));
+
+    const [newRecommendation] = await db
+      .insert(difficultyRecommendations)
+      .values(recommendation)
+      .returning();
+    return newRecommendation;
+  }
+
+  async getUserDifficultyRecommendations(userId: string, activeOnly: boolean = true): Promise<DifficultyRecommendation[]> {
+    const whereClause = activeOnly
+      ? and(eq(difficultyRecommendations.userId, userId), eq(difficultyRecommendations.isActive, true))
+      : eq(difficultyRecommendations.userId, userId);
+
+    return await db
+      .select()
+      .from(difficultyRecommendations)
+      .where(whereClause)
+      .orderBy(desc(difficultyRecommendations.createdAt));
+  }
+
+  async getLatestDifficultyRecommendation(userId: string): Promise<DifficultyRecommendation | undefined> {
+    const [recommendation] = await db
+      .select()
+      .from(difficultyRecommendations)
+      .where(and(
+        eq(difficultyRecommendations.userId, userId),
+        eq(difficultyRecommendations.isActive, true)
+      ))
+      .orderBy(desc(difficultyRecommendations.createdAt))
+      .limit(1);
+    return recommendation;
+  }
+
+  async createLearningPathMilestone(milestone: InsertLearningPathMilestone): Promise<LearningPathMilestone> {
+    const [newMilestone] = await db
+      .insert(learningPathMilestones)
+      .values(milestone)
+      .returning();
+    return newMilestone;
+  }
+
+  async getUserLearningPathMilestones(userId: string, completed?: boolean): Promise<LearningPathMilestone[]> {
+    let whereClause;
+    if (completed === undefined) {
+      whereClause = eq(learningPathMilestones.userId, userId);
+    } else {
+      whereClause = and(
+        eq(learningPathMilestones.userId, userId),
+        eq(learningPathMilestones.isCompleted, completed)
+      );
+    }
+
+    return await db
+      .select()
+      .from(learningPathMilestones)
+      .where(whereClause)
+      .orderBy(learningPathMilestones.orderIndex);
+  }
+
+  async updateLearningPathMilestone(id: number, updates: Partial<LearningPathMilestone>): Promise<LearningPathMilestone> {
+    const [updatedMilestone] = await db
+      .update(learningPathMilestones)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(learningPathMilestones.id, id))
+      .returning();
+    return updatedMilestone;
   }
 }
 

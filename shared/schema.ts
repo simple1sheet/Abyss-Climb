@@ -345,3 +345,115 @@ export type InsertNutritionGoal = z.infer<typeof insertNutritionGoalSchema>;
 export type NutritionGoal = typeof nutritionGoals.$inferSelect;
 export type InsertNutritionRecommendation = z.infer<typeof insertNutritionRecommendationSchema>;
 export type NutritionRecommendation = typeof nutritionRecommendations.$inferSelect;
+
+// Adaptive progression tracking
+export const progressionSnapshots = pgTable("progression_snapshots", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Current ability metrics
+  currentMaxGrade: varchar("current_max_grade").notNull(),
+  currentGradeSystem: varchar("current_grade_system").default("V-Scale"),
+  comfortGrade: varchar("comfort_grade").notNull(), // Grade they can consistently complete
+  projectGrade: varchar("project_grade").notNull(), // Grade they're working toward
+  
+  // Performance metrics
+  sendRate: real("send_rate").default(0), // Percentage of problems completed
+  attemptEfficiency: real("attempt_efficiency").default(0), // Problems completed per attempt
+  consistencyScore: real("consistency_score").default(0), // How consistent their performance is
+  improvementRate: real("improvement_rate").default(0), // Rate of grade progression
+  
+  // Learning metrics
+  styleVersatility: real("style_versatility").default(0), // How many different styles they climb
+  holdTypeAdaptability: real("hold_type_adaptability").default(0), // Adaptation to different hold types
+  weaknessImprovement: real("weakness_improvement").default(0), // How well they're addressing weaknesses
+  
+  // Snapshot metadata
+  totalProblems: integer("total_problems").default(0),
+  totalSessions: integer("total_sessions").default(0),
+  daysSinceStart: integer("days_since_start").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const difficultyRecommendations = pgTable("difficulty_recommendations", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Recommended difficulty levels
+  warmupGrade: varchar("warmup_grade").notNull(), // Grade to warm up with
+  comfortGrade: varchar("comfort_grade").notNull(), // Grade for volume training
+  challengeGrade: varchar("challenge_grade").notNull(), // Grade to push limits
+  projectGrade: varchar("project_grade").notNull(), // Long-term project grade
+  
+  // Specific recommendations
+  focusStyles: text("focus_styles"), // JSON array of styles to focus on
+  weaknessAreas: text("weakness_areas"), // JSON array of areas to improve
+  trainingPlan: text("training_plan"), // JSON object with specific training recommendations
+  
+  // Confidence metrics
+  confidenceScore: real("confidence_score").default(0), // How confident the AI is in these recommendations
+  adaptationReason: text("adaptation_reason"), // Why these recommendations were made
+  
+  // Validity
+  validUntil: timestamp("valid_until").notNull(), // When these recommendations expire
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const learningPathMilestones = pgTable("learning_path_milestones", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Milestone details
+  milestoneType: varchar("milestone_type").notNull(), // 'grade', 'style', 'consistency', 'volume', 'technique'
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  targetGrade: varchar("target_grade"), // If grade-based milestone
+  targetValue: real("target_value"), // If numeric milestone
+  currentValue: real("current_value").default(0),
+  
+  // Progress tracking
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  progressPercentage: real("progress_percentage").default(0),
+  
+  // Ordering and categorization
+  category: varchar("category").notNull(), // 'technique', 'strength', 'endurance', 'mental', 'style'
+  difficulty: varchar("difficulty").notNull(), // 'beginner', 'intermediate', 'advanced', 'expert'
+  orderIndex: integer("order_index").default(0),
+  
+  // Motivation and guidance
+  motivationText: text("motivation_text"),
+  tips: text("tips"), // JSON array of tips for achieving this milestone
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Relations for progression tracking
+export const progressionSnapshotsRelations = relations(progressionSnapshots, ({ one }) => ({
+  user: one(users, { fields: [progressionSnapshots.userId], references: [users.id] }),
+}));
+
+export const difficultyRecommendationsRelations = relations(difficultyRecommendations, ({ one }) => ({
+  user: one(users, { fields: [difficultyRecommendations.userId], references: [users.id] }),
+}));
+
+export const learningPathMilestonesRelations = relations(learningPathMilestones, ({ one }) => ({
+  user: one(users, { fields: [learningPathMilestones.userId], references: [users.id] }),
+}));
+
+// Insert schemas for progression tracking
+export const insertProgressionSnapshotSchema = createInsertSchema(progressionSnapshots);
+export const insertDifficultyRecommendationSchema = createInsertSchema(difficultyRecommendations);
+export const insertLearningPathMilestoneSchema = createInsertSchema(learningPathMilestones);
+
+// Types for progression tracking
+export type InsertProgressionSnapshot = z.infer<typeof insertProgressionSnapshotSchema>;
+export type ProgressionSnapshot = typeof progressionSnapshots.$inferSelect;
+export type InsertDifficultyRecommendation = z.infer<typeof insertDifficultyRecommendationSchema>;
+export type DifficultyRecommendation = typeof difficultyRecommendations.$inferSelect;
+export type InsertLearningPathMilestone = z.infer<typeof insertLearningPathMilestoneSchema>;
+export type LearningPathMilestone = typeof learningPathMilestones.$inferSelect;

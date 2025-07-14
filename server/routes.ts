@@ -9,6 +9,7 @@ import { analyzeClimbingProgress, generateWorkout, analyzeQuestCompletion } from
 import { nanachiAnalysisService } from "./services/nanachiAnalysis";
 import { achievementService } from "./services/achievementService";
 import { layerQuestService } from "./services/layerQuestService";
+import { progressionTracker } from "./services/progressionTracker";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -1474,6 +1475,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       log(`Error processing chat goals: ${error}`, "error");
       res.status(500).json({ message: "Failed to process chat goals" });
+    }
+  });
+
+  // Progression tracking routes
+  app.post('/api/progression/snapshot', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const snapshot = await progressionTracker.generateProgressionSnapshot(userId);
+      res.json(snapshot);
+    } catch (error) {
+      console.error('Error generating progression snapshot:', error);
+      res.status(500).json({ message: 'Failed to generate progression snapshot' });
+    }
+  });
+
+  app.get('/api/progression/snapshots', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+      const snapshots = await storage.getUserProgressionSnapshots(userId, limit);
+      res.json(snapshots);
+    } catch (error) {
+      console.error('Error fetching progression snapshots:', error);
+      res.status(500).json({ message: 'Failed to fetch progression snapshots' });
+    }
+  });
+
+  app.get('/api/progression/latest-snapshot', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const snapshot = await storage.getLatestProgressionSnapshot(userId);
+      res.json(snapshot);
+    } catch (error) {
+      console.error('Error fetching latest progression snapshot:', error);
+      res.status(500).json({ message: 'Failed to fetch latest progression snapshot' });
+    }
+  });
+
+  app.post('/api/progression/recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const recommendation = await progressionTracker.generateDifficultyRecommendations(userId);
+      res.json(recommendation);
+    } catch (error) {
+      console.error('Error generating difficulty recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate difficulty recommendations' });
+    }
+  });
+
+  app.get('/api/progression/recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const activeOnly = req.query.activeOnly !== 'false';
+      const recommendations = await storage.getUserDifficultyRecommendations(userId, activeOnly);
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error fetching difficulty recommendations:', error);
+      res.status(500).json({ message: 'Failed to fetch difficulty recommendations' });
+    }
+  });
+
+  app.get('/api/progression/latest-recommendation', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const recommendation = await storage.getLatestDifficultyRecommendation(userId);
+      res.json(recommendation);
+    } catch (error) {
+      console.error('Error fetching latest difficulty recommendation:', error);
+      res.status(500).json({ message: 'Failed to fetch latest difficulty recommendation' });
+    }
+  });
+
+  app.post('/api/progression/milestones', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const milestones = await progressionTracker.generateLearningPathMilestones(userId);
+      res.json(milestones);
+    } catch (error) {
+      console.error('Error generating learning path milestones:', error);
+      res.status(500).json({ message: 'Failed to generate learning path milestones' });
+    }
+  });
+
+  app.get('/api/progression/milestones', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const completed = req.query.completed === 'true' ? true : req.query.completed === 'false' ? false : undefined;
+      const milestones = await storage.getUserLearningPathMilestones(userId, completed);
+      res.json(milestones);
+    } catch (error) {
+      console.error('Error fetching learning path milestones:', error);
+      res.status(500).json({ message: 'Failed to fetch learning path milestones' });
+    }
+  });
+
+  app.patch('/api/progression/milestones/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const milestoneId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // Verify milestone belongs to user
+      const milestone = await storage.getUserLearningPathMilestones(userId);
+      const userMilestone = milestone.find(m => m.id === milestoneId);
+      if (!userMilestone) {
+        return res.status(404).json({ message: 'Milestone not found' });
+      }
+      
+      const updatedMilestone = await storage.updateLearningPathMilestone(milestoneId, updates);
+      res.json(updatedMilestone);
+    } catch (error) {
+      console.error('Error updating learning path milestone:', error);
+      res.status(500).json({ message: 'Failed to update learning path milestone' });
+    }
+  });
+
+  app.get('/api/progression/dashboard', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Get all progression data for dashboard
+      const [snapshot, recommendations, milestones] = await Promise.all([
+        storage.getLatestProgressionSnapshot(userId),
+        storage.getLatestDifficultyRecommendation(userId),
+        storage.getUserLearningPathMilestones(userId, false) // Get incomplete milestones
+      ]);
+      
+      res.json({
+        snapshot,
+        recommendations,
+        milestones
+      });
+    } catch (error) {
+      console.error('Error fetching progression dashboard:', error);
+      res.status(500).json({ message: 'Failed to fetch progression dashboard' });
     }
   });
 
