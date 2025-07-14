@@ -103,10 +103,10 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       if (foundRelic) {
         console.log("🏺 RELIC FOUND! Showing toast notification:", foundRelic);
         toast({
-          title: "🏺 RELIC DISCOVERED!",
-          description: `You found a ${foundRelic.rarity.toUpperCase()} relic: ${foundRelic.name}! Check the Delver Tent to view your collection.`,
-          duration: 8000, // Show for 8 seconds
-          className: "border-yellow-400 bg-yellow-50 text-yellow-900",
+          title: "🏺 Relic Found!",
+          description: `${foundRelic.rarity.toUpperCase()}: ${foundRelic.name}`,
+          duration: 3000, // Show for 3 seconds
+          className: "border-yellow-400 bg-yellow-50 text-yellow-900 text-sm max-w-xs",
         });
       }
       
@@ -114,7 +114,9 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       setTimeout(() => {
         toast({
           title: "Problem Added",
-          description: problem.xpEarned ? `Your climb has been logged! +${problem.xpEarned} XP` : "Your climb has been logged!",
+          description: problem.xpEarned ? `+${problem.xpEarned} XP` : "Logged!",
+          duration: 2000, // Show for 2 seconds
+          className: "text-sm max-w-xs",
         });
       }, foundRelic ? 500 : 0);
       
