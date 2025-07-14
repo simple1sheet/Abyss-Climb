@@ -319,10 +319,7 @@ export class QuestGenerator {
     const userSkills = await storage.getUserSkills(userId);
     const currentLayer = user.currentLayer || 1;
 
-    // First, check if we need to generate a layer quest
-    await this.generateLayerQuestIfNeeded(userId, currentLayer);
-
-    // Generate daily quest
+    // Generate daily quest only (layer quests are handled separately)
     await this.generateDailyQuest(userId, currentLayer, userSkills);
   }
 

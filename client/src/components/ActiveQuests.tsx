@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,11 @@ function ActiveQuests() {
     queryKey: ["/api/quests?status=active"],
     enabled: !!user,
   });
+
+  // Filter out layer quests from daily quest display
+  const dailyQuests = useMemo(() => {
+    return quests ? quests.filter((quest: any) => quest.questType !== "layer") : [];
+  }, [quests]);
 
   const { data: dailyCount, isLoading: isLoadingDailyCount } = useQuery({
     queryKey: ["/api/quests/daily-count"],
@@ -223,7 +228,7 @@ function ActiveQuests() {
           </div>
           
           <div className="space-y-4">
-            {!quests || quests.length === 0 ? (
+            {!dailyQuests || dailyQuests.length === 0 ? (
               <div className="text-center py-8 text-abyss-ethereal/70">
                 <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p className="mb-2">No active quests</p>
@@ -234,7 +239,7 @@ function ActiveQuests() {
                 </p>
               </div>
             ) : (
-              quests.map((quest: any) => (
+              dailyQuests.map((quest: any) => (
                 <div
                   key={quest.id}
                   className="bg-abyss-dark/40 border border-abyss-teal/20 rounded-lg p-4 relic-shimmer"
@@ -248,11 +253,6 @@ function ActiveQuests() {
                           {quest.difficulty}
                         </Badge>
                         <span className="text-xs text-abyss-amber">{quest.xpReward} XP</span>
-                        {quest.questType === "layer" && (
-                          <Badge className="bg-purple-500/20 text-purple-300">
-                            Layer Quest
-                          </Badge>
-                        )}
                         {quest.expiresAt && (
                           <span className="text-xs text-abyss-ethereal/60">
                             <Clock className="h-3 w-3 inline mr-1" />
