@@ -33,6 +33,7 @@ Preferred communication style: Simple, everyday language.
 - **Updated UI Messages**: Changed home tab text to reflect automatic quest generation instead of manual button prompts
 - **Background Generation**: Quests are generated automatically when users visit the app through authentication endpoint
 - **Consistent Quest Counting**: Updated all quest count endpoints to properly filter expired quests and only count active ones
+- **Fixed Daily Quest Allowance**: Modified quest generation to prevent replacement quests - users now start with 3 daily quests and total available decreases as they complete them (no new quests generated until next day)
 
 ### ✓ AbyssMap Component Optimization (January 2025)
 - **Performance Optimization**: Moved LAYERS array outside component to prevent recreation on each render
