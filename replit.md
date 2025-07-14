@@ -25,6 +25,9 @@ Preferred communication style: Simple, everyday language.
 - **Full App Coverage**: Applied nature theme to: home, session, progress, profile, workout, quests, sessions, layer-overview, whistle-overview pages
 - **Color Harmony**: Integrated green moss tones (rgba(34, 197, 94)) with existing abyss color palette
 - **Subtle Implementation**: Natural effects kept subtle per user request - not overwhelming the interface
+- **Firefly Particle System**: Added subtle firefly-like particles that float behind the UI for atmospheric effects - implemented across all major pages with varying animation delays
+- **Firefly Animation**: Created firefly-float keyframes with gentle movement patterns, opacity changes, and multi-colored particles (amber, green, teal)
+- **Atmospheric Enhancement**: Firefly particles positioned with bottom percentage positioning to create depth and natural floating effect behind interface elements
 
 ### ✓ Location Finder Implementation & Real Data Integration (January 2025)
 - **Home Page Location Finder**: Moved location finder to home page after tab visibility issues - now accessible to all users

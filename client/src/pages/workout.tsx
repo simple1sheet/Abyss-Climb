@@ -104,6 +104,12 @@ export default function WorkoutPage() {
       <div className="nature-spore" style={{left: '70%', animationDelay: '11s'}}></div>
       <div className="nature-spore" style={{left: '90%', animationDelay: '16s'}}></div>
       
+      {/* Firefly Particles */}
+      <div className="firefly" style={{left: '15%', bottom: '50%', animationDelay: '2s'}}></div>
+      <div className="firefly" style={{left: '35%', bottom: '75%', animationDelay: '8s'}}></div>
+      <div className="firefly" style={{left: '65%', bottom: '35%', animationDelay: '14s'}}></div>
+      <div className="firefly" style={{left: '85%', bottom: '60%', animationDelay: '19s'}}></div>
+      
       {/* Layer Fog Effect */}
       <div className="layer-fog"></div>
       

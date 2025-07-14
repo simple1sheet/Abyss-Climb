@@ -111,6 +111,12 @@ export default function ProgressPage() {
       <div className="nature-spore" style={{left: '45%', animationDelay: '5s'}}></div>
       <div className="nature-spore" style={{left: '75%', animationDelay: '10s'}}></div>
       
+      {/* Firefly Particles */}
+      <div className="firefly" style={{left: '12%', bottom: '70%', animationDelay: '2s'}}></div>
+      <div className="firefly" style={{left: '38%', bottom: '40%', animationDelay: '7s'}}></div>
+      <div className="firefly" style={{left: '68%', bottom: '85%', animationDelay: '12s'}}></div>
+      <div className="firefly" style={{left: '78%', bottom: '55%', animationDelay: '17s'}}></div>
+      
       {/* Layer Fog Effect */}
       <div className="layer-fog"></div>
 

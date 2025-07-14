@@ -123,6 +123,14 @@ export default function Home() {
       <div className="nature-spore" style={{left: '70%', animationDelay: '9s'}}></div>
       <div className="nature-spore" style={{left: '90%', animationDelay: '12s'}}></div>
       
+      {/* Firefly Particles */}
+      <div className="firefly" style={{left: '8%', bottom: '60%', animationDelay: '0s'}}></div>
+      <div className="firefly" style={{left: '25%', bottom: '30%', animationDelay: '3s'}}></div>
+      <div className="firefly" style={{left: '45%', bottom: '80%', animationDelay: '6s'}}></div>
+      <div className="firefly" style={{left: '65%', bottom: '45%', animationDelay: '9s'}}></div>
+      <div className="firefly" style={{left: '85%', bottom: '70%', animationDelay: '12s'}}></div>
+      <div className="firefly" style={{left: '92%', bottom: '25%', animationDelay: '15s'}}></div>
+      
       {/* Layer Fog Effect */}
       <div className="layer-fog"></div>
 

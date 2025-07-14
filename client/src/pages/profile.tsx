@@ -123,6 +123,12 @@ export default function Profile() {
       <div className="nature-spore" style={{left: '65%', animationDelay: '7s'}}></div>
       <div className="nature-spore" style={{left: '85%', animationDelay: '12s'}}></div>
       
+      {/* Firefly Particles */}
+      <div className="firefly" style={{left: '18%', bottom: '65%', animationDelay: '1s'}}></div>
+      <div className="firefly" style={{left: '48%', bottom: '40%', animationDelay: '6s'}}></div>
+      <div className="firefly" style={{left: '78%', bottom: '80%', animationDelay: '11s'}}></div>
+      <div className="firefly" style={{left: '88%', bottom: '25%', animationDelay: '16s'}}></div>
+      
       {/* Layer Fog Effect */}
       <div className="layer-fog"></div>
 

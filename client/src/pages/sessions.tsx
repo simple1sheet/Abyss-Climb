@@ -70,6 +70,11 @@ export default function Sessions() {
       <div className="nature-spore" style={{left: '50%', animationDelay: '7s'}}></div>
       <div className="nature-spore" style={{left: '80%', animationDelay: '12s'}}></div>
       
+      {/* Firefly Particles */}
+      <div className="firefly" style={{left: '12%', bottom: '50%', animationDelay: '1s'}}></div>
+      <div className="firefly" style={{left: '42%', bottom: '75%', animationDelay: '8s'}}></div>
+      <div className="firefly" style={{left: '72%', bottom: '35%', animationDelay: '13s'}}></div>
+      
       {/* Layer Fog Effect */}
       <div className="layer-fog"></div>
 
