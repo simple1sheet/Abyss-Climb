@@ -12,7 +12,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Enhanced Food Scan Functionality (Latest - January 2025)
+### ✓ Fixed Relic System Toast Notifications & Stacking (Latest - January 2025)
+- **Fixed Toast Notification Bug**: Increased toast limit from 1 to 3 and added timing delay to prevent relic notifications from being overridden by "Problem Added" toast
+- **Enhanced Relic Toast Visibility**: Improved relic toast styling with bright yellow theme and 8-second duration for better visibility
+- **Relic Stacking Feature**: Implemented grouping of duplicate relics with count displays (e.g., "(2) Apprentice Whistle")
+- **Comprehensive Logging**: Added detailed console logging for relic drop debugging and monitoring
+- **Fixed Relic Drop Probability**: Corrected critical bug in relic drop logic that prevented proper 10% drop chance calculation
+- **Cache Invalidation**: Added proper cache invalidation for relic data to update UI immediately when relics are found
+- **Grouped Relic Display**: Relics with same name are now grouped together showing count and combined history when clicked
+- **Enhanced Relic Details**: Clicking grouped relics shows detailed history of all finds with dates, layers, and grades
+
+### ✓ Enhanced Food Scan Functionality (January 2025)
 - **Automatic Macro Addition**: Fixed food scan function to automatically add scanned food to daily macros instead of just analyzing
 - **Enhanced Feedback System**: Updated client-side to show comprehensive feedback including Nanachi's personality-driven comments about food
 - **Improved Nutrition Tracking**: Scanned food now creates nutrition entries with complete macro breakdown and scan metadata

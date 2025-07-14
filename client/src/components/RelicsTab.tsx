@@ -38,14 +38,28 @@ const getRarityIcon = (rarity: string) => {
   }
 };
 
-const RelicCard = ({ relic }: { relic: Relic }) => {
+interface GroupedRelic {
+  name: string;
+  description: string;
+  rarity: string;
+  category: string;
+  loreText: string;
+  count: number;
+  relics: Relic[];
+}
+
+const RelicCard = ({ groupedRelic }: { groupedRelic: GroupedRelic }) => {
   const { toast } = useToast();
   
   const handleRelicClick = () => {
+    const relicDetails = groupedRelic.relics.map(r => 
+      `Found on ${new Date(r.foundAt).toLocaleDateString()} (Layer ${r.layer}, Grade ${r.grade})`
+    ).join('\n');
+    
     toast({
-      title: relic.name,
-      description: relic.loreText || relic.description,
-      duration: 5000,
+      title: groupedRelic.count > 1 ? `(${groupedRelic.count}) ${groupedRelic.name}` : groupedRelic.name,
+      description: `${groupedRelic.loreText || groupedRelic.description}\n\n${relicDetails}`,
+      duration: 6000,
     });
   };
 
@@ -57,31 +71,55 @@ const RelicCard = ({ relic }: { relic: Relic }) => {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-bold ancient-text text-amber-300">
-            {relic.name}
+            {groupedRelic.count > 1 ? `(${groupedRelic.count}) ${groupedRelic.name}` : groupedRelic.name}
           </CardTitle>
-          <Badge className={`${getRarityColor(relic.rarity)} flex items-center gap-1`}>
-            {getRarityIcon(relic.rarity)}
-            {relic.rarity}
+          <Badge className={`${getRarityColor(groupedRelic.rarity)} flex items-center gap-1`}>
+            {getRarityIcon(groupedRelic.rarity)}
+            {groupedRelic.rarity}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-xs text-gray-300 italic">
-          {relic.category.replace('_', ' ')}
+          {groupedRelic.category.replace('_', ' ')}
         </p>
         <p className="text-sm text-gray-400">
-          {relic.description}
+          {groupedRelic.description}
         </p>
         <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
-          <span>Layer {relic.layer}</span>
-          <span>Grade {relic.grade}</span>
+          <span>First found: Layer {groupedRelic.relics[0].layer}</span>
+          <span>Grade {groupedRelic.relics[0].grade}</span>
         </div>
         <div className="text-xs text-gray-600">
-          Found: {new Date(relic.foundAt).toLocaleDateString()}
+          Found: {new Date(groupedRelic.relics[0].foundAt).toLocaleDateString()}
+          {groupedRelic.count > 1 && (
+            <span className="ml-2 text-amber-400">+{groupedRelic.count - 1} more</span>
+          )}
         </div>
       </CardContent>
     </Card>
   );
+};
+
+const groupRelicsByName = (relics: Relic[]): GroupedRelic[] => {
+  const grouped = relics.reduce((acc, relic) => {
+    if (!acc[relic.name]) {
+      acc[relic.name] = {
+        name: relic.name,
+        description: relic.description,
+        rarity: relic.rarity,
+        category: relic.category,
+        loreText: relic.loreText || "",
+        count: 0,
+        relics: []
+      };
+    }
+    acc[relic.name].count++;
+    acc[relic.name].relics.push(relic);
+    return acc;
+  }, {} as Record<string, GroupedRelic>);
+
+  return Object.values(grouped);
 };
 
 const RelicsByRarity = ({ rarity }: { rarity: string }) => {
@@ -107,10 +145,12 @@ const RelicsByRarity = ({ rarity }: { rarity: string }) => {
     );
   }
 
+  const groupedRelics = groupRelicsByName(relics);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {relics.map((relic) => (
-        <RelicCard key={relic.id} relic={relic} />
+      {groupedRelics.map((groupedRelic) => (
+        <RelicCard key={groupedRelic.name} groupedRelic={groupedRelic} />
       ))}
     </div>
   );
@@ -202,8 +242,8 @@ const RelicsTab = () => {
           <ScrollArea className="h-[500px]">
             {allRelics && allRelics.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {allRelics.map((relic) => (
-                  <RelicCard key={relic.id} relic={relic} />
+                {groupRelicsByName(allRelics).map((groupedRelic) => (
+                  <RelicCard key={groupedRelic.name} groupedRelic={groupedRelic} />
                 ))}
               </div>
             ) : (

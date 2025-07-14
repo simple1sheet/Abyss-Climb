@@ -110,10 +110,13 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
         });
       }
       
-      toast({
-        title: "Problem Added",
-        description: problem.xpEarned ? `Your climb has been logged! +${problem.xpEarned} XP` : "Your climb has been logged!",
-      });
+      // Delay the "Problem Added" toast slightly so relic toast appears first
+      setTimeout(() => {
+        toast({
+          title: "Problem Added",
+          description: problem.xpEarned ? `Your climb has been logged! +${problem.xpEarned} XP` : "Your climb has been logged!",
+        });
+      }, foundRelic ? 500 : 0);
       
       // Reset form
       setGrade("");
