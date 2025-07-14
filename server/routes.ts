@@ -1207,6 +1207,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Nanachi AI Chat endpoint  
+  const nanachiUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'), false);
+      }
+    }
+  });
+
+  app.post("/api/nanachi/chat", isAuthenticated, nanachiUpload.single('image'), async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { message } = req.body;
+      const imageFile = req.file;
+      
+      if (!message && !imageFile) {
+        return res.status(400).json({ error: "Message or image is required" });
+      }
+
+      // Get user data for personalization
+      const [user, userStats, userSkills] = await Promise.all([
+        storage.getUser(userId),
+        storage.getEnhancedProgressStats(userId),
+        storage.getUserSkills(userId)
+      ]);
+
+      const { nanachiService } = await import("./services/nanachiService");
+      const response = await nanachiService.processMessage(
+        message || "Analyze this boulder problem image",
+        user,
+        userStats,
+        userSkills,
+        imageFile
+      );
+      
+      res.json({ response });
+    } catch (error) {
+      console.error("Nanachi chat error:", error);
+      res.status(500).json({ error: "Failed to process message" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

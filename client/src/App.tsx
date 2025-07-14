@@ -21,6 +21,7 @@ import WorkoutPage from "@/pages/workout";
 import Skills from "@/pages/skills";
 import SessionForm from "@/components/SessionForm";
 import AbyssMap from "@/components/AbyssMap";
+import Nanachi from "@/pages/nanachi";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -44,6 +45,7 @@ function Router() {
           <Route path="/workout" component={WorkoutPage} />
           <Route path="/skills" component={Skills} />
           <Route path="/profile" component={Profile} />
+          <Route path="/nanachi" component={Nanachi} />
         </>
       )}
       <Route component={NotFound} />

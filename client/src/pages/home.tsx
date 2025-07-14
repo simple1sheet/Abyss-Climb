@@ -11,13 +11,15 @@ import SessionIndicator from "@/components/SessionIndicator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Navigation, Search } from "lucide-react";
+import { MapPin, Navigation, Search, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 export default function Home() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isGpsLoading, setIsGpsLoading] = useState(false);
   
   const { data: stats } = useQuery({
@@ -159,6 +161,14 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
+            <Button
+              onClick={() => setLocation("/nanachi")}
+              size="sm"
+              className="abyss-button text-abyss-ethereal border border-abyss-amber/30 hover:border-abyss-amber/50 transition-all duration-300"
+            >
+              <MessageCircle className="w-4 h-4 mr-1" />
+              Nanachi
+            </Button>
             <button className="text-abyss-amber hover:text-abyss-ethereal transition-colors relic-glow">
               <i className="fas fa-bell text-xl"></i>
             </button>
