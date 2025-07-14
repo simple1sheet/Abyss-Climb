@@ -1359,7 +1359,27 @@ export class DatabaseStorage implements IStorage {
     
     const sessionIds = userSessions.map(session => session.id);
     
-    // Delete boulder problems first (they reference climbing sessions)
+    // Delete relics first (they reference boulder problems)
+    await db.delete(relics)
+      .where(eq(relics.userId, userId));
+    
+    // Delete nanachi memories
+    await db.delete(nanachiMemories)
+      .where(eq(nanachiMemories.userId, userId));
+    
+    // Delete nutrition entries
+    await db.delete(nutritionEntries)
+      .where(eq(nutritionEntries.userId, userId));
+    
+    // Delete nutrition goals
+    await db.delete(nutritionGoals)
+      .where(eq(nutritionGoals.userId, userId));
+    
+    // Delete nutrition recommendations
+    await db.delete(nutritionRecommendations)
+      .where(eq(nutritionRecommendations.userId, userId));
+    
+    // Delete boulder problems (after relics are deleted)
     if (sessionIds.length > 0) {
       await db.delete(boulderProblems)
         .where(inArray(boulderProblems.sessionId, sessionIds));
@@ -1388,10 +1408,6 @@ export class DatabaseStorage implements IStorage {
     // Delete layer quests
     await db.delete(layerQuests)
       .where(eq(layerQuests.userId, userId));
-    
-    // Delete relics
-    await db.delete(relics)
-      .where(eq(relics.userId, userId));
     
     // Reset user stats but keep the user account
     await db.update(users)

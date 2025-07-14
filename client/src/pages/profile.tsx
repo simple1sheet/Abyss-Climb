@@ -30,10 +30,7 @@ export default function Profile() {
   // Notifications mutation
   const notificationsMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
-      return await apiRequest(`/api/user/notifications`, {
-        method: 'PATCH',
-        body: { enabled },
-      });
+      return await apiRequest('PATCH', '/api/user/notifications', { enabled });
     },
     onSuccess: () => {
       toast({
