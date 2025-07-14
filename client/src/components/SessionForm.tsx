@@ -47,6 +47,10 @@ export default function SessionForm() {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState('climbing');
+  
+  // Debug logging
+  console.log('Active tab:', activeTab);
+  console.log('Tabs rendering...');
 
   const createSessionMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -194,18 +198,18 @@ export default function SessionForm() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-abyss-dark/50 border border-abyss-teal/20 mb-6">
-            <TabsTrigger value="climbing" className="data-[state=active]:bg-abyss-teal/20">
-              <Mountain className="w-4 h-4 mr-2" />
-              Climbing Session
+          <TabsList className="grid w-full grid-cols-3 bg-abyss-dark/50 border border-abyss-teal/20 mb-6">
+            <TabsTrigger value="climbing" className="data-[state=active]:bg-abyss-teal/20 text-xs sm:text-sm">
+              <Mountain className="w-4 h-4 mr-1" />
+              Climbing
             </TabsTrigger>
-            <TabsTrigger value="workout" className="data-[state=active]:bg-abyss-teal/20">
-              <Dumbbell className="w-4 h-4 mr-2" />
-              Home Workout
+            <TabsTrigger value="workout" className="data-[state=active]:bg-abyss-teal/20 text-xs sm:text-sm">
+              <Dumbbell className="w-4 h-4 mr-1" />
+              Workout
             </TabsTrigger>
-            <TabsTrigger value="locations" className="data-[state=active]:bg-abyss-teal/20">
-              <MapPin className="w-4 h-4 mr-2" />
-              Find Locations
+            <TabsTrigger value="locations" className="data-[state=active]:bg-abyss-teal/20 text-xs sm:text-sm">
+              <MapPin className="w-4 h-4 mr-1" />
+              Locations
             </TabsTrigger>
           </TabsList>
 
@@ -492,23 +496,31 @@ export default function SessionForm() {
           </TabsContent>
 
           <TabsContent value="locations" className="space-y-6">
-            <Card className="bg-abyss-purple/20 border-abyss-teal/30">
-              <CardHeader>
-                <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
-                  <MapPin className="w-5 h-5 text-abyss-amber" />
-                  <span>Find Climbing Locations</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center py-8">
-                <MapPin className="w-16 h-16 text-abyss-muted mx-auto mb-4" />
-                <p className="text-abyss-ethereal mb-4">
-                  Location Finder - Coming Soon
-                </p>
-                <p className="text-abyss-muted text-sm">
-                  This feature will help you find nearby climbing gyms and outdoor climbing areas using GPS or manual search.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="max-w-md mx-auto">
+              <Card className="bg-abyss-purple/20 border-abyss-teal/30">
+                <CardHeader>
+                  <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
+                    <MapPin className="w-5 h-5 text-abyss-amber" />
+                    <span>Find Climbing Locations</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="text-center py-8">
+                  <MapPin className="w-16 h-16 text-abyss-muted mx-auto mb-4" />
+                  <p className="text-abyss-ethereal mb-4">
+                    Location Finder Tab
+                  </p>
+                  <p className="text-abyss-muted text-sm mb-4">
+                    This feature will help you find nearby climbing gyms and outdoor climbing areas.
+                  </p>
+                  <Button 
+                    onClick={() => console.log('Location finder clicked')}
+                    className="bg-abyss-amber hover:bg-abyss-amber/80 text-abyss-dark"
+                  >
+                    Test Location Finder
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
