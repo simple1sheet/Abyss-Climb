@@ -1,110 +1,279 @@
-// Removed AI location generation - using only real data sources
+import { z } from "zod";
 
+// Location types
 export interface Location {
-  lat: number;
-  lng: number;
-  address?: string;
-}
-
-export interface ClimbingLocation {
   id: string;
   name: string;
-  type: 'indoor' | 'outdoor';
   address: string;
-  location: Location;
-  distance: number;
-  rating: number;
-  difficulty: string;
-  routes: number;
-  openingHours?: string;
+  latitude: number;
+  longitude: number;
+  type: 'gym' | 'outdoor' | 'mixed';
+  distance?: number;
+  rating?: number;
   phone?: string;
   website?: string;
-  features: string[];
-  description: string;
+  hours?: string;
+  description?: string;
+}
+
+export interface LocationSearchResult {
+  locations: Location[];
+  total: number;
+  searchQuery: string;
+  searchLocation?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+}
+
+// PositionStack API response types
+interface PositionStackLocation {
+  latitude: number;
+  longitude: number;
+  label: string;
+  name: string;
+  type: string;
+  distance?: number;
+  administrative_area?: string;
+  country?: string;
+  postal_code?: string;
+  region?: string;
+  locality?: string;
+  street?: string;
+  number?: string;
+}
+
+interface PositionStackResponse {
+  data: PositionStackLocation[];
 }
 
 export class LocationService {
-  async geocodeAddress(address: string): Promise<Location | null> {
+  private readonly API_KEY = process.env.POSITIONSTACK_API_KEY;
+  private readonly BASE_URL = 'http://api.positionstack.com/v1';
+
+  constructor() {
+    if (!this.API_KEY) {
+      throw new Error('POSITIONSTACK_API_KEY environment variable is required');
+    }
+  }
+
+  // Geocode an address to get coordinates
+  async geocodeAddress(address: string): Promise<{ latitude: number; longitude: number; formattedAddress: string }> {
     try {
-      // In a real implementation, you would use Google Maps Geocoding API
-      // For now, we'll use a simple mock implementation
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`
+        `${this.BASE_URL}/forward?access_key=${this.API_KEY}&query=${encodeURIComponent(address)}&limit=1`
       );
-      
+
       if (!response.ok) {
-        throw new Error('Geocoding failed');
+        throw new Error(`PositionStack API error: ${response.status}`);
       }
+
+      const data: PositionStackResponse = await response.json();
       
-      const data = await response.json();
-      
-      if (data.length === 0) {
-        return null;
+      if (!data.data || data.data.length === 0) {
+        throw new Error('No location found for the given address');
       }
-      
+
+      const location = data.data[0];
       return {
-        lat: parseFloat(data[0].lat),
-        lng: parseFloat(data[0].lon),
-        address: data[0].display_name
+        latitude: location.latitude,
+        longitude: location.longitude,
+        formattedAddress: location.label || address
       };
     } catch (error) {
       console.error('Geocoding error:', error);
-      return null;
+      throw new Error('Failed to geocode address');
     }
   }
 
-  async findNearbyClimbingLocations(
-    location: Location,
-    radiusKm: number = 10,
-    type: 'all' | 'indoor' | 'outdoor' = 'all'
-  ): Promise<ClimbingLocation[]> {
+  // Reverse geocode coordinates to get address
+  async reverseGeocode(latitude: number, longitude: number): Promise<string> {
     try {
-      // For now, using a small sample of real locations
-      // In a real implementation, this would use Google Places API or similar
-      const realLocations = this.getRealClimbingLocations(location, radiusKm, type);
+      const response = await fetch(
+        `${this.BASE_URL}/reverse?access_key=${this.API_KEY}&query=${latitude},${longitude}&limit=1`
+      );
+
+      if (!response.ok) {
+        throw new Error(`PositionStack API error: ${response.status}`);
+      }
+
+      const data: PositionStackResponse = await response.json();
       
-      // Sort by distance and return results
-      return realLocations
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, 15); // Limit to top 15 results
-        
+      if (!data.data || data.data.length === 0) {
+        return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+      }
+
+      return data.data[0].label || `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
     } catch (error) {
-      console.error('Error finding climbing locations:', error);
-      return [];
+      console.error('Reverse geocoding error:', error);
+      return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
     }
   }
 
-  private getRealClimbingLocations(
-    location: Location,
-    radiusKm: number,
-    type: 'all' | 'indoor' | 'outdoor'
-  ): ClimbingLocation[] {
-    // Sample of real climbing locations - in a real app, this would use Google Places API
-    const realLocations: ClimbingLocation[] = [
-      // Note: In a real implementation, these would come from Google Places API or similar
-      // For now, showing a message to users that real location data requires API setup
-    ];
+  // Search for climbing locations near coordinates
+  async searchClimbingLocations(
+    latitude: number,
+    longitude: number,
+    radius: number = 10000, // 10km default
+    query?: string
+  ): Promise<LocationSearchResult> {
+    try {
+      // Create search queries for different types of climbing locations
+      const searchQueries = [
+        'climbing gym',
+        'bouldering gym',
+        'rock climbing',
+        'indoor climbing',
+        'climbing wall',
+        'climbing center'
+      ];
 
-    // For now, return empty array since we're not using fake locations
-    // In a real implementation, this would query Google Places API or similar
-    return [];
+      if (query) {
+        searchQueries.unshift(query);
+      }
+
+      const allLocations: Location[] = [];
+      const searchLocation = {
+        latitude,
+        longitude,
+        address: await this.reverseGeocode(latitude, longitude)
+      };
+
+      // Search for each query type
+      for (const searchQuery of searchQueries) {
+        try {
+          const response = await fetch(
+            `${this.BASE_URL}/forward?access_key=${this.API_KEY}&query=${encodeURIComponent(searchQuery)}&bbox=${longitude - 0.1},${latitude - 0.1},${longitude + 0.1},${latitude + 0.1}&limit=10`
+          );
+
+          if (response.ok) {
+            const data: PositionStackResponse = await response.json();
+            
+            if (data.data && data.data.length > 0) {
+              const locations = data.data.map((item, index) => {
+                const distance = this.calculateDistance(
+                  latitude,
+                  longitude,
+                  item.latitude,
+                  item.longitude
+                );
+
+                return {
+                  id: `${item.latitude}_${item.longitude}_${index}`,
+                  name: item.name || item.label || 'Climbing Location',
+                  address: item.label || `${item.latitude}, ${item.longitude}`,
+                  latitude: item.latitude,
+                  longitude: item.longitude,
+                  type: this.determineClimbingType(item.name || item.label || ''),
+                  distance: distance,
+                  description: `Found via: ${searchQuery}`
+                } as Location;
+              }).filter(loc => loc.distance <= radius / 1000); // Filter by radius in km
+
+              allLocations.push(...locations);
+            }
+          }
+        } catch (error) {
+          console.error(`Error searching for ${searchQuery}:`, error);
+        }
+      }
+
+      // Remove duplicates and sort by distance
+      const uniqueLocations = this.removeDuplicateLocations(allLocations);
+      uniqueLocations.sort((a, b) => (a.distance || 0) - (b.distance || 0));
+
+      return {
+        locations: uniqueLocations.slice(0, 20), // Limit to top 20 results
+        total: uniqueLocations.length,
+        searchQuery: query || 'climbing locations',
+        searchLocation
+      };
+    } catch (error) {
+      console.error('Location search error:', error);
+      throw new Error('Failed to search for climbing locations');
+    }
   }
 
-  private calculateDistance(loc1: Location, loc2: Location): number {
+  // Search for climbing locations by city/address
+  async searchClimbingLocationsByAddress(
+    address: string,
+    radius: number = 10000
+  ): Promise<LocationSearchResult> {
+    try {
+      const geocoded = await this.geocodeAddress(address);
+      return await this.searchClimbingLocations(
+        geocoded.latitude,
+        geocoded.longitude,
+        radius,
+        'climbing gym'
+      );
+    } catch (error) {
+      console.error('Address search error:', error);
+      throw new Error('Failed to search for climbing locations by address');
+    }
+  }
+
+  // Helper: Calculate distance between two points using Haversine formula
+  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Earth's radius in kilometers
-    const dLat = this.toRadians(loc2.lat - loc1.lat);
-    const dLon = this.toRadians(loc2.lng - loc1.lng);
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = 
       Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(this.toRadians(loc1.lat)) * Math.cos(this.toRadians(loc2.lat)) * 
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
       Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
   }
 
-  private toRadians(degrees: number): number {
-    return degrees * (Math.PI / 180);
+  // Helper: Determine climbing type based on name/description
+  private determineClimbingType(name: string): 'gym' | 'outdoor' | 'mixed' {
+    const lowerName = name.toLowerCase();
+    
+    if (lowerName.includes('gym') || lowerName.includes('indoor') || lowerName.includes('center')) {
+      return 'gym';
+    } else if (lowerName.includes('outdoor') || lowerName.includes('rock') || lowerName.includes('crag')) {
+      return 'outdoor';
+    } else {
+      return 'mixed';
+    }
+  }
+
+  // Helper: Remove duplicate locations based on proximity
+  private removeDuplicateLocations(locations: Location[]): Location[] {
+    const unique: Location[] = [];
+    
+    for (const location of locations) {
+      const isDuplicate = unique.some(existing => 
+        this.calculateDistance(
+          location.latitude,
+          location.longitude,
+          existing.latitude,
+          existing.longitude
+        ) < 0.1 // Within 100 meters
+      );
+      
+      if (!isDuplicate) {
+        unique.push(location);
+      }
+    }
+    
+    return unique;
   }
 }
+
+// Validation schemas
+export const locationSearchSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  radius: z.number().min(100).max(50000).default(10000),
+  query: z.string().optional(),
+});
+
+export const addressSearchSchema = z.object({
+  address: z.string().min(1),
+  radius: z.number().min(100).max(50000).default(10000),
+});
 
 export const locationService = new LocationService();

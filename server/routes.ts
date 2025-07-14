@@ -8,6 +8,7 @@ import { xpCalculator } from "./services/xpCalculator";
 import { analyzeClimbingProgress, generateWorkout, analyzeQuestCompletion } from "./services/openai";
 import { achievementService } from "./services/achievementService";
 import { layerQuestService } from "./services/layerQuestService";
+import { locationService, locationSearchSchema, addressSearchSchema } from "./services/locationService";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -1171,39 +1172,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Address is required" });
       }
 
-      const { locationService } = await import("./services/locationService");
-      const location = await locationService.geocodeAddress(address);
-      
-      if (!location) {
-        return res.status(404).json({ error: "Location not found" });
-      }
-      
-      res.json({ location });
+      const result = await locationService.geocodeAddress(address);
+      res.json(result);
     } catch (error) {
       console.error("Geocoding error:", error);
       res.status(500).json({ error: "Failed to geocode address" });
     }
   });
 
-  app.post("/api/locations/find", async (req, res) => {
+  app.post("/api/locations/reverse-geocode", async (req, res) => {
     try {
-      const { location, radius, type } = req.body;
+      const { latitude, longitude } = req.body;
       
-      if (!location || !location.lat || !location.lng) {
-        return res.status(400).json({ error: "Valid location coordinates are required" });
+      if (!latitude || !longitude) {
+        return res.status(400).json({ error: "Latitude and longitude are required" });
       }
 
-      const { locationService } = await import("./services/locationService");
-      const locations = await locationService.findNearbyClimbingLocations(
-        location,
-        radius || 10,
-        type || 'all'
+      const address = await locationService.reverseGeocode(latitude, longitude);
+      res.json({ address });
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
+      res.status(500).json({ error: "Failed to reverse geocode coordinates" });
+    }
+  });
+
+  app.post("/api/locations/search", async (req, res) => {
+    try {
+      const validatedData = locationSearchSchema.parse(req.body);
+      
+      const result = await locationService.searchClimbingLocations(
+        validatedData.latitude,
+        validatedData.longitude,
+        validatedData.radius,
+        validatedData.query
       );
       
-      res.json({ locations });
+      res.json(result);
     } catch (error) {
       console.error("Location search error:", error);
-      res.status(500).json({ error: "Failed to find climbing locations" });
+      res.status(500).json({ error: "Failed to search climbing locations" });
+    }
+  });
+
+  app.post("/api/locations/search-by-address", async (req, res) => {
+    try {
+      const validatedData = addressSearchSchema.parse(req.body);
+      
+      const result = await locationService.searchClimbingLocationsByAddress(
+        validatedData.address,
+        validatedData.radius
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Address search error:", error);
+      res.status(500).json({ error: "Failed to search climbing locations by address" });
     }
   });
 
