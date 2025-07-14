@@ -130,15 +130,22 @@ export default function Nanachi() {
         {
           id: "welcome",
           role: "assistant",
-          content: `Hey there! I'm Nanachi, your personal climbing assistant! 🏔️
+          content: `Hello there, ${user?.firstName || "fellow delver"}! I'm Nanachi, naa! 
 
-I'm here to help you with your boulder problems and climbing journey. You can:
-• Send me pictures of boulder problems for beta advice
-• Ask questions about climbing techniques
-• Get personalized training recommendations
-• Chat about your climbing progress
+I'm your personal climbing assistant from the depths of the Abyss, and I'm here to help you navigate your climbing journey through the layers of difficulty.
 
-${user?.firstName ? `I can see you're currently on Layer ${userStats?.currentLayer || 1} with ${userStats?.currentXP || 0} XP. ` : ""}What can I help you with today?`,
+**What I can help you with:**
+• 📸 **Boulder Problem Analysis** - Send me pictures of boulder problems and I'll give you beta advice on holds, movement, and technique
+• 🧗 **Climbing Techniques** - Ask me about specific climbing moves, body positioning, or training methods
+• 📈 **Personal Progress** - Get recommendations based on your current skills and climbing data
+• 🎯 **Training Plans** - Suggestions for improving your weakest areas and advancing to the next layer
+• 💬 **General Chat** - Just talk about climbing, challenges, or anything on your mind, naa!
+
+${user?.firstName ? `I can see you're currently exploring Layer ${userStats?.currentLayer || 1} with ${userStats?.currentXP || 0} XP earned on your ${userStats?.whistleName || "Bell"} whistle. Your best grade so far is ${userStats?.enhancedStats?.bestGrade || "V0"} - impressive progress, naa!
+
+` : ""}I have access to all your climbing data, so my advice will be perfectly tailored to your current skill level and goals. Whether you're stuck on a tricky problem or looking to push into the next grade, I'm here to help you succeed!
+
+What would you like to explore together today?`,
           timestamp: new Date(),
         },
       ]);
