@@ -286,7 +286,7 @@ ${user?.firstName ? `I can see you're currently on Layer ${userStats?.currentLay
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Ask Nanachi about climbing techniques, send a boulder problem picture, or chat about your progress..."
-                  className="w-full resize-none bg-abyss-midnight/50 border border-abyss-amber/30 rounded-lg px-4 py-3 text-white placeholder-abyss-muted focus:outline-none focus:ring-2 focus:ring-abyss-amber/50 focus:border-abyss-amber/50"
+                  className="w-full resize-none bg-abyss-midnight/50 border border-abyss-amber/30 rounded-lg px-4 py-3 text-black placeholder-abyss-muted focus:outline-none focus:ring-2 focus:ring-abyss-amber/50 focus:border-abyss-amber/50"
                   rows={1}
                   style={{ minHeight: "44px", maxHeight: "120px" }}
                 />
