@@ -43,57 +43,7 @@ function ActiveQuests() {
     enabled: !!user,
   });
 
-  const generateQuest = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", "/api/quests/generate", {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
-      toast({
-        title: "New Quest Generated!",
-        description: "A new quest has been added to your active quests.",
-      });
-    },
-    onError: (error: any) => {
-      if (error.response?.status === 400 && error.response?.data?.limitReached) {
-        toast({
-          title: "Daily Quest Limit Reached",
-          description: "You've reached your daily limit of 3 quests. Come back tomorrow!",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to generate quest. Try again later.",
-          variant: "destructive",
-        });
-      }
-    },
-  });
-
-  const generateAutoQuests = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", "/api/quests/generate-automatic", {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
-      toast({
-        title: "Daily Quests Generated!",
-        description: "Your daily quests have been automatically generated.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to generate automatic quests. Try again later.",
-        variant: "destructive",
-      });
-    },
-  });
+  // Removed manual quest generation mutations - quests are now generated automatically
 
   const completeQuest = useMutation({
     mutationFn: async (questId: number) => {
@@ -237,32 +187,6 @@ function ActiveQuests() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Button
-                onClick={() => generateQuest.mutate()}
-                disabled={generateQuest.isPending || (dailyCount?.limitReached)}
-                size="sm"
-                className="bg-abyss-amber/20 text-abyss-amber hover:bg-abyss-amber/30 border-abyss-amber/50 disabled:opacity-50"
-                title={dailyCount?.limitReached ? "Daily quest limit reached. Come back tomorrow!" : "Generate new quest"}
-              >
-                {generateQuest.isPending ? (
-                  <Clock className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                onClick={() => generateAutoQuests.mutate()}
-                disabled={generateAutoQuests.isPending}
-                size="sm"
-                className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border-purple-500/50 disabled:opacity-50"
-                title="Generate automatic daily quests"
-              >
-                {generateAutoQuests.isPending ? (
-                  <Clock className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4" />
-                )}
-              </Button>
               <span className="text-sm text-abyss-amber">{getLayerName(user.currentLayer || 1)}</span>
               <Target className="h-4 w-4 text-abyss-amber" />
             </div>
@@ -281,7 +205,7 @@ function ActiveQuests() {
                 <p className="text-sm">
                   {dailyCount?.limitReached 
                     ? "Daily quest limit reached. Come back tomorrow!" 
-                    : "Click the + button to generate a new quest"}
+                    : "Daily quests are generated automatically when you visit the app"}
                 </p>
               </div>
             ) : (

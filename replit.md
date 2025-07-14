@@ -12,7 +12,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ AbyssMap Component Optimization (Latest - January 2025)
+### ✓ Automatic Quest Generation System Optimization (Latest - January 2025)
+- **Fixed Quest Generation Limits**: Corrected automatic quest generation to create exactly 3 daily quests and 1 weekly quest per user
+- **Removed Manual Generation Buttons**: Eliminated manual quest generation buttons from home tab since quests are now fully automated
+- **Enhanced Generation Logic**: Added comprehensive console logging and proper quest count validation to prevent over-generation
+- **Daily Quest Control**: Fixed logic to check for existing daily quests and generate exactly 3 per day (not more, not less)
+- **Weekly Quest Control**: Weekly quests now generate only if user has no active weekly quest and hasn't completed one in the last 7 days
+- **Improved Error Handling**: Added proper error logging and fallback mechanisms in quest generation system
+- **Updated UI Messages**: Changed home tab text to reflect automatic quest generation instead of manual button prompts
+- **Background Generation**: Quests are generated automatically when users visit the app through authentication endpoint
+
+### ✓ AbyssMap Component Optimization (January 2025)
 - **Performance Optimization**: Moved LAYERS array outside component to prevent recreation on each render
 - **Memory Optimization**: Added React.memo wrapper to prevent unnecessary re-renders
 - **Code Structure**: Streamlined component structure with cleaner variable naming and reduced complexity
