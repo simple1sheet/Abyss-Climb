@@ -155,7 +155,7 @@ export async function generateQuest(
     .map(s => s.skillType)
     .slice(0, 3);
 
-  const prompt = `Generate a PRACTICAL climbing quest with clear, trackable goals. NO mystical themes - use direct, actionable language.
+  const prompt = `Generate a FUN and VERSATILE climbing quest that targets specific skills and encourages diverse climbing development. Mix practical challenges with creative, engaging activities.
 
   User Profile:
   - Current Layer: ${layer}/7
@@ -168,19 +168,65 @@ export async function generateQuest(
 
   Grade Scale: V0-V17 (V0=Beginner, V3-V5=Intermediate, V6-V8=Advanced, V9+=Expert)
 
-  Quest Types to Generate:
-  1. GRADE PROGRESSION: "Complete 2 boulder problems graded V${challengeGrade}"
-  2. SKILL DEVELOPMENT: "Complete 3 problems focusing on [${weakestSkills[0] || 'balance'}]"
-  3. VOLUME TRAINING: "Complete 5 problems in the V${comfortGrade}-V${maxGrade} range"
-  4. TECHNIQUE SPECIFIC: "Complete 3 overhang problems" or "Complete 2 slab routes"
-  5. OUTDOOR CHALLENGE: "Complete 2 outdoor boulder problems"
+  VERSATILE QUEST TYPES (randomly select one approach):
+
+  1. SKILL-SPECIFIC CHALLENGES:
+     - Mental Skills: "Practice route reading by analyzing 3 problems before attempting", "Set a 5-minute focus timer and complete problems without looking away"
+     - Strategy Skills: "Plan your session by identifying 3 different problem types to attempt", "Create and follow a warm-up routine for your next session"
+     - Endurance Skills: "Complete a 20-minute non-stop climbing circuit", "Do active recovery stretches between every problem"
+     - Technique Skills: "Practice energy management by resting in specific positions", "Work on efficiency by repeating the same route 3 times"
+
+  2. CREATIVE MOVEMENT CHALLENGES:
+     - "Silent Feet Challenge: Complete 3 problems without making foot noise"
+     - "Style Switch: Complete the same problem using two different movement styles"
+     - "Beta Breaker: Find an alternative sequence for a problem you've done before"
+     - "Opposite Hand Start: Begin 3 problems with your non-dominant hand"
+
+  3. MINDFULNESS & MENTAL TRAINING:
+     - "Visualization Quest: Spend 5 minutes visualizing a challenging route before attempting"
+     - "Breathing Focus: Practice controlled breathing during 3 rest positions"
+     - "Patience Training: Take 30-second breaks between each attempt"
+     - "Confidence Building: Attempt 2 problems that seem just beyond your comfort zone"
+
+  4. SOCIAL & OBSERVATIONAL:
+     - "Teaching Challenge: Explain beta to another climber or practice explaining out loud"
+     - "Observation Quest: Watch and analyze 3 other climbers' techniques"
+     - "Encouragement Mission: Give positive feedback to 3 other climbers"
+     - "Learning Quest: Ask for advice on technique from an experienced climber"
+
+  5. ADAPTIVE & PROBLEM-SOLVING:
+     - "Conditions Challenge: Adapt your technique to current gym/rock conditions"
+     - "Hold Variation: Complete problems using different grip types than usual"
+     - "Troubleshooting: Work through a problem you've failed before by trying 3 different approaches"
+     - "Creative Solutions: Find unconventional beta for a standard problem"
+
+  6. PHYSICAL CONDITIONING:
+     - "Recovery Focus: Practice active recovery and rest position techniques"
+     - "Strength Endurance: Complete 5 problems with minimal rest between attempts"
+     - "Base Fitness: Incorporate 10 minutes of cardio before climbing"
+     - "Flexibility Work: Do 15 minutes of climbing-specific stretches"
+
+  SKILL TYPES TO TARGET (prioritize these based on weakest skills):
+  
+  MOVEMENT: slab, balance_beam, mantles, highsteps, cross_through, heel_hooks, toe_hooks, flagging, high_steps, wide_spans, hip_flexibility, shoulder_mobility, dynos, dead_points, matching, jumping, smearing, edging, foot_jams, precise_placement
+  
+  STRENGTH: crimps, pinches, slopers, pockets, compression, tension, body_positioning, overhangs, pull_ups, lockoffs, mantles, pressing, dead_points, latching, first_moves, power_endurance
+  
+  MENTAL: route_reading, sequencing, precision, mindfulness, commitment, risk_taking, bold_moves, trust, high_balls, exposure, falling, composure, projecting, working_moves, patience, grit
+  
+  TECHNICAL: beta_reading, sequence_planning, hold_identification, movement_preview, rest_positions, flow, energy_management, relaxation, body_positioning, weight_distribution, timing, precision, style_switching, conditions, rock_types, hold_variations
+  
+  ENDURANCE: circuits, linked_problems, volume, pump_tolerance, long_sessions, base_fitness, recovery, breathing, active_recovery, rest_positions, shaking_out, pacing
+  
+  STRATEGY: beta_development, alternative_sequences, creative_solutions, troubleshooting, safety_awareness, fall_consequences, gear_placement, conditions, periodization, weakness_identification, goal_setting, progress_tracking, time_management, energy_allocation, pressure_handling, observation
 
   Requirements:
-  - Use PRACTICAL language: "Complete X problems graded VY" NOT "Conquer the mystical stones"
-  - Include specific grades (V0-V17) or grade ranges (V3-V5)
-  - Make it trackable and measurable
+  - Make quests FUN and ENGAGING, not just "complete X problems"
+  - Target skills that are hard to level through normal boulder problems (especially mental, technical, endurance, strategy skills)
+  - Include specific, measurable goals with clear completion criteria
   - Scale difficulty to user's current ability
-  - XP rewards: 50-150 for comfort zone, 200-350 for challenges, 400-500 for breakthroughs
+  - Create quests that develop skills not commonly trained through regular climbing
+  - XP rewards: 50-150 for skill development, 200-350 for creative challenges, 400-500 for comprehensive quests
 
   Respond with JSON:
   {
