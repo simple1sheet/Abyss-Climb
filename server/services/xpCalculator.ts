@@ -1,4 +1,5 @@
 import { gradeConverter } from './gradeConverter';
+import { calculateProblemXP, calculateSessionXP } from '@shared/xpUtils';
 
 export class XPCalculator {
   // XP reward system based on climbing grades
@@ -34,42 +35,18 @@ export class XPCalculator {
   };
 
   /**
-   * Calculate XP for a boulder problem
+   * Calculate XP for a boulder problem (uses shared utility)
    */
   calculateProblemXP(grade: string, gradeSystem: string, completed: boolean, attempts: number, style?: string): number {
-    if (!completed) {
-      return 0; // No XP for uncompleted problems
-    }
-
     // Convert grade to V-scale for consistent XP calculation
     const vScaleGrade = gradeConverter.convertGrade(grade, gradeSystem, 'V-Scale');
     
-    // Get base XP from grade
-    let baseXP = this.getBaseXPForGrade(vScaleGrade);
-    
-    // Apply attempt multiplier
-    let attemptMultiplier = 1.0;
-    if (attempts === 1) {
-      attemptMultiplier = this.MULTIPLIERS.FIRST_ATTEMPT;
-    } else if (attempts <= 3) {
-      attemptMultiplier = 1.2; // Small bonus for low attempts
-    } else if (attempts > 10) {
-      attemptMultiplier = 0.8; // Slight penalty for many attempts
-    }
-
-    // Apply style bonus for technical styles
-    let styleMultiplier = 1.0;
-    if (style) {
-      const technicalStyles = ['technical', 'balance', 'coordination', 'endurance'];
-      if (technicalStyles.includes(style.toLowerCase())) {
-        styleMultiplier = this.MULTIPLIERS.STYLE_BONUS;
-      }
-    }
-
-    // Calculate final XP
-    const finalXP = Math.round(baseXP * attemptMultiplier * styleMultiplier);
-    
-    return Math.max(finalXP, 1); // Minimum 1 XP for any completed problem
+    return calculateProblemXP({
+      grade: vScaleGrade,
+      style: style || '',
+      completed,
+      attempts
+    });
   }
 
   /**

@@ -16,6 +16,7 @@ import { Mountain, Dumbbell, ArrowLeft } from "lucide-react";
 import BottomNavigation from "@/components/BottomNavigation";
 import SessionIndicator from "@/components/SessionIndicator";
 import WorkoutGenerator from "@/components/WorkoutGenerator";
+import { calculateProblemXP, calculateSessionXP } from "@shared/xpUtils";
 
 interface BoulderProblem {
   grade: string;
@@ -48,31 +49,19 @@ export default function SessionForm() {
 
   const createSessionMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest({
-        url: "/api/sessions",
-        method: "POST",
-        body: data,
-      });
+      return await apiRequest("POST", "/api/sessions", data);
     },
     onSuccess: async (session) => {
       // Create boulder problems for this session
       for (const problem of problems) {
-        await apiRequest({
-          url: "/api/problems",
-          method: "POST",
-          body: {
-            sessionId: session.id,
-            ...problem,
-          },
+        await apiRequest("POST", "/api/problems", {
+          sessionId: session.id,
+          ...problem,
         });
       }
       
       // Complete the session to ensure XP is properly applied
-      await apiRequest({
-        url: `/api/sessions/${session.id}/complete`,
-        method: "POST",
-        body: {},
-      });
+      await apiRequest("POST", `/api/sessions/${session.id}/complete`, {});
       
       queryClient.invalidateQueries({ queryKey: ["/api/sessions"] });
       queryClient.invalidateQueries({ queryKey: ["/api/skills"] });
@@ -81,10 +70,7 @@ export default function SessionForm() {
       queryClient.invalidateQueries({ queryKey: ["/api/layer-progress"] });
       
       const completedProblems = problems.filter(p => p.completed);
-      const totalXP = completedProblems.reduce((sum, problem) => {
-        const xpEarned = calculateProblemXP(problem);
-        return sum + xpEarned;
-      }, 0);
+      const totalXP = calculateSessionXP(completedProblems);
       
       toast({
         title: "Session Complete!",
@@ -136,38 +122,6 @@ export default function SessionForm() {
 
   const removeProblem = (index: number) => {
     setProblems(prev => prev.filter((_, i) => i !== index));
-  };
-
-  // Calculate XP for a problem (same logic as server)
-  const calculateProblemXP = (problem: BoulderProblem): number => {
-    if (!problem.completed) return 0;
-    
-    // Base XP by grade
-    const gradeXP = {
-      'V0': 5, 'V1': 5,
-      'V2': 10, 'V3': 10,
-      'V4': 15, 'V5': 15,
-      'V6': 20, 'V7': 22, 'V8': 25, 'V9': 28,
-      'V10': 30, 'V11': 32, 'V12': 35, 'V13': 38, 'V14': 40, 'V15': 45, 'V16': 50, 'V17': 55
-    };
-    
-    const baseXP = gradeXP[problem.grade as keyof typeof gradeXP] || 5;
-    
-    // Attempt multiplier
-    let attemptMultiplier = 1.0;
-    if (problem.attempts === 1) {
-      attemptMultiplier = 1.5; // Flash bonus
-    } else if (problem.attempts <= 3) {
-      attemptMultiplier = 1.2; // Quick success
-    } else if (problem.attempts > 10) {
-      attemptMultiplier = 0.8; // Difficulty penalty
-    }
-    
-    // Style bonus (20% for technical styles)
-    const technicalStyles = ['technical', 'balance', 'coordination', 'endurance'];
-    const styleMultiplier = technicalStyles.includes(problem.style) ? 1.2 : 1.0;
-    
-    return Math.round(baseXP * attemptMultiplier * styleMultiplier);
   };
 
   const submitSession = () => {
