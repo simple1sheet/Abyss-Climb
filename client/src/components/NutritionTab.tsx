@@ -50,6 +50,11 @@ export default function NutritionTab() {
     enabled: !!user,
   });
 
+  const { data: nutritionRecipes, isLoading: recipesLoading } = useQuery({
+    queryKey: ["/api/nutrition/recipes"],
+    enabled: !!user,
+  });
+
   // Mutations
   const scanFoodMutation = useMutation({
     mutationFn: async (imageFile: File) => {
@@ -272,12 +277,20 @@ export default function NutritionTab() {
           {nutritionAnalysis && (
             <Card className="nature-card">
               <CardHeader>
-                <CardTitle className="text-abyss-ethereal">Nanachi's Insights</CardTitle>
+                <CardTitle className="text-abyss-ethereal">Nanachi's Personalized Insights</CardTitle>
+                <p className="text-sm text-abyss-ethereal/70">
+                  Based on your climbing performance and nutrition goals
+                </p>
               </CardHeader>
               <CardContent>
-                <p className="text-abyss-ethereal/90 mb-4">{nutritionAnalysis.nanachiInsights}</p>
+                <div className="bg-abyss-purple/20 p-4 rounded-lg mb-4">
+                  <p className="text-abyss-ethereal/90 italic">{nutritionAnalysis.nanachiInsights}</p>
+                </div>
                 <div className="space-y-2">
-                  <h4 className="font-semibold text-abyss-ethereal">Recommendations:</h4>
+                  <h4 className="font-semibold text-abyss-ethereal flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    Personal Recommendations:
+                  </h4>
                   <ul className="list-disc list-inside space-y-1 text-sm text-abyss-ethereal/80">
                     {nutritionAnalysis.recommendations.map((rec, index) => (
                       <li key={index}>{rec}</li>
@@ -455,6 +468,14 @@ export default function NutritionTab() {
                       <Label>Daily Protein</Label>
                       <p className="text-lg font-semibold text-abyss-amber">{nutritionGoal.dailyProtein}g</p>
                     </div>
+                    <div>
+                      <Label>Daily Carbs</Label>
+                      <p className="text-lg font-semibold text-abyss-amber">{nutritionGoal.dailyCarbs}g</p>
+                    </div>
+                    <div>
+                      <Label>Daily Fat</Label>
+                      <p className="text-lg font-semibold text-abyss-amber">{nutritionGoal.dailyFat}g</p>
+                    </div>
                   </div>
                   <div className="mt-4">
                     <Button 
@@ -630,26 +651,79 @@ export default function NutritionTab() {
       {/* Recommendations View */}
       {activeView === 'recommendations' && (
         <div className="space-y-4">
-          {nutritionRecommendations?.map((rec: any) => (
-            <Card key={rec.id} className="nature-card">
-              <CardHeader>
-                <CardTitle className="text-abyss-ethereal flex items-center gap-2">
-                  <Badge variant="outline" className="text-abyss-amber">
-                    Priority {rec.priority}
-                  </Badge>
-                  {rec.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-abyss-ethereal/90 mb-3">{rec.description}</p>
-                {rec.nanachiPersonality && (
-                  <div className="bg-abyss-dark/20 p-3 rounded-lg">
-                    <p className="text-abyss-ethereal/80 italic">{rec.nanachiPersonality}</p>
+          {recipesLoading ? (
+            <div className="text-center py-8">
+              <LoadingSpinner />
+              <p className="text-abyss-ethereal mt-2">Nanachi is preparing personalized recipes...</p>
+            </div>
+          ) : nutritionRecipes && nutritionRecipes.recipes && nutritionRecipes.recipes.length > 0 ? (
+            nutritionRecipes.recipes.map((recipe: any, index: number) => (
+              <Card key={index} className="nature-card">
+                <CardHeader>
+                  <CardTitle className="text-abyss-ethereal flex items-center gap-2">
+                    <Badge variant="outline" className="text-abyss-amber">
+                      {recipe.mealType}
+                    </Badge>
+                    {recipe.name}
+                  </CardTitle>
+                  <div className="text-sm text-abyss-ethereal/60">
+                    Prep time: {recipe.prepTime} • {recipe.nutritionInfo.calories} calories
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent>
+                  <p className="text-abyss-ethereal/90 mb-3">{recipe.description}</p>
+                  
+                  {/* Nutrition Info */}
+                  <div className="grid grid-cols-4 gap-3 mb-4 p-3 bg-abyss-dark/20 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-abyss-amber font-bold text-lg">{recipe.nutritionInfo.calories}</div>
+                      <div className="text-abyss-ethereal/60 text-xs">calories</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-abyss-amber font-bold text-lg">{recipe.nutritionInfo.protein}g</div>
+                      <div className="text-abyss-ethereal/60 text-xs">protein</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-abyss-amber font-bold text-lg">{recipe.nutritionInfo.carbs}g</div>
+                      <div className="text-abyss-ethereal/60 text-xs">carbs</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-abyss-amber font-bold text-lg">{recipe.nutritionInfo.fat}g</div>
+                      <div className="text-abyss-ethereal/60 text-xs">fat</div>
+                    </div>
+                  </div>
+
+                  {/* Climbing Benefit */}
+                  <div className="mb-3">
+                    <h4 className="font-semibold text-abyss-ethereal text-sm mb-1">Climbing Benefits:</h4>
+                    <p className="text-abyss-ethereal/80 text-sm">{recipe.climbingBenefit}</p>
+                  </div>
+
+                  {/* Nanachi's Tip */}
+                  <div className="bg-abyss-purple/20 p-3 rounded-lg">
+                    <h4 className="font-semibold text-abyss-ethereal text-sm mb-1">Nanachi's Tip:</h4>
+                    <p className="text-abyss-ethereal/80 text-sm italic">{recipe.nanachiTip}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <Utensils className="h-16 w-16 mx-auto mb-4 text-abyss-teal" />
+              <p className="text-abyss-ethereal mb-4">No personalized recipes yet!</p>
+              <p className="text-abyss-ethereal/70 mb-4 text-sm">
+                Set up your nutrition goals and track some meals to get personalized recipes from Nanachi!
+              </p>
+              <Button 
+                className="abyss-button" 
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ["/api/nutrition/recipes"] });
+                }}
+              >
+                Generate Recipes
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

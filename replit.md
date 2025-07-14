@@ -25,6 +25,11 @@ Preferred communication style: Simple, everyday language.
 - **Nutrition Analytics**: Complete nutrition analysis with daily/weekly progress tracking and AI-powered insights
 - **Tabbed Interface**: Seamless tabbed navigation between Quest management and Nutrition tracking within "Delver Tent"
 - **Memory Integration**: Nutrition interactions stored in Nanachi's memory system for personalized future recommendations
+- **Chat Goals Interface**: Interactive chat interface for discussing nutrition goals with Nanachi with quick-start options
+- **Enhanced Personalized Insights**: Nanachi now provides insights based on climbing performance (whistle level, XP, grades, recent sessions)
+- **Recipe Recommendations**: AI-generated personalized recipes with climbing benefits and Nanachi's personality-driven tips
+- **Dynamic Macro Targets**: Calories, protein, carbs, and fat recommendations that adapt based on climbing needs and goals
+- **Performance-Connected Analysis**: Nutrition insights directly connected to layer progression and whistle advancement
 
 ### ✓ Nanachi AI Personal Assistant Implementation (January 2025)
 - **Personal AI Assistant**: Implemented Nanachi from Made in Abyss as a personal climbing assistant with authentic character personality

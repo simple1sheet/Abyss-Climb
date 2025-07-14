@@ -258,6 +258,11 @@ export class NanachiNutritionService {
     const nutritionSummary = await storage.getNutritionSummary(userId, new Date());
     const userMemories = await nanachiMemoryService.getImportantMemories(userId, 5);
     
+    // Get climbing performance context
+    const userStats = await storage.getEnhancedProgressStats(userId);
+    const userSkills = await storage.getUserSkills(userId);
+    const recentSessions = await storage.getUserClimbingSessions(userId, 7);
+    
     if (!userGoal) {
       return {
         dailyProgress: {
@@ -266,7 +271,7 @@ export class NanachiNutritionService {
           carbs: { current: nutritionSummary.totalCarbs, target: 250, percentage: 0 },
           fat: { current: nutritionSummary.totalFat, target: 65, percentage: 0 },
         },
-        nanachiInsights: "Naa! You should set up your nutrition goals first so I can help you better, naa!",
+        nanachiInsights: "Naa! You should set up your nutrition goals first so I can help you better, naa! Your climbing performance will improve so much with proper nutrition planning!",
         recommendations: ["Set up your nutrition goals", "Start tracking your meals", "Consider your climbing performance needs"]
       };
     }
@@ -295,9 +300,16 @@ export class NanachiNutritionService {
     };
 
     const contextPrompt = `
-    You are Nanachi from "Made in Abyss" - analyze this climber's nutrition progress and provide insights.
+    You are Nanachi from "Made in Abyss" - analyze this climber's nutrition progress and provide personalized insights based on their climbing performance.
     
-    Today's progress:
+    Climbing Performance:
+    - Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
+    - Current XP: ${userStats.currentXP}
+    - Best Grade: ${userStats.enhancedStats.bestGrade}
+    - Recent Sessions: ${recentSessions.length} this week
+    - Average Grade 7d: ${userStats.enhancedStats.averageGrade7d}
+    
+    Today's Nutrition Progress:
     - Calories: ${dailyProgress.calories.current}/${dailyProgress.calories.target} (${dailyProgress.calories.percentage}%)
     - Protein: ${dailyProgress.protein.current}g/${dailyProgress.protein.target}g (${dailyProgress.protein.percentage}%)
     - Carbs: ${dailyProgress.carbs.current}g/${dailyProgress.carbs.target}g (${dailyProgress.carbs.percentage}%)
@@ -307,10 +319,10 @@ export class NanachiNutritionService {
     Recent memories: ${userMemories.map(m => m.content).join(', ')}
     
     Provide:
-    1. A personalized Nanachi insight about their progress (with "naa" speech patterns)
-    2. 3-5 specific recommendations for improvement
+    1. A personalized Nanachi insight connecting their nutrition to climbing performance (with "naa" speech patterns)
+    2. 3-5 specific recommendations that will help them progress in their climbing journey
     
-    Focus on climbing performance and recovery needs.
+    Focus on how nutrition affects their whistle level progression, layer advancement, and climbing performance.
     `;
 
     const response = await openai.chat.completions.create({
@@ -337,6 +349,103 @@ export class NanachiNutritionService {
         "Stay hydrated during climbing sessions"
       ]
     };
+  }
+
+  // Generate personalized recipe recommendations based on user's climbing needs
+  async generateRecipeRecommendations(userId: string): Promise<{
+    recipes: Array<{
+      name: string;
+      description: string;
+      ingredients: string[];
+      instructions: string[];
+      nutritionInfo: {
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+      };
+      climbingBenefit: string;
+      mealType: string;
+      prepTime: string;
+      nanachiTip: string;
+    }>;
+  }> {
+    const userGoal = await storage.getUserNutritionGoal(userId);
+    const nutritionSummary = await storage.getNutritionSummary(userId, new Date());
+    const userMemories = await nanachiMemoryService.getImportantMemories(userId, 5);
+    const userStats = await storage.getEnhancedProgressStats(userId);
+    const recentSessions = await storage.getUserClimbingSessions(userId, 7);
+
+    const contextPrompt = `
+    You are Nanachi from "Made in Abyss" - provide personalized recipe recommendations for this climber based on their specific needs.
+    
+    Climber Profile:
+    - Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
+    - Current XP: ${userStats.currentXP}
+    - Best Grade: ${userStats.enhancedStats.bestGrade}
+    - Recent Sessions: ${recentSessions.length} this week
+    - Nutrition Goal: ${userGoal ? userGoal.goalType : 'No goal set'}
+    
+    Current Nutrition Status:
+    - Today's Calories: ${nutritionSummary.totalCalories}
+    - Today's Protein: ${nutritionSummary.totalProtein}g
+    - Daily Targets: ${userGoal ? `${userGoal.dailyCalories} cal, ${userGoal.dailyProtein}g protein` : 'Not set'}
+    
+    Recent memories: ${userMemories.map(m => m.content).join(', ')}
+    
+    Generate 4-5 recipe recommendations in JSON format:
+    {
+      "recipes": [
+        {
+          "name": "Recipe name",
+          "description": "Brief description of the dish",
+          "ingredients": ["ingredient 1", "ingredient 2", "etc"],
+          "instructions": ["step 1", "step 2", "etc"],
+          "nutritionInfo": {
+            "calories": 400,
+            "protein": 25,
+            "carbs": 45,
+            "fat": 12
+          },
+          "climbingBenefit": "How this helps climbing performance",
+          "mealType": "breakfast|lunch|dinner|snack|pre-workout|post-workout",
+          "prepTime": "15 minutes",
+          "nanachiTip": "Nanachi's personal tip about this recipe with 'naa' interjections"
+        }
+      ]
+    }
+    
+    Focus on:
+    1. Pre-workout fuel for energy
+    2. Post-workout recovery nutrition
+    3. Protein for muscle recovery
+    4. Sustained energy for longer sessions
+    5. Recipes that support their whistle level progression
+    
+    Use Nanachi's caring personality with "naa" speech patterns and connect recipes to climbing performance.
+    `;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        { role: "user", content: contextPrompt }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 2000,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{"recipes": []}');
+    
+    // Store this interaction in memory
+    await nanachiMemoryService.storeMemory({
+      userId,
+      memoryType: 'conversation',
+      title: 'Generated personalized recipes',
+      content: `Generated ${result.recipes.length} personalized recipes for climbing performance`,
+      importance: 4,
+    });
+
+    return result;
   }
 }
 

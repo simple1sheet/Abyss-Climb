@@ -1428,6 +1428,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/nutrition/recipes", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { nanachiNutritionService } = await import("./services/nanachiNutrition");
+      const recipes = await nanachiNutritionService.generateRecipeRecommendations(userId);
+      
+      res.json(recipes);
+    } catch (error) {
+      log(`Error generating recipes: ${error}`, "error");
+      res.status(500).json({ message: "Failed to generate recipes" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
