@@ -133,7 +133,7 @@ export default function Home() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-abyss-muted text-sm">
-                Find nearby climbing gyms and outdoor climbing areas using GPS or search by location.
+                Find nearby climbing gyms and outdoor areas using trusted climbing databases and maps.
               </p>
               <div className="flex space-x-3">
                 <Button
@@ -145,20 +145,33 @@ export default function Home() {
                   {isGpsLoading ? "Getting Location..." : "Use GPS"}
                 </Button>
                 <Button
-                  onClick={() => toast({
-                    title: "Coming Soon",
-                    description: "Manual location search will be available soon with Google Places API integration.",
-                  })}
+                  onClick={() => window.open('https://www.google.com/maps/search/climbing+gym+near+me', '_blank')}
                   variant="outline"
                   className="flex-1 border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10"
                 >
                   <Search className="w-4 h-4 mr-2" />
-                  Search
+                  Search Maps
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                <Button
+                  onClick={() => window.open('https://www.mountainproject.com/route-finder', '_blank')}
+                  variant="outline"
+                  className="border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10 text-sm"
+                >
+                  🏔️ Mountain Project
+                </Button>
+                <Button
+                  onClick={() => window.open('https://www.thecrag.com/climbing', '_blank')}
+                  variant="outline"
+                  className="border-abyss-teal/30 text-abyss-ethereal hover:bg-abyss-teal/10 text-sm"
+                >
+                  🧗 theCrag
                 </Button>
               </div>
               <div className="text-center">
                 <p className="text-abyss-muted text-xs">
-                  This feature requires real location API integration for authentic climbing location data.
+                  Links to trusted climbing resources with real, up-to-date location data.
                 </p>
               </div>
             </CardContent>
