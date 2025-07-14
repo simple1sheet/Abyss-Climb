@@ -500,6 +500,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/quests/generate-automatic', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      await questGenerator.generateAutomaticQuests(userId);
+      res.json({ message: "Automatic quests generated successfully" });
+    } catch (error) {
+      console.error("Error generating automatic quests:", error);
+      res.status(500).json({ message: "Failed to generate automatic quests" });
+    }
+  });
+
   app.post('/api/quests/:id/complete', isAuthenticated, async (req: any, res) => {
     try {
       const questId = parseInt(req.params.id);

@@ -62,6 +62,9 @@ export interface IStorage {
   getUserQuestsInDateRange(userId: string, startDate: Date, endDate: Date): Promise<Quest[]>;
   getUserCompletedQuestsToday(userId: string): Promise<Quest[]>;
   updateQuest(id: number, updates: Partial<Quest>): Promise<Quest>;
+  getExpiredQuests(now: Date): Promise<Quest[]>;
+  getAllUsers(): Promise<User[]>;
+  getUserQuestsByType(userId: string, questType: string, status?: string): Promise<Quest[]>;
   
   // Skill operations
   createSkill(skill: InsertSkill): Promise<Skill>;
@@ -452,6 +455,39 @@ export class DatabaseStorage implements IStorage {
       .where(eq(quests.id, id))
       .returning();
     return updatedQuest;
+  }
+
+  async getExpiredQuests(now: Date): Promise<Quest[]> {
+    return await db
+      .select()
+      .from(quests)
+      .where(and(
+        eq(quests.status, "active"),
+        lt(quests.expiresAt, now)
+      ));
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db
+      .select()
+      .from(users);
+  }
+
+  async getUserQuestsByType(userId: string, questType: string, status?: string): Promise<Quest[]> {
+    const conditions = [
+      eq(quests.userId, userId),
+      eq(quests.questType, questType)
+    ];
+
+    if (status) {
+      conditions.push(eq(quests.status, status));
+    }
+
+    return await db
+      .select()
+      .from(quests)
+      .where(and(...conditions))
+      .orderBy(desc(quests.createdAt));
   }
 
   // Skill operations

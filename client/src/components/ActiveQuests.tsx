@@ -22,9 +22,15 @@ function ActiveQuests() {
     enabled: !!user,
   });
 
-  // Filter out layer quests from daily quest display
-  const dailyQuests = useMemo(() => {
-    return quests ? quests.filter((quest: any) => quest.questType !== "layer") : [];
+  // Filter and separate quest types
+  const { dailyQuests, weeklyQuests } = useMemo(() => {
+    if (!quests) return { dailyQuests: [], weeklyQuests: [] };
+    
+    const filtered = quests.filter((quest: any) => quest.questType !== "layer");
+    return {
+      dailyQuests: filtered.filter((quest: any) => quest.questType === "daily"),
+      weeklyQuests: filtered.filter((quest: any) => quest.questType === "weekly")
+    };
   }, [quests]);
 
   const { data: dailyCount, isLoading: isLoadingDailyCount } = useQuery({
@@ -64,6 +70,28 @@ function ActiveQuests() {
           variant: "destructive",
         });
       }
+    },
+  });
+
+  const generateAutoQuests = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/quests/generate-automatic", {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/quests?status=active"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/quests/daily-count"] });
+      toast({
+        title: "Daily Quests Generated!",
+        description: "Your daily quests have been automatically generated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to generate automatic quests. Try again later.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -222,16 +250,34 @@ function ActiveQuests() {
                   <Plus className="h-4 w-4" />
                 )}
               </Button>
+              <Button
+                onClick={() => generateAutoQuests.mutate()}
+                disabled={generateAutoQuests.isPending}
+                size="sm"
+                className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border-purple-500/50 disabled:opacity-50"
+                title="Generate automatic daily quests"
+              >
+                {generateAutoQuests.isPending ? (
+                  <Clock className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Plus className="h-4 w-4" />
+                )}
+              </Button>
               <span className="text-sm text-abyss-amber">{getLayerName(user.currentLayer || 1)}</span>
               <Target className="h-4 w-4 text-abyss-amber" />
             </div>
           </div>
           
+          {/* Daily Quests Section */}
           <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-abyss-amber flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              Daily Quests
+            </h3>
             {!dailyQuests || dailyQuests.length === 0 ? (
-              <div className="text-center py-8 text-abyss-ethereal/70">
-                <Target className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="mb-2">No active quests</p>
+              <div className="text-center py-6 text-abyss-ethereal/70">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="mb-2">No daily quests</p>
                 <p className="text-sm">
                   {dailyCount?.limitReached 
                     ? "Daily quest limit reached. Come back tomorrow!" 
@@ -239,62 +285,141 @@ function ActiveQuests() {
                 </p>
               </div>
             ) : (
-              dailyQuests.map((quest: any) => (
-                <div
-                  key={quest.id}
-                  className="bg-abyss-dark/40 border border-abyss-teal/20 rounded-lg p-4 relic-shimmer"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-abyss-ethereal mb-1">{quest.title}</h3>
-                      <p className="text-sm text-abyss-ethereal/80 mb-2">{quest.description}</p>
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Badge className={getDifficultyColor(quest.difficulty)}>
-                          {quest.difficulty}
-                        </Badge>
-                        <span className="text-xs text-abyss-amber">{quest.xpReward} XP</span>
-                        {quest.expiresAt && (
-                          <span className="text-xs text-abyss-ethereal/60">
-                            <Clock className="h-3 w-3 inline mr-1" />
-                            {getTimeRemaining(quest.expiresAt)}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mb-2">
-                        <div className="flex items-center justify-between text-xs text-abyss-ethereal/70 mb-1">
-                          <span>Progress</span>
-                          <span>{quest.progress || 0}/{quest.maxProgress}</span>
+              <div className="space-y-3">
+                {dailyQuests.map((quest: any) => (
+                  <div
+                    key={quest.id}
+                    className="bg-abyss-dark/40 border border-abyss-teal/20 rounded-lg p-4 relic-shimmer"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-abyss-ethereal mb-1">{quest.title}</h3>
+                        <p className="text-sm text-abyss-ethereal/80 mb-2">{quest.description}</p>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Badge className={getDifficultyColor(quest.difficulty)}>
+                            {quest.difficulty}
+                          </Badge>
+                          <span className="text-xs text-abyss-amber">{quest.xpReward} XP</span>
+                          {quest.expiresAt && (
+                            <span className="text-xs text-abyss-ethereal/60">
+                              <Clock className="h-3 w-3 inline mr-1" />
+                              {getTimeRemaining(quest.expiresAt)}
+                            </span>
+                          )}
                         </div>
-                        <Progress 
-                          value={((quest.progress || 0) / quest.maxProgress) * 100} 
-                          className="h-2 bg-abyss-dark/60"
-                        />
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between text-xs text-abyss-ethereal/70 mb-1">
+                            <span>Progress</span>
+                            <span>{quest.progress || 0}/{quest.maxProgress}</span>
+                          </div>
+                          <Progress 
+                            value={((quest.progress || 0) / quest.maxProgress) * 100} 
+                            className="h-2 bg-abyss-dark/60"
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2 ml-4">
-                      <Button
-                        onClick={() => completeQuest.mutate(quest.id)}
-                        disabled={completeQuest.isPending || (completionCount?.completionLimitReached)}
-                        size="sm"
-                        className="bg-green-500/20 text-green-300 hover:bg-green-500/30 border-green-500/50 disabled:opacity-50"
-                        title={completionCount?.completionLimitReached ? "Daily completion limit reached. Come back tomorrow!" : "Complete Quest"}
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        onClick={() => discardQuest.mutate(quest.id)}
-                        disabled={discardQuest.isPending}
-                        size="sm"
-                        variant="outline"
-                        className="text-red-400 hover:text-red-300 border-red-400/50 hover:border-red-300/50"
-                        title="Discard Quest"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button
+                          onClick={() => completeQuest.mutate(quest.id)}
+                          disabled={completeQuest.isPending || (completionCount?.completionLimitReached)}
+                          size="sm"
+                          className="bg-green-500/20 text-green-300 hover:bg-green-500/30 border-green-500/50 disabled:opacity-50"
+                          title={completionCount?.completionLimitReached ? "Daily completion limit reached. Come back tomorrow!" : "Complete Quest"}
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          onClick={() => discardQuest.mutate(quest.id)}
+                          disabled={discardQuest.isPending}
+                          size="sm"
+                          variant="outline"
+                          className="text-red-400 hover:text-red-300 border-red-400/50 hover:border-red-300/50"
+                          title="Discard Quest"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Weekly Quests Section */}
+          <div className="space-y-4 mt-6">
+            <h3 className="text-lg font-semibold text-purple-400 flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Weekly Quests
+            </h3>
+            {!weeklyQuests || weeklyQuests.length === 0 ? (
+              <div className="text-center py-6 text-abyss-ethereal/70">
+                <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="mb-2">No weekly quests</p>
+                <p className="text-sm">Weekly quests are generated automatically when available</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {weeklyQuests.map((quest: any) => (
+                  <div
+                    key={quest.id}
+                    className="bg-abyss-dark/40 border border-purple-500/20 rounded-lg p-4 relic-shimmer"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className="bg-purple-500/20 text-purple-300">Weekly</Badge>
+                          <h3 className="font-semibold text-abyss-ethereal">{quest.title}</h3>
+                        </div>
+                        <p className="text-sm text-abyss-ethereal/80 mb-2">{quest.description}</p>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Badge className={getDifficultyColor(quest.difficulty)}>
+                            {quest.difficulty}
+                          </Badge>
+                          <span className="text-xs text-purple-400 font-semibold">{quest.xpReward} XP</span>
+                          {quest.expiresAt && (
+                            <span className="text-xs text-abyss-ethereal/60">
+                              <Clock className="h-3 w-3 inline mr-1" />
+                              {getTimeRemaining(quest.expiresAt)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between text-xs text-abyss-ethereal/70 mb-1">
+                            <span>Progress</span>
+                            <span>{quest.progress || 0}/{quest.maxProgress}</span>
+                          </div>
+                          <Progress 
+                            value={((quest.progress || 0) / quest.maxProgress) * 100} 
+                            className="h-2 bg-abyss-dark/60"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <Button
+                          onClick={() => completeQuest.mutate(quest.id)}
+                          disabled={completeQuest.isPending}
+                          size="sm"
+                          className="bg-green-500/20 text-green-300 hover:bg-green-500/30 border-green-500/50 disabled:opacity-50"
+                          title="Complete Quest"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          onClick={() => discardQuest.mutate(quest.id)}
+                          disabled={discardQuest.isPending}
+                          size="sm"
+                          variant="outline"
+                          className="text-red-400 hover:text-red-300 border-red-400/50 hover:border-red-300/50"
+                          title="Discard Quest"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </CardContent>
