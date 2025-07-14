@@ -532,7 +532,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
-      // Award XP to user and check for layer advancement
+      // Award XP to user
       const user = await storage.getUser(userId);
       if (user) {
         const newTotalXP = (user.totalXP || 0) + quest.xpReward;
@@ -540,12 +540,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...user,
           totalXP: newTotalXP,
         });
-        
-        // Check if user advanced to next layer
-        const progressInfo = await storage.getLayerProgressInfo(userId);
-        if (progressInfo.currentLayer > (user.currentLayer || 1)) {
-          console.log(`User ${userId} advanced to layer ${progressInfo.currentLayer}!`);
-        }
         
         // Check for achievements after quest completion
         await achievementService.checkAndUnlockAchievements(userId);

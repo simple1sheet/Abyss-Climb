@@ -831,7 +831,10 @@ export class DatabaseStorage implements IStorage {
   }> {
     const user = await this.getUser(userId);
     const currentXP = user?.totalXP || 0;
-    const currentLayer = this.calculateCurrentLayerFromXP(currentXP);
+    
+    // Use user's actual current layer (not XP-based calculation)
+    // Layer advancement must be done explicitly through layer quest completion
+    const currentLayer = user?.currentLayer || 1;
     
     const currentLayerXP = this.getCurrentLayerXP(currentLayer);
     const nextLayerXP = this.getNextLayerXP(currentLayer);
