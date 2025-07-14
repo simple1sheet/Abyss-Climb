@@ -159,10 +159,10 @@ export default function WhistleProgress() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-abyss-ethereal">Whistle Progress</h2>
             <div className="flex items-center space-x-2">
-              <Badge className={`${getWhistleColor(currentLevel)} bg-abyss-dark/50 relic-glow`}>
+              <Badge className={`${getWhistleColor(currentLevel)} bg-abyss-dark/50 border border-abyss-amber/30`}>
                 {getWhistleName(currentLevel)}
               </Badge>
-              <Award className={`h-5 w-5 ${getWhistleColor(currentLevel)} mystical-glow`} />
+              <Award className={`h-5 w-5 ${getWhistleColor(currentLevel)}`} />
             </div>
           </div>
           

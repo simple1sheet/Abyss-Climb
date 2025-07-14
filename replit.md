@@ -15,12 +15,14 @@ Preferred communication style: Simple, everyday language.
 ### ✓ Mystical Made in Abyss Visual Enhancements (Latest - January 2025)
 - **Enhanced CSS Mystical Effects**: Added mystical-glow, abyss-shimmer, curse-distortion, and relic-glow animations for immersive atmosphere
 - **Mystical Color Palette**: Added additional Made in Abyss themed colors (abyss-lavender, abyss-coral, abyss-sage, abyss-slate, abyss-frost)
-- **Mystical Background Animations**: Added floating particles, shimmer effects, and curse-like distortions to create mystical atmosphere
+- **Made in Abyss Map Background**: Created layered background on home page representing the 7 layers of the abyss with authentic color gradients
+- **Mystical Depth Visualization**: Added horizontal depth lines and vertical layer bands to visually represent the abyss structure
+- **Floating Mystical Particles**: Enhanced background with animated particles and depth effects for atmospheric immersion
 - **Abyss Map Component**: Created interactive AbyssMap component with actual Made in Abyss map display accessible via "View Abyss Map" button
-- **Mystical User Interface**: Applied mystical effects to home page header, whistle progress, and map components for authentic Made in Abyss feel
+- **Refined Whistle Progress**: Replaced harsh glow effects with subtle border styling for better visual balance
 - **Atmospheric Depth Indicators**: Added depth-layer, relic-glow, and mystical-border classes for enhanced visual depth
 - **Enchanted Navigation**: Updated current layer component to redirect to Abyss Map instead of layers overview
-- **Mystical Whistle Effects**: Enhanced whistle progress with shimmer and glow effects representing the mystical nature of the whistles
+- **Layered Background System**: Each abyss layer represented with authentic colors (amber, green, blue, purple, teal, red, indigo)
 - **Anime-Inspired Theming**: Added proper Made in Abyss references and mystical quotes throughout the interface
 - **Immersive Visual Effects**: Applied curse-distortion to map images and mystical-glow to key UI elements for authentic anime atmosphere
 

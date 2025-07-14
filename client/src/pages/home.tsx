@@ -72,10 +72,38 @@ export default function Home() {
 
   return (
     <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 opacity-10">
+      {/* Made in Abyss Map Background */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-abyss-teal/10 to-abyss-purple/20"></div>
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-full h-full">
+          <div className="relative w-full h-full">
+            {/* Abyss layers represented as vertical bands */}
+            <div className="absolute top-0 left-0 right-0 h-1/7 bg-gradient-to-b from-amber-300/10 to-orange-400/10"></div>
+            <div className="absolute top-[14%] left-0 right-0 h-1/7 bg-gradient-to-b from-green-300/10 to-emerald-500/10"></div>
+            <div className="absolute top-[28%] left-0 right-0 h-1/7 bg-gradient-to-b from-blue-300/10 to-cyan-500/10"></div>
+            <div className="absolute top-[42%] left-0 right-0 h-1/7 bg-gradient-to-b from-purple-300/10 to-violet-500/10"></div>
+            <div className="absolute top-[56%] left-0 right-0 h-1/7 bg-gradient-to-b from-teal-300/10 to-cyan-600/10"></div>
+            <div className="absolute top-[70%] left-0 right-0 h-1/7 bg-gradient-to-b from-red-300/10 to-rose-500/10"></div>
+            <div className="absolute top-[84%] left-0 right-0 h-1/7 bg-gradient-to-b from-indigo-300/10 to-purple-700/10"></div>
+            
+            {/* Mystical depth lines */}
+            <div className="absolute top-1/7 left-0 right-0 h-px bg-gradient-to-r from-transparent via-abyss-amber/20 to-transparent"></div>
+            <div className="absolute top-2/7 left-0 right-0 h-px bg-gradient-to-r from-transparent via-abyss-teal/20 to-transparent"></div>
+            <div className="absolute top-3/7 left-0 right-0 h-px bg-gradient-to-r from-transparent via-abyss-purple/20 to-transparent"></div>
+            <div className="absolute top-4/7 left-0 right-0 h-px bg-gradient-to-r from-transparent via-abyss-amber/20 to-transparent"></div>
+            <div className="absolute top-5/7 left-0 right-0 h-px bg-gradient-to-r from-transparent via-abyss-teal/20 to-transparent"></div>
+            <div className="absolute top-6/7 left-0 right-0 h-px bg-gradient-to-r from-transparent via-abyss-crimson/20 to-transparent"></div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Floating mystical particles */}
+      <div className="absolute inset-0 opacity-20">
         <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-10 w-40 h-40 bg-abyss-teal rounded-full blur-3xl"></div>
+        <div className="absolute top-40 left-5 w-2 h-2 bg-abyss-amber/40 rounded-full blur-sm floating-animation"></div>
+        <div className="absolute top-60 right-8 w-1 h-1 bg-abyss-teal/30 rounded-full blur-sm floating-animation" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-40 right-12 w-3 h-3 bg-abyss-purple/20 rounded-full blur-sm floating-animation" style={{animationDelay: '4s'}}></div>
       </div>
 
       {/* Header */}
