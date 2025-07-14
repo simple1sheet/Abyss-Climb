@@ -154,7 +154,7 @@ export default function WhistleProgress() {
 
   return (
     <section className="px-6 mb-8 relative z-10">
-      <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer abyss-shimmer">
+      <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-abyss-ethereal">Whistle Progress</h2>
