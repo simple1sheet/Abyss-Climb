@@ -91,10 +91,21 @@ export default function WorkoutPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-abyss-dark via-abyss-dark to-abyss-teal/10 text-abyss-ethereal relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(20,184,166,0.1),transparent_50%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_30%,rgba(20,184,166,0.05)_50%,transparent_70%)]" />
+    <div className="min-h-screen nature-background text-abyss-ethereal relative overflow-hidden">
+      {/* Moss Overlay */}
+      <div className="moss-overlay"></div>
+      
+      {/* Forest Canopy Shadow */}
+      <div className="forest-shadow"></div>
+      
+      {/* Natural Floating Particles */}
+      <div className="nature-spore" style={{left: '10%', animationDelay: '1s'}}></div>
+      <div className="nature-spore" style={{left: '40%', animationDelay: '6s'}}></div>
+      <div className="nature-spore" style={{left: '70%', animationDelay: '11s'}}></div>
+      <div className="nature-spore" style={{left: '90%', animationDelay: '16s'}}></div>
+      
+      {/* Layer Fog Effect */}
+      <div className="layer-fog"></div>
       
       <div className="relative z-10 container mx-auto px-4 py-6 pb-20">
         {/* Header */}

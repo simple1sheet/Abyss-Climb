@@ -154,7 +154,7 @@ export default function WhistleProgress() {
 
   return (
     <section className="px-6 mb-8 relative z-10">
-      <Card className="abyss-card">
+      <Card className="nature-card vine-border">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-abyss-ethereal ancient-text">Whistle Progress</h2>

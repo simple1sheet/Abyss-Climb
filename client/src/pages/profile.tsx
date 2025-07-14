@@ -108,12 +108,23 @@ export default function Profile() {
   const whistleInfo = getWhistleLevel(user?.whistleLevel || 1);
 
   return (
-    <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
+    <div className="max-w-md mx-auto nature-background min-h-screen relative overflow-hidden">
+      {/* Moss Overlay */}
+      <div className="moss-overlay"></div>
+      
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 left-10 w-40 h-40 bg-abyss-teal rounded-full blur-3xl"></div>
       </div>
+      
+      {/* Natural Floating Particles */}
+      <div className="nature-spore" style={{left: '25%', animationDelay: '3s'}}></div>
+      <div className="nature-spore" style={{left: '65%', animationDelay: '7s'}}></div>
+      <div className="nature-spore" style={{left: '85%', animationDelay: '12s'}}></div>
+      
+      {/* Layer Fog Effect */}
+      <div className="layer-fog"></div>
 
       {/* Header */}
       <header className="relative z-20 px-6 pt-12 pb-6">

@@ -12,19 +12,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Mystical Made in Abyss Visual Enhancements (Latest - January 2025)
-- **Enhanced CSS Mystical Effects**: Added mystical-glow, abyss-shimmer, curse-distortion, and relic-glow animations for immersive atmosphere
-- **Mystical Color Palette**: Added additional Made in Abyss themed colors (abyss-lavender, abyss-coral, abyss-sage, abyss-slate, abyss-frost)
-- **Made in Abyss Map Background**: Created layered background on home page representing the 7 layers of the abyss with authentic color gradients
-- **Mystical Depth Visualization**: Added horizontal depth lines and vertical layer bands to visually represent the abyss structure
-- **Floating Mystical Particles**: Enhanced background with animated particles and depth effects for atmospheric immersion
-- **Abyss Map Component**: Created interactive AbyssMap component with actual Made in Abyss map display accessible via "View Abyss Map" button
-- **Refined Whistle Progress**: Removed shimmer effects and harsh glow effects, replaced with clean styling for better visual balance
-- **Atmospheric Depth Indicators**: Added depth-layer, relic-glow, and mystical-border classes for enhanced visual depth
-- **Enchanted Navigation**: Updated current layer component to redirect to Abyss Map instead of layers overview
-- **Layered Background System**: Each abyss layer represented with authentic colors (amber, green, blue, purple, teal, red, indigo)
-- **Anime-Inspired Theming**: Added proper Made in Abyss references and mystical quotes throughout the interface
-- **Immersive Visual Effects**: Applied curse-distortion to map images and mystical-glow to key UI elements for authentic anime atmosphere
+### ✓ Natural Made in Abyss Visual Enhancements (Latest - January 2025)
+- **Complete Visual Overhaul**: Merged mystical and natural elements inspired by Made in Abyss anime scenes throughout entire app
+- **Natural CSS Effects**: Added moss-overlay, nature-background, waterfall-mist, vine-border, forest-shadow, and nature-spore animations
+- **Organic Card Design**: Implemented nature-card styling with irregular borders and moss-like textures replacing standard cards
+- **Living Background System**: Every page now has nature-background with moss overlays, forest canopy shadows, and floating spores
+- **Waterfall & Mist Effects**: Added subtle waterfall-mist animations on progress page for atmospheric depth
+- **Vine Growth Animations**: Animated vine borders that grow on component mount for organic feel
+- **Natural Particle System**: Floating nature spores throughout app that simulate natural floating particles from the abyss
+- **Layer Fog Effect**: Bottom fog layers on all pages creating depth and immersion
+- **Balanced Theme Integration**: Maintained mystical elements (ancient-text, abyss-button) while adding natural textures
+- **Full App Coverage**: Applied nature theme to: home, session, progress, profile, workout, quests, sessions, layer-overview, whistle-overview pages
+- **Color Harmony**: Integrated green moss tones (rgba(34, 197, 94)) with existing abyss color palette
+- **Subtle Implementation**: Natural effects kept subtle per user request - not overwhelming the interface
 
 ### ✓ Location Finder Implementation & Real Data Integration (January 2025)
 - **Home Page Location Finder**: Moved location finder to home page after tab visibility issues - now accessible to all users

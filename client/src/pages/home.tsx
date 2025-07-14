@@ -71,7 +71,13 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-md mx-auto ancient-stone min-h-screen relative overflow-hidden">
+    <div className="max-w-md mx-auto nature-background min-h-screen relative overflow-hidden">
+      {/* Moss Overlay */}
+      <div className="moss-overlay"></div>
+      
+      {/* Forest Canopy Shadow */}
+      <div className="forest-shadow"></div>
+      
       {/* Made in Abyss Map Background */}
       <div className="absolute inset-0 abyss-overlay opacity-5">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-abyss-teal/10 to-abyss-purple/20"></div>
@@ -110,8 +116,15 @@ export default function Home() {
         <div className="curse-particle top-20 left-1/2" style={{animationDelay: '6s'}}></div>
       </div>
       
-      {/* Depth Fog Effect */}
-      <div className="depth-fog"></div>
+      {/* Natural Floating Particles */}
+      <div className="nature-spore" style={{left: '10%', animationDelay: '0s'}}></div>
+      <div className="nature-spore" style={{left: '30%', animationDelay: '3s'}}></div>
+      <div className="nature-spore" style={{left: '50%', animationDelay: '6s'}}></div>
+      <div className="nature-spore" style={{left: '70%', animationDelay: '9s'}}></div>
+      <div className="nature-spore" style={{left: '90%', animationDelay: '12s'}}></div>
+      
+      {/* Layer Fog Effect */}
+      <div className="layer-fog"></div>
 
       {/* Header */}
       <header className="relative z-20 px-6 pt-12 pb-6">
@@ -159,7 +172,7 @@ export default function Home() {
         
         {/* Location Finder */}
         <div className="px-6 mb-6">
-          <Card className="abyss-card">
+          <Card className="nature-card">
             <CardHeader>
               <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
                 <MapPin className="w-5 h-5 text-abyss-amber mystical-glow" />

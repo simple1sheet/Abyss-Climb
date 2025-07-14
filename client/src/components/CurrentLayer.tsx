@@ -50,7 +50,7 @@ export default function CurrentLayer() {
 
   return (
     <section className="px-6 mb-8 relative z-10">
-      <Card className="abyss-card">
+      <Card className="nature-card">
         <CardContent className="p-6">
           <div className="flex items-center space-x-4 mb-4">
             <div className={`w-16 h-16 ${layerInfo.color}/50 rounded-full flex items-center justify-center`}>

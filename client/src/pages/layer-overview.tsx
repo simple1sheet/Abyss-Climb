@@ -194,7 +194,7 @@ export default function LayerOverview() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-abyss-gradient min-h-screen relative overflow-hidden">
+    <div className="max-w-md mx-auto nature-background min-h-screen relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 right-10 w-32 h-32 bg-abyss-amber rounded-full blur-3xl"></div>
