@@ -75,7 +75,7 @@ COMMUNICATION STYLE:
 Remember: You're here to help ${userName} improve their climbing and enjoy their journey through the layers of difficulty, naa!`;
   }
 
-  private async analyzeImage(imageBuffer: Buffer, user: User | undefined, userStats: EnhancedProgressStats): Promise<string> {
+  private async analyzeImage(imageBuffer: Buffer, user: User | undefined, userStats: EnhancedProgressStats, contextualMemories?: any[]): Promise<string> {
     try {
       const base64Image = imageBuffer.toString('base64');
       const userName = user?.firstName || "Delver";
@@ -131,17 +131,24 @@ If you can't clearly see a boulder problem in the image, politely ask for a clea
     message: string,
     user: User | undefined,
     userStats: EnhancedProgressStats,
-    userSkills: Skill[]
+    userSkills: Skill[],
+    contextualMemories?: any[]
   ): Promise<string> {
     try {
       const personalityPrompt = this.createPersonalityPrompt(user, userStats, userSkills);
+      
+      // Add memory context to the prompt
+      let memoryContext = "";
+      if (contextualMemories && contextualMemories.length > 0) {
+        memoryContext = `\n\nRECENT CONVERSATION CONTEXT:\n${contextualMemories.map(m => `- ${m.title}: ${m.content}`).join('\n')}\n\nUse this context to provide more personalized responses and remember past interactions.`;
+      }
       
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
           {
             role: "system",
-            content: personalityPrompt
+            content: personalityPrompt + memoryContext
           },
           {
             role: "user",
@@ -163,16 +170,17 @@ If you can't clearly see a boulder problem in the image, politely ask for a clea
     user: User | undefined,
     userStats: EnhancedProgressStats,
     userSkills: Skill[],
-    imageFile?: Express.Multer.File
+    imageFile?: Express.Multer.File,
+    contextualMemories?: any[]
   ): Promise<string> {
     try {
       // If there's an image, analyze it
       if (imageFile) {
-        return await this.analyzeImage(imageFile.buffer, user, userStats);
+        return await this.analyzeImage(imageFile.buffer, user, userStats, contextualMemories);
       }
       
       // Otherwise, generate a chat response
-      return await this.generateChatResponse(message, user, userStats, userSkills);
+      return await this.generateChatResponse(message, user, userStats, userSkills, contextualMemories);
     } catch (error) {
       console.error("Error processing message:", error);
       return "I'm having some trouble right now, naa. Please try again in a moment!";

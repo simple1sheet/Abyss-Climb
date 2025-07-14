@@ -159,6 +159,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   skills: many(skills),
   workouts: many(workoutSessions),
   layerQuests: many(layerQuests),
+  nanachiMemories: many(nanachiMemories),
 }));
 
 export const climbingSessionsRelations = relations(climbingSessions, ({ one, many }) => ({
@@ -236,3 +237,25 @@ export type WorkoutSession = typeof workoutSessions.$inferSelect;
 export const insertLayerQuestSchema = createInsertSchema(layerQuests);
 export type InsertLayerQuest = z.infer<typeof insertLayerQuestSchema>;
 export type LayerQuest = typeof layerQuests.$inferSelect;
+
+// Nanachi Memory System
+export const nanachiMemories = pgTable("nanachi_memories", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  memoryType: varchar("memory_type").notNull(), // 'conversation', 'preference', 'achievement', 'goal'
+  title: varchar("title").notNull(),
+  content: text("content").notNull(),
+  context: jsonb("context"), // Additional structured data
+  importance: integer("importance").default(1), // 1-5 scale
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  expiresAt: timestamp("expires_at"), // Optional expiration for temporary memories
+});
+
+export const nanachiMemoriesRelations = relations(nanachiMemories, ({ one }) => ({
+  user: one(users, { fields: [nanachiMemories.userId], references: [users.id] }),
+}));
+
+export const insertNanachiMemorySchema = createInsertSchema(nanachiMemories);
+export type InsertNanachiMemory = z.infer<typeof insertNanachiMemorySchema>;
+export type NanachiMemory = typeof nanachiMemories.$inferSelect;

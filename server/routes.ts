@@ -6,6 +6,7 @@ import { questGenerator } from "./services/questGenerator";
 import { gradeConverter } from "./services/gradeConverter";
 import { xpCalculator } from "./services/xpCalculator";
 import { analyzeClimbingProgress, generateWorkout, analyzeQuestCompletion } from "./services/openai";
+import { nanachiAnalysisService } from "./services/nanachiAnalysis";
 import { achievementService } from "./services/achievementService";
 import { layerQuestService } from "./services/layerQuestService";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
@@ -615,23 +616,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Progress analysis
+  // Nanachi progress analysis
   app.get('/api/analysis/progress', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const sessions = await storage.getUserClimbingSessions(userId, 20);
-      
-      const allProblems = [];
-      for (const session of sessions) {
-        const problems = await storage.getBoulderProblemsForSession(session.id);
-        allProblems.push(...problems);
-      }
-      
-      const analysis = await analyzeClimbingProgress(sessions, allProblems);
+      const analysis = await nanachiAnalysisService.generateProgressAnalysis(userId);
       res.json(analysis);
     } catch (error) {
-      console.error("Error analyzing progress:", error);
-      res.status(500).json({ message: "Failed to analyze progress" });
+      console.error("Error generating Nanachi analysis:", error);
+      res.status(500).json({ message: "Failed to generate analysis" });
     }
   });
 
@@ -1252,14 +1245,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getUserSkills(userId)
       ]);
 
+      // Get contextual memories for this conversation
+      const { nanachiMemoryService } = await import("./services/nanachiMemory");
+      const contextualMemories = await nanachiMemoryService.getContextualMemories(userId, message || "image analysis");
+      
+      // Process the message with memory context
       const { nanachiService } = await import("./services/nanachiService");
       const response = await nanachiService.processMessage(
         message || "Analyze this boulder problem image",
         user,
         userStats,
         userSkills,
-        imageFile
+        imageFile,
+        contextualMemories
       );
+      
+      // Store the conversation in memory
+      await nanachiMemoryService.storeConversation(userId, message || "Uploaded image for analysis", response);
       
       res.json({ response });
     } catch (error) {

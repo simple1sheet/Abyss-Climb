@@ -23,6 +23,9 @@ import {
   type InsertWorkoutSession,
   type LayerQuest,
   type InsertLayerQuest,
+  nanachiMemories,
+  type NanachiMemory,
+  type InsertNanachiMemory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, gte, lte, lt, sql, inArray, isNotNull } from "drizzle-orm";
@@ -148,6 +151,14 @@ export interface IStorage {
   
   // Developer operations
   resetUserData(userId: string): Promise<void>;
+
+  // Nanachi Memory operations
+  createNanachiMemory(memory: InsertNanachiMemory): Promise<NanachiMemory>;
+  getUserNanachiMemories(userId: string): Promise<NanachiMemory[]>;
+  getNanachiMemoriesByType(userId: string, type: string): Promise<NanachiMemory[]>;
+  updateNanachiMemory(id: number, updates: Partial<NanachiMemory>): Promise<NanachiMemory>;
+  cleanupExpiredNanachiMemories(): Promise<void>;
+  getImportantNanachiMemories(userId: string, limit: number): Promise<NanachiMemory[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1291,6 +1302,50 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
     
     console.log(`All data reset for user ${userId}`);
+  }
+
+  // Nanachi Memory operations
+  async createNanachiMemory(memory: InsertNanachiMemory): Promise<NanachiMemory> {
+    const [result] = await db.insert(nanachiMemories).values(memory).returning();
+    return result;
+  }
+
+  async getUserNanachiMemories(userId: string): Promise<NanachiMemory[]> {
+    return await db.select().from(nanachiMemories)
+      .where(eq(nanachiMemories.userId, userId))
+      .orderBy(desc(nanachiMemories.createdAt));
+  }
+
+  async getNanachiMemoriesByType(userId: string, type: string): Promise<NanachiMemory[]> {
+    return await db.select().from(nanachiMemories)
+      .where(and(
+        eq(nanachiMemories.userId, userId),
+        eq(nanachiMemories.memoryType, type)
+      ))
+      .orderBy(desc(nanachiMemories.createdAt));
+  }
+
+  async updateNanachiMemory(id: number, updates: Partial<NanachiMemory>): Promise<NanachiMemory> {
+    const [result] = await db.update(nanachiMemories)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(nanachiMemories.id, id))
+      .returning();
+    return result;
+  }
+
+  async cleanupExpiredNanachiMemories(): Promise<void> {
+    await db.delete(nanachiMemories)
+      .where(and(
+        isNotNull(nanachiMemories.expiresAt),
+        lt(nanachiMemories.expiresAt, new Date())
+      ));
+  }
+
+  async getImportantNanachiMemories(userId: string, limit: number): Promise<NanachiMemory[]> {
+    return await db.select().from(nanachiMemories)
+      .where(eq(nanachiMemories.userId, userId))
+      .orderBy(desc(nanachiMemories.importance), desc(nanachiMemories.createdAt))
+      .limit(limit);
   }
 }
 

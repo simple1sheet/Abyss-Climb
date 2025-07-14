@@ -358,53 +358,56 @@ export default function ProgressPage() {
           </CardContent>
         </Card>
 
-        {/* AI Analysis */}
+        {/* Nanachi's Analysis */}
         {analysis && (
           <Card className="bg-abyss-purple/30 backdrop-blur-sm border-abyss-teal/20 depth-layer">
             <CardHeader>
               <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
-                <i className="fas fa-brain text-abyss-amber"></i>
-                <span>AI Analysis</span>
+                <div className="text-xl">🐰</div>
+                <span>Nanachi's Analysis</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {analysis.strengths?.length > 0 && (
-                <div>
-                  <h4 className="text-sm font-medium text-abyss-ethereal mb-2">Strengths</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {analysis.strengths.map((strength: string, index: number) => (
-                      <Badge key={index} className="bg-green-500/20 text-green-400 border-green-500/30">
-                        {strength}
-                      </Badge>
-                    ))}
-                  </div>
+              {analysis.personalizedGreeting && (
+                <div className="p-3 bg-abyss-dark/40 rounded-lg">
+                  <p className="text-sm text-abyss-ethereal/90 italic">
+                    "{analysis.personalizedGreeting}"
+                  </p>
                 </div>
               )}
               
-              {analysis.weaknesses?.length > 0 && (
+              {analysis.progressInsights && (
                 <div>
-                  <h4 className="text-sm font-medium text-abyss-ethereal mb-2">Areas for Improvement</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {analysis.weaknesses.map((weakness: string, index: number) => (
-                      <Badge key={index} className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                        {weakness}
-                      </Badge>
-                    ))}
-                  </div>
+                  <h4 className="text-sm font-medium text-abyss-ethereal mb-2">Progress Insights</h4>
+                  <p className="text-sm text-abyss-ethereal/80">
+                    {analysis.progressInsights}
+                  </p>
                 </div>
               )}
               
-              {analysis.recommendations?.length > 0 && (
+              {analysis.encouragement && (
                 <div>
-                  <h4 className="text-sm font-medium text-abyss-ethereal mb-2">Recommendations</h4>
-                  <ul className="space-y-1">
-                    {analysis.recommendations.map((rec: string, index: number) => (
-                      <li key={index} className="text-sm text-abyss-ethereal/80 flex items-start space-x-2">
-                        <i className="fas fa-arrow-right text-abyss-amber text-xs mt-1"></i>
-                        <span>{rec}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <h4 className="text-sm font-medium text-abyss-ethereal mb-2">Encouragement</h4>
+                  <p className="text-sm text-abyss-ethereal/80">
+                    {analysis.encouragement}
+                  </p>
+                </div>
+              )}
+              
+              {analysis.nextSteps && (
+                <div>
+                  <h4 className="text-sm font-medium text-abyss-ethereal mb-2">Next Steps</h4>
+                  <p className="text-sm text-abyss-ethereal/80">
+                    {analysis.nextSteps}
+                  </p>
+                </div>
+              )}
+              
+              {analysis.personalTouch && (
+                <div className="p-3 bg-abyss-dark/40 rounded-lg border-l-4 border-abyss-amber">
+                  <p className="text-sm text-abyss-ethereal/90 italic">
+                    "{analysis.personalTouch}"
+                  </p>
                 </div>
               )}
             </CardContent>
