@@ -30,6 +30,9 @@ Preferred communication style: Simple, everyday language.
 - **Recipe Recommendations**: AI-generated personalized recipes with climbing benefits and Nanachi's personality-driven tips
 - **Dynamic Macro Targets**: Calories, protein, carbs, and fat recommendations that adapt based on climbing needs and goals
 - **Performance-Connected Analysis**: Nutrition insights directly connected to layer progression and whistle advancement
+- **Independent Chat-Based Goals**: Nutrition tab now works independently based on chat goals - Nanachi saves goals and implements them automatically
+- **Smart Goal Processing**: Chat conversations automatically update macro targets and personalized insights
+- **Contextual Memory Integration**: Nutrition analysis references previous chat goals for consistent, personalized recommendations
 
 ### ✓ Nanachi AI Personal Assistant Implementation (January 2025)
 - **Personal AI Assistant**: Implemented Nanachi from Made in Abyss as a personal climbing assistant with authentic character personality

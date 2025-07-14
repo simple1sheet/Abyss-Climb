@@ -1445,6 +1445,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/nutrition/chat-goals", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { message } = req.body;
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      const { nanachiNutritionService } = await import("./services/nanachiNutrition");
+      const result = await nanachiNutritionService.processChatGoals(userId, message);
+      
+      res.json(result);
+    } catch (error) {
+      log(`Error processing chat goals: ${error}`, "error");
+      res.status(500).json({ message: "Failed to process chat goals" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

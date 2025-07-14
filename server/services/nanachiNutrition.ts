@@ -176,6 +176,10 @@ export class NanachiNutritionService {
     height?: number;
     age?: number;
     gender?: string;
+    chatGoals?: string;
+    personalizedInsights?: string;
+    climbingContext?: string;
+    dietaryPreferences?: string;
   }): Promise<InsertNutritionGoal> {
     const user = await storage.getUser(userId);
     const userMemories = await nanachiMemoryService.getImportantMemories(userId, 5);
@@ -240,6 +244,10 @@ export class NanachiNutritionService {
       dailyProtein: calculations.dailyProtein,
       dailyCarbs: calculations.dailyCarbs,
       dailyFat: calculations.dailyFat,
+      chatGoals: userInput.chatGoals,
+      personalizedInsights: userInput.personalizedInsights,
+      climbingContext: userInput.climbingContext,
+      dietaryPreferences: userInput.dietaryPreferences,
     };
   }
 
@@ -271,8 +279,8 @@ export class NanachiNutritionService {
           carbs: { current: nutritionSummary.totalCarbs, target: 250, percentage: 0 },
           fat: { current: nutritionSummary.totalFat, target: 65, percentage: 0 },
         },
-        nanachiInsights: "Naa! You should set up your nutrition goals first so I can help you better, naa! Your climbing performance will improve so much with proper nutrition planning!",
-        recommendations: ["Set up your nutrition goals", "Start tracking your meals", "Consider your climbing performance needs"]
+        nanachiInsights: "Naa! You should chat with me about your nutrition goals first so I can help you better, naa! Use the 'Chat Goals' tab to tell me about your climbing objectives and I'll create a personalized nutrition plan for you!",
+        recommendations: ["Chat with me about your nutrition goals", "Tell me about your climbing objectives", "Share your dietary preferences"]
       };
     }
 
@@ -299,8 +307,13 @@ export class NanachiNutritionService {
       }
     };
 
+    // Use personalized insights from chat goals if available
+    const chatGoals = userGoal.chatGoals ? JSON.parse(userGoal.chatGoals) : [];
+    const personalizedInsights = userGoal.personalizedInsights;
+    const climbingContext = userGoal.climbingContext;
+    
     const contextPrompt = `
-    You are Nanachi from "Made in Abyss" - analyze this climber's nutrition progress and provide personalized insights based on their climbing performance.
+    You are Nanachi from "Made in Abyss" - analyze this climber's nutrition progress using their personalized goals and insights.
     
     Climbing Performance:
     - Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
@@ -315,14 +328,20 @@ export class NanachiNutritionService {
     - Carbs: ${dailyProgress.carbs.current}g/${dailyProgress.carbs.target}g (${dailyProgress.carbs.percentage}%)
     - Fat: ${dailyProgress.fat.current}g/${dailyProgress.fat.target}g (${dailyProgress.fat.percentage}%)
     
-    Goal: ${userGoal.goalType}
+    Personalized Context:
+    - Goal: ${userGoal.goalType}
+    - Chat Goals: ${chatGoals.length > 0 ? chatGoals.map(g => g.message).join('; ') : 'None'}
+    - My Previous Insights: ${personalizedInsights || 'None'}
+    - Climbing Context: ${climbingContext || 'None'}
+    - Dietary Preferences: ${userGoal.dietaryPreferences || 'None'}
+    
     Recent memories: ${userMemories.map(m => m.content).join(', ')}
     
     Provide:
-    1. A personalized Nanachi insight connecting their nutrition to climbing performance (with "naa" speech patterns)
-    2. 3-5 specific recommendations that will help them progress in their climbing journey
+    1. A personalized Nanachi insight based on our previous chat goals discussion (with "naa" speech patterns)
+    2. 3-5 specific recommendations that align with their chat goals and climbing progression
     
-    Focus on how nutrition affects their whistle level progression, layer advancement, and climbing performance.
+    Reference the previous chat goals discussion and maintain consistency with previous insights.
     `;
 
     const response = await openai.chat.completions.create({
@@ -444,6 +463,110 @@ export class NanachiNutritionService {
       content: `Generated ${result.recipes.length} personalized recipes for climbing performance`,
       importance: 4,
     });
+
+    return result;
+  }
+
+  // Process chat goals and update nutrition goals
+  async processChatGoals(userId: string, chatMessage: string): Promise<{
+    response: string;
+    goalsUpdated: boolean;
+    newMacros?: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+    };
+  }> {
+    const userStats = await storage.getEnhancedProgressStats(userId);
+    const userSkills = await storage.getUserSkills(userId);
+    const recentSessions = await storage.getUserClimbingSessions(userId, 7);
+    const existingGoal = await storage.getUserNutritionGoal(userId);
+    const userMemories = await nanachiMemoryService.getImportantMemories(userId, 10);
+
+    const contextPrompt = `
+    You are Nanachi from "Made in Abyss" - analyze this climber's nutrition goal request and provide a comprehensive response.
+
+    Climber Profile:
+    - Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
+    - Current XP: ${userStats.currentXP}
+    - Best Grade: ${userStats.enhancedStats.bestGrade}
+    - Recent Sessions: ${recentSessions.length} this week
+    - Average Grade 7d: ${userStats.enhancedStats.averageGrade7d}
+
+    Existing Goal: ${existingGoal ? `${existingGoal.goalType} - ${existingGoal.dailyCalories} cal/day` : 'None set'}
+    Previous memories: ${userMemories.map(m => m.content).join(', ')}
+
+    User Message: "${chatMessage}"
+
+    Provide a JSON response with:
+    {
+      "response": "Nanachi's caring response with 'naa' speech patterns",
+      "goalsUpdated": true/false,
+      "newMacros": {
+        "calories": daily_calories_number,
+        "protein": daily_protein_grams,
+        "carbs": daily_carbs_grams,
+        "fat": daily_fat_grams
+      },
+      "goalType": "performance|muscle_gain|weight_loss|maintenance",
+      "personalizedInsights": "Nanachi's insights about how this connects to climbing",
+      "climbingContext": "How this relates to their current layer/whistle progression",
+      "dietaryPreferences": "Any dietary preferences or restrictions mentioned"
+    }
+
+    Only set goalsUpdated to true if the user is specifically asking to set goals or change their nutrition plan.
+    Base macros on their climbing performance needs and whistle level progression.
+    `;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      messages: [
+        {
+          role: "system",
+          content: "You are Nanachi from Made in Abyss, a knowledgeable nutrition advisor for climbers. Use your characteristic speech patterns and connect nutrition to climbing performance."
+        },
+        {
+          role: "user",
+          content: contextPrompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 1000,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    // Store the conversation in memory
+    await nanachiMemoryService.storeMemory({
+      userId,
+      memoryType: 'conversation',
+      title: 'Nutrition goals discussion',
+      content: `User: ${chatMessage}. Nanachi: ${result.response}`,
+      importance: result.goalsUpdated ? 5 : 3,
+    });
+
+    // Update nutrition goals if needed
+    if (result.goalsUpdated && result.newMacros) {
+      const goalData = {
+        goalType: result.goalType,
+        activityLevel: 'moderate', // Default based on climbing
+        dailyCalories: result.newMacros.calories,
+        dailyProtein: result.newMacros.protein,
+        dailyCarbs: result.newMacros.carbs,
+        dailyFat: result.newMacros.fat,
+        chatGoals: JSON.stringify([{ message: chatMessage, timestamp: new Date() }]),
+        personalizedInsights: result.personalizedInsights,
+        climbingContext: result.climbingContext,
+        dietaryPreferences: result.dietaryPreferences,
+      };
+
+      if (existingGoal) {
+        await storage.updateNutritionGoal(existingGoal.id, goalData);
+      } else {
+        await storage.createNutritionGoal({ userId, ...goalData });
+      }
+    }
 
     return result;
   }

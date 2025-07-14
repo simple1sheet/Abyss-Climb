@@ -297,6 +297,11 @@ export const nutritionGoals = pgTable("nutrition_goals", {
   dailyProtein: decimal("daily_protein").notNull(),
   dailyCarbs: decimal("daily_carbs").notNull(),
   dailyFat: decimal("daily_fat").notNull(),
+  // Chat-based goals and preferences
+  chatGoals: text("chat_goals"), // JSON string of goals discussed in chat
+  personalizedInsights: text("personalized_insights"), // Nanachi's insights based on chat
+  climbingContext: text("climbing_context"), // Climbing-specific context from chat
+  dietaryPreferences: text("dietary_preferences"), // Dietary restrictions/preferences
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

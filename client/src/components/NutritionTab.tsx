@@ -110,13 +110,23 @@ export default function NutritionTab() {
 
   const chatGoalMutation = useMutation({
     mutationFn: async (message: string) => {
-      return await apiRequest("POST", "/api/nanachi/chat", { message });
+      return await apiRequest("POST", "/api/nutrition/chat-goals", { message });
     },
     onSuccess: (data) => {
       setGoalChatHistory(prev => [...prev, 
         { type: 'nanachi', message: data.response, timestamp: new Date() }
       ]);
       setGoalChatMessage('');
+      
+      // If goals were updated, show notification and refresh data
+      if (data.goalsUpdated) {
+        toast({
+          title: "Goals Updated!",
+          description: "Nanachi has updated your nutrition goals based on your conversation.",
+        });
+        // Refresh nutrition data
+        queryClient.invalidateQueries({ queryKey: ["/api/nutrition"] });
+      }
     },
     onError: (error) => {
       toast({
