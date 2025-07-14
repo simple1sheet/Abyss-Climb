@@ -9,6 +9,7 @@ import { analyzeClimbingProgress, generateWorkout, analyzeQuestCompletion } from
 import { nanachiAnalysisService } from "./services/nanachiAnalysis";
 import { achievementService } from "./services/achievementService";
 import { layerQuestService } from "./services/layerQuestService";
+import { relicService } from "./services/relicService";
 import { insertClimbingSessionSchema, insertBoulderProblemSchema, Quest } from "@shared/schema";
 import multer from "multer";
 import path from "path";
@@ -338,9 +339,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Check for achievements after updating XP
             const newAchievements = await achievementService.checkAndUnlockAchievements(userId);
             
-            // Include newly unlocked achievements in the response
-            if (newAchievements.length > 0) {
-              return res.json({ problem, newAchievements });
+            // Check for relic find on completed problems
+            let foundRelic = null;
+            try {
+              foundRelic = await relicService.checkForRelicFind(
+                userId,
+                problem.sessionId,
+                problem.id,
+                problem.grade,
+                user.currentLayer
+              );
+              
+              if (foundRelic) {
+                console.log(`Relic found! ${foundRelic.name} (${foundRelic.rarity}) for user ${userId}`);
+              }
+            } catch (error) {
+              console.error("Error checking for relic find:", error);
+            }
+            
+            // Include newly unlocked achievements and found relics in the response
+            if (newAchievements.length > 0 || foundRelic) {
+              return res.json({ problem, newAchievements, foundRelic });
             }
           } else {
             console.error(`User ${userId} not found when trying to update XP`);
@@ -1516,6 +1535,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       log(`Error processing chat goals: ${error}`, "error");
       res.status(500).json({ message: "Failed to process chat goals" });
+    }
+  });
+
+  // Relic API endpoints
+  app.get("/api/relics", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const relics = await relicService.getUserRelics(userId);
+      res.json(relics);
+    } catch (error) {
+      console.error("Error fetching relics:", error);
+      res.status(500).json({ message: "Failed to fetch relics" });
+    }
+  });
+
+  app.get("/api/relics/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const stats = await relicService.getUserRelicStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching relic stats:", error);
+      res.status(500).json({ message: "Failed to fetch relic stats" });
+    }
+  });
+
+  app.get("/api/relics/rarity/:rarity", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const rarity = req.params.rarity;
+      const relics = await relicService.getUserRelicsByRarity(userId, rarity);
+      res.json(relics);
+    } catch (error) {
+      console.error("Error fetching relics by rarity:", error);
+      res.status(500).json({ message: "Failed to fetch relics by rarity" });
     }
   });
 

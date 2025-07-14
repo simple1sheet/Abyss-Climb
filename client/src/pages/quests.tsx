@@ -10,12 +10,13 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
 import BottomNavigation from "@/components/BottomNavigation";
-import { CheckCircle, X, ArrowLeft, Camera, Utensils, Target, TrendingUp } from "lucide-react";
+import { CheckCircle, X, ArrowLeft, Camera, Utensils, Target, TrendingUp, Gem } from "lucide-react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
 import { useAchievementNotification } from "@/hooks/useAchievementNotification";
+import RelicsTab from "@/components/RelicsTab";
 
 // Quest Component (existing functionality)
 function QuestTab() {
@@ -440,7 +441,7 @@ import NutritionTab from "@/components/NutritionTab";
 
 // Main Delver Tent Component
 function Quests() {
-  const [activeTab, setActiveTab] = useState<'quests' | 'nutrition'>('quests');
+  const [activeTab, setActiveTab] = useState<'quests' | 'nutrition' | 'relics'>('quests');
   const [, setLocation] = useLocation();
 
   return (
@@ -465,7 +466,7 @@ function Quests() {
               <div>
                 <h1 className="text-lg font-semibold text-abyss-ethereal">Delver Tent</h1>
                 <p className="text-sm text-abyss-ethereal/60">
-                  Quests & Nutrition
+                  Quests, Nutrition & Relics
                 </p>
               </div>
             </div>
@@ -474,8 +475,8 @@ function Quests() {
 
         {/* Tabs Navigation */}
         <div className="relative z-10 px-6 mb-6">
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'quests' | 'nutrition')}>
-            <TabsList className="grid w-full grid-cols-2 bg-abyss-dark/30 backdrop-blur-sm border-abyss-teal/20">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'quests' | 'nutrition' | 'relics')}>
+            <TabsList className="grid w-full grid-cols-3 bg-abyss-dark/30 backdrop-blur-sm border-abyss-teal/20">
               <TabsTrigger 
                 value="quests"
                 className="data-[state=active]:bg-abyss-teal data-[state=active]:text-abyss-dark text-abyss-ethereal"
@@ -490,6 +491,13 @@ function Quests() {
                 <Utensils className="h-4 w-4 mr-2" />
                 Nutrition
               </TabsTrigger>
+              <TabsTrigger 
+                value="relics"
+                className="data-[state=active]:bg-abyss-teal data-[state=active]:text-abyss-dark text-abyss-ethereal"
+              >
+                <Gem className="h-4 w-4 mr-2" />
+                Relics
+              </TabsTrigger>
             </TabsList>
             
             {/* Quest Tab Content */}
@@ -503,6 +511,13 @@ function Quests() {
             <TabsContent value="nutrition" className="mt-0">
               <div className="pb-24">
                 <NutritionTab />
+              </div>
+            </TabsContent>
+
+            {/* Relics Tab Content */}
+            <TabsContent value="relics" className="mt-0">
+              <div className="pb-24">
+                <RelicsTab />
               </div>
             </TabsContent>
           </Tabs>

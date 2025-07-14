@@ -11,6 +11,7 @@ import {
   nutritionEntries,
   nutritionGoals,
   nutritionRecommendations,
+  relics,
   type User,
   type UpsertUser,
   type ClimbingSession,
@@ -35,6 +36,8 @@ import {
   type InsertNutritionGoal,
   type NutritionRecommendation,
   type InsertNutritionRecommendation,
+  type Relic,
+  type InsertRelic,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, gte, lte, lt, sql, inArray, isNotNull } from "drizzle-orm";
@@ -202,6 +205,12 @@ export interface IStorage {
       snack: { calories: number; protein: number; carbs: number; fat: number; };
     };
   }>;
+
+  // Relic operations
+  createRelic(relic: InsertRelic): Promise<Relic>;
+  getUserRelics(userId: string): Promise<Relic[]>;
+  getUserRelicsByRarity(userId: string, rarity: string): Promise<Relic[]>;
+  getRelic(id: number): Promise<Relic | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1367,6 +1376,10 @@ export class DatabaseStorage implements IStorage {
     await db.delete(layerQuests)
       .where(eq(layerQuests.userId, userId));
     
+    // Delete relics
+    await db.delete(relics)
+      .where(eq(relics.userId, userId));
+    
     // Reset user stats but keep the user account
     await db.update(users)
       .set({
@@ -1587,6 +1600,33 @@ export class DatabaseStorage implements IStorage {
     }
 
     return summary;
+  }
+
+  // Relic operations
+  async createRelic(relic: InsertRelic): Promise<Relic> {
+    const [result] = await db.insert(relics).values(relic).returning();
+    return result;
+  }
+
+  async getUserRelics(userId: string): Promise<Relic[]> {
+    return await db.select().from(relics)
+      .where(eq(relics.userId, userId))
+      .orderBy(desc(relics.foundAt));
+  }
+
+  async getUserRelicsByRarity(userId: string, rarity: string): Promise<Relic[]> {
+    return await db.select().from(relics)
+      .where(and(
+        eq(relics.userId, userId),
+        eq(relics.rarity, rarity)
+      ))
+      .orderBy(desc(relics.foundAt));
+  }
+
+  async getRelic(id: number): Promise<Relic | undefined> {
+    const [relic] = await db.select().from(relics)
+      .where(eq(relics.id, id));
+    return relic;
   }
 }
 

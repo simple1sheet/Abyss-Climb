@@ -320,6 +320,24 @@ export const nutritionRecommendations = pgTable("nutrition_recommendations", {
   expiresAt: timestamp("expires_at"),
 });
 
+// Relics found during climbing sessions
+export const relics = pgTable("relics", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  sessionId: integer("session_id").references(() => climbingSessions.id).notNull(),
+  boulderProblemId: integer("boulder_problem_id").references(() => boulderProblems.id).notNull(),
+  name: varchar("name").notNull(),
+  description: text("description").notNull(),
+  rarity: varchar("rarity").notNull(), // common, uncommon, rare, epic, legendary
+  category: varchar("category").notNull(), // artifact, special_grade, white_whistle, curse_repelling, etc.
+  layer: integer("layer").notNull(), // Layer where relic was found
+  grade: varchar("grade").notNull(), // Grade of boulder problem when found
+  imageUrl: varchar("image_url"), // Optional image for the relic
+  loreText: text("lore_text"), // Made in Abyss lore description
+  foundAt: timestamp("found_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const nutritionEntriesRelations = relations(nutritionEntries, ({ one }) => ({
   user: one(users, { fields: [nutritionEntries.userId], references: [users.id] }),
@@ -333,10 +351,17 @@ export const nutritionRecommendationsRelations = relations(nutritionRecommendati
   user: one(users, { fields: [nutritionRecommendations.userId], references: [users.id] }),
 }));
 
+export const relicsRelations = relations(relics, ({ one }) => ({
+  user: one(users, { fields: [relics.userId], references: [users.id] }),
+  session: one(climbingSessions, { fields: [relics.sessionId], references: [climbingSessions.id] }),
+  boulderProblem: one(boulderProblems, { fields: [relics.boulderProblemId], references: [boulderProblems.id] }),
+}));
+
 // Insert schemas
 export const insertNutritionEntrySchema = createInsertSchema(nutritionEntries);
 export const insertNutritionGoalSchema = createInsertSchema(nutritionGoals);
 export const insertNutritionRecommendationSchema = createInsertSchema(nutritionRecommendations);
+export const insertRelicSchema = createInsertSchema(relics);
 
 // Types
 export type InsertNutritionEntry = z.infer<typeof insertNutritionEntrySchema>;
@@ -345,3 +370,5 @@ export type InsertNutritionGoal = z.infer<typeof insertNutritionGoalSchema>;
 export type NutritionGoal = typeof nutritionGoals.$inferSelect;
 export type InsertNutritionRecommendation = z.infer<typeof insertNutritionRecommendationSchema>;
 export type NutritionRecommendation = typeof nutritionRecommendations.$inferSelect;
+export type InsertRelic = z.infer<typeof insertRelicSchema>;
+export type Relic = typeof relics.$inferSelect;
