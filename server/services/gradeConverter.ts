@@ -134,88 +134,88 @@ export class GradeConverter {
     return whistleNames[level as keyof typeof whistleNames] || "Unknown";
   }
 
-  getSkillCategoryForStyle(style: string): { mainCategory: string; subCategory: string } {
+  getSkillCategoryForStyle(style: string): { mainCategory: string; subCategory: string; skillType: string } {
     const styleMap = {
-      // Frontend available styles (capitalized) - matching exact names from STYLE_OPTIONS
-      'Crimps': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'Jugs': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'Pinches': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'Slopers': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'Pockets': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'Dynos': { mainCategory: 'movement', subCategory: 'dynamic' },
-      'Mantles': { mainCategory: 'movement', subCategory: 'balance' },
-      'Overhangs': { mainCategory: 'strength', subCategory: 'core_strength' },
-      'Slabs': { mainCategory: 'movement', subCategory: 'balance' },
-      'Roofs': { mainCategory: 'strength', subCategory: 'core_strength' },
-      'Aretes': { mainCategory: 'technical', subCategory: 'technique_refinement' },
-      'Compression': { mainCategory: 'strength', subCategory: 'core_strength' },
-      'Coordination': { mainCategory: 'movement', subCategory: 'coordination' },
+      // Frontend available styles (capitalized) - mapping to actual skillTypes from skill tree
+      'Crimps': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'crimps' },
+      'Jugs': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'crimps' }, // No 'jugs' in skill tree, use crimps
+      'Pinches': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'pinches' },
+      'Slopers': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'slopers' },
+      'Pockets': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'pockets' },
+      'Dynos': { mainCategory: 'movement', subCategory: 'dynamic', skillType: 'dynos' },
+      'Mantles': { mainCategory: 'movement', subCategory: 'balance', skillType: 'mantles' },
+      'Overhangs': { mainCategory: 'strength', subCategory: 'core_strength', skillType: 'overhangs' },
+      'Slabs': { mainCategory: 'movement', subCategory: 'balance', skillType: 'slab' }, // Note: skillType is 'slab' not 'slabs'
+      'Roofs': { mainCategory: 'strength', subCategory: 'core_strength', skillType: 'overhangs' }, // No 'roofs' in skill tree, use overhangs
+      'Aretes': { mainCategory: 'technical', subCategory: 'technique_refinement', skillType: 'body_positioning' }, // No 'aretes' in skill tree, use body_positioning
+      'Compression': { mainCategory: 'strength', subCategory: 'core_strength', skillType: 'compression' },
+      'Coordination': { mainCategory: 'movement', subCategory: 'coordination', skillType: 'cross_through' }, // Use specific coordination skill
       
       // Additional common styles (lowercase versions for compatibility)
-      'crimps': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'jugs': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'pinches': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'slopers': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'pockets': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'dynos': { mainCategory: 'movement', subCategory: 'dynamic' },
-      'mantles': { mainCategory: 'movement', subCategory: 'balance' },
-      'overhangs': { mainCategory: 'strength', subCategory: 'core_strength' },
-      'slabs': { mainCategory: 'movement', subCategory: 'balance' },
-      'roofs': { mainCategory: 'strength', subCategory: 'core_strength' },
-      'aretes': { mainCategory: 'technical', subCategory: 'technique_refinement' },
-      'compression': { mainCategory: 'strength', subCategory: 'core_strength' },
-      'coordination': { mainCategory: 'movement', subCategory: 'coordination' },
+      'crimps': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'crimps' },
+      'jugs': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'crimps' },
+      'pinches': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'pinches' },
+      'slopers': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'slopers' },
+      'pockets': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'pockets' },
+      'dynos': { mainCategory: 'movement', subCategory: 'dynamic', skillType: 'dynos' },
+      'mantles': { mainCategory: 'movement', subCategory: 'balance', skillType: 'mantles' },
+      'overhangs': { mainCategory: 'strength', subCategory: 'core_strength', skillType: 'overhangs' },
+      'slabs': { mainCategory: 'movement', subCategory: 'balance', skillType: 'slab' },
+      'roofs': { mainCategory: 'strength', subCategory: 'core_strength', skillType: 'overhangs' },
+      'aretes': { mainCategory: 'technical', subCategory: 'technique_refinement', skillType: 'body_positioning' },
+      'compression': { mainCategory: 'strength', subCategory: 'core_strength', skillType: 'compression' },
+      'coordination': { mainCategory: 'movement', subCategory: 'coordination', skillType: 'cross_through' },
       
       // Additional movement styles
-      'heel_hooks': { mainCategory: 'movement', subCategory: 'coordination' },
-      'toe_hooks': { mainCategory: 'movement', subCategory: 'coordination' },
-      'flagging': { mainCategory: 'movement', subCategory: 'coordination' },
-      'stemming': { mainCategory: 'movement', subCategory: 'coordination' },
-      'balance': { mainCategory: 'movement', subCategory: 'balance' },
-      'flexibility': { mainCategory: 'movement', subCategory: 'flexibility' },
-      'footwork': { mainCategory: 'movement', subCategory: 'footwork' },
+      'heel_hooks': { mainCategory: 'movement', subCategory: 'coordination', skillType: 'heel_hooks' },
+      'toe_hooks': { mainCategory: 'movement', subCategory: 'coordination', skillType: 'toe_hooks' },
+      'flagging': { mainCategory: 'movement', subCategory: 'coordination', skillType: 'flagging' },
+      'stemming': { mainCategory: 'movement', subCategory: 'coordination', skillType: 'cross_through' },
+      'balance': { mainCategory: 'movement', subCategory: 'balance', skillType: 'slab' },
+      'flexibility': { mainCategory: 'movement', subCategory: 'flexibility', skillType: 'high_steps' },
+      'footwork': { mainCategory: 'movement', subCategory: 'footwork', skillType: 'smearing' },
       
       // Additional strength styles
-      'power': { mainCategory: 'strength', subCategory: 'upper_body' },
-      'campus': { mainCategory: 'strength', subCategory: 'contact_strength' },
-      'lockoffs': { mainCategory: 'strength', subCategory: 'upper_body' },
-      'core': { mainCategory: 'strength', subCategory: 'core_strength' },
-      'underclings': { mainCategory: 'strength', subCategory: 'finger_strength' },
-      'gaston': { mainCategory: 'strength', subCategory: 'finger_strength' },
+      'power': { mainCategory: 'strength', subCategory: 'upper_body', skillType: 'pull_ups' },
+      'campus': { mainCategory: 'strength', subCategory: 'contact_strength', skillType: 'dead_points' },
+      'lockoffs': { mainCategory: 'strength', subCategory: 'upper_body', skillType: 'lockoffs' },
+      'core': { mainCategory: 'strength', subCategory: 'core_strength', skillType: 'compression' },
+      'underclings': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'slopers' },
+      'gaston': { mainCategory: 'strength', subCategory: 'finger_strength', skillType: 'pinches' },
       
       // Technical styles
-      'technical': { mainCategory: 'technical', subCategory: 'technique_refinement' },
-      'route_reading': { mainCategory: 'technical', subCategory: 'route_reading' },
-      'reading': { mainCategory: 'technical', subCategory: 'route_reading' },
-      'sequencing': { mainCategory: 'technical', subCategory: 'route_reading' },
-      'beta': { mainCategory: 'technical', subCategory: 'route_reading' },
-      'efficiency': { mainCategory: 'technical', subCategory: 'efficiency' },
-      'adaptation': { mainCategory: 'technical', subCategory: 'adaptation' },
+      'technical': { mainCategory: 'technical', subCategory: 'technique_refinement', skillType: 'body_positioning' },
+      'route_reading': { mainCategory: 'technical', subCategory: 'route_reading', skillType: 'beta_reading' },
+      'reading': { mainCategory: 'technical', subCategory: 'route_reading', skillType: 'beta_reading' },
+      'sequencing': { mainCategory: 'technical', subCategory: 'route_reading', skillType: 'sequence_planning' },
+      'beta': { mainCategory: 'technical', subCategory: 'route_reading', skillType: 'beta_reading' },
+      'efficiency': { mainCategory: 'technical', subCategory: 'efficiency', skillType: 'rest_positions' },
+      'adaptation': { mainCategory: 'technical', subCategory: 'adaptation', skillType: 'style_switching' },
       
       // Mental styles
-      'confidence': { mainCategory: 'mental', subCategory: 'confidence' },
-      'risk_management': { mainCategory: 'mental', subCategory: 'fear_management' },
-      'mental_game': { mainCategory: 'mental', subCategory: 'confidence' },
-      'focus': { mainCategory: 'mental', subCategory: 'focus' },
-      'fear': { mainCategory: 'mental', subCategory: 'fear_management' },
-      'persistence': { mainCategory: 'mental', subCategory: 'persistence' },
+      'confidence': { mainCategory: 'mental', subCategory: 'confidence', skillType: 'commitment' },
+      'risk_management': { mainCategory: 'mental', subCategory: 'fear_management', skillType: 'exposure' },
+      'mental_game': { mainCategory: 'mental', subCategory: 'confidence', skillType: 'commitment' },
+      'focus': { mainCategory: 'mental', subCategory: 'focus', skillType: 'route_reading' },
+      'fear': { mainCategory: 'mental', subCategory: 'fear_management', skillType: 'falling' },
+      'persistence': { mainCategory: 'mental', subCategory: 'persistence', skillType: 'projecting' },
       
       // Endurance styles
-      'endurance': { mainCategory: 'endurance', subCategory: 'power_endurance' },
-      'pump': { mainCategory: 'endurance', subCategory: 'power_endurance' },
-      'recovery': { mainCategory: 'endurance', subCategory: 'recovery' },
-      'aerobic': { mainCategory: 'endurance', subCategory: 'aerobic_capacity' },
+      'endurance': { mainCategory: 'endurance', subCategory: 'power_endurance', skillType: 'circuits' },
+      'pump': { mainCategory: 'endurance', subCategory: 'power_endurance', skillType: 'pump_tolerance' },
+      'recovery': { mainCategory: 'endurance', subCategory: 'recovery', skillType: 'active_recovery' },
+      'aerobic': { mainCategory: 'endurance', subCategory: 'aerobic_capacity', skillType: 'long_sessions' },
       
       // Strategy styles
-      'strategy': { mainCategory: 'strategy', subCategory: 'problem_solving' },
-      'tactics': { mainCategory: 'strategy', subCategory: 'problem_solving' },
-      'planning': { mainCategory: 'strategy', subCategory: 'problem_solving' },
-      'risk_assessment': { mainCategory: 'strategy', subCategory: 'risk_assessment' },
-      'training': { mainCategory: 'strategy', subCategory: 'training_planning' },
-      'competition': { mainCategory: 'strategy', subCategory: 'competition_strategy' }
+      'strategy': { mainCategory: 'strategy', subCategory: 'problem_solving', skillType: 'beta_development' },
+      'tactics': { mainCategory: 'strategy', subCategory: 'problem_solving', skillType: 'creative_solutions' },
+      'planning': { mainCategory: 'strategy', subCategory: 'problem_solving', skillType: 'beta_development' },
+      'risk_assessment': { mainCategory: 'strategy', subCategory: 'risk_assessment', skillType: 'safety_awareness' },
+      'training': { mainCategory: 'strategy', subCategory: 'training_planning', skillType: 'weakness_identification' },
+      'competition': { mainCategory: 'strategy', subCategory: 'competition_strategy', skillType: 'time_management' }
     };
     
-    return styleMap[style as keyof typeof styleMap] || { mainCategory: 'technical', subCategory: 'technique_refinement' };
+    return styleMap[style as keyof typeof styleMap] || { mainCategory: 'technical', subCategory: 'technique_refinement', skillType: 'body_positioning' };
   }
 }
 
