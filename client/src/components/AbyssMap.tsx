@@ -1,28 +1,15 @@
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, ChevronDown, Eye, Compass, BookOpen, X } from "lucide-react";
-import { getLayerInfo } from "@/utils/layerConfig";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ArrowLeft, ChevronDown, Eye, Compass, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, memo } from "react";
 import abyssMap from "@assets/image_1752500083424.png";
 
-export default function AbyssMap() {
-  const [, setLocation] = useLocation();
-  const { user } = useAuth();
-  const [selectedLayer, setSelectedLayer] = useState<number | null>(null);
-  
-  const { data: layerProgress } = useQuery({
-    queryKey: ["/api/layer-progress"],
-    enabled: !!user,
-  });
-
-  const currentLayer = layerProgress?.currentLayer || 1;
-  const currentXP = layerProgress?.currentXP || 0;
-
-  const layers = [
+// Layer data moved outside component to prevent recreation on each render
+const LAYERS = [
     {
       id: 1,
       name: "Edge of Abyss",
@@ -109,6 +96,20 @@ export default function AbyssMap() {
     }
   ];
 
+const AbyssMap = memo(() => {
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const [selectedLayer, setSelectedLayer] = useState<number | null>(null);
+  
+  const { data: layerProgress } = useQuery({
+    queryKey: ["/api/layer-progress"],
+    enabled: !!user,
+  });
+
+  const currentLayer = layerProgress?.currentLayer || 1;
+  const currentXP = layerProgress?.currentXP || 0;
+  const selectedLayerData = selectedLayer ? LAYERS[selectedLayer - 1] : null;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-abyss-dark via-slate-900 to-abyss-purple relative overflow-hidden">
       {/* Mystical Background Effects */}
@@ -164,7 +165,7 @@ export default function AbyssMap() {
                   />
                   
                   {/* Layer Markers */}
-                  {layers.map((layer) => (
+                  {LAYERS.map((layer) => (
                     <div
                       key={layer.id}
                       className={`absolute left-1/2 transform -translate-x-1/2 ${layer.position} group cursor-pointer`}
@@ -182,7 +183,7 @@ export default function AbyssMap() {
                   ))}
                   
                   {/* Current Position Indicator */}
-                  <div className={`absolute left-1/2 transform -translate-x-1/2 ${layers[currentLayer - 1]?.position} animate-pulse`}>
+                  <div className={`absolute left-1/2 transform -translate-x-1/2 ${LAYERS[currentLayer - 1]?.position} animate-pulse`}>
                     <div className="w-6 h-6 bg-abyss-amber rounded-full ring-4 ring-abyss-amber/30 animate-ping" />
                   </div>
                 </div>
@@ -206,41 +207,45 @@ export default function AbyssMap() {
                 </h2>
                 
                 <div className="space-y-3 lg:space-y-4">
-                  {layers.map((layer) => (
-                    <div
-                      key={layer.id}
-                      className={`p-3 lg:p-4 rounded-lg border transition-all cursor-pointer hover:bg-abyss-teal/5 ${
-                        layer.id === currentLayer
-                          ? 'border-abyss-amber bg-abyss-amber/10'
-                          : layer.id < currentLayer
-                          ? 'border-abyss-teal/30 bg-abyss-teal/5'
-                          : 'border-gray-600 bg-gray-800/30 opacity-60'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-abyss-ethereal text-sm lg:text-base">
-                          <span className="text-abyss-amber mr-2">Layer {layer.id}:</span>
-                          {layer.name}
-                        </h3>
-                        <span className="text-xs lg:text-sm text-abyss-muted ml-2 shrink-0">{layer.depth}</span>
+                  {LAYERS.map((layer) => {
+                    const isCurrentLayer = layer.id === currentLayer;
+                    const isAccessible = layer.id <= currentLayer;
+                    const layerStyle = isCurrentLayer
+                      ? 'border-abyss-amber bg-abyss-amber/10'
+                      : isAccessible
+                      ? 'border-abyss-teal/30 bg-abyss-teal/5'
+                      : 'border-gray-600 bg-gray-800/30 opacity-60';
+                    
+                    return (
+                      <div
+                        key={layer.id}
+                        className={`p-3 lg:p-4 rounded-lg border transition-all cursor-pointer hover:bg-abyss-teal/5 ${layerStyle}`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold text-abyss-ethereal text-sm lg:text-base">
+                            <span className="text-abyss-amber mr-2">Layer {layer.id}:</span>
+                            {layer.name}
+                          </h3>
+                          <span className="text-xs lg:text-sm text-abyss-muted ml-2 shrink-0">{layer.depth}</span>
+                        </div>
+                        
+                        <p className="text-xs lg:text-sm text-abyss-muted mb-2 leading-relaxed">{layer.description}</p>
+                        
+                        <div className="flex items-center justify-between text-xs lg:text-sm">
+                          <span className="text-abyss-amber">
+                            {layer.xpRequired.toLocaleString()} XP Required
+                          </span>
+                          {isAccessible && (
+                            <span className="text-abyss-teal">✓ Accessed</span>
+                          )}
+                        </div>
+                        
+                        <div className="mt-2 text-xs text-red-400 italic">
+                          Curse: {layer.curse}
+                        </div>
                       </div>
-                      
-                      <p className="text-xs lg:text-sm text-abyss-muted mb-2 leading-relaxed">{layer.description}</p>
-                      
-                      <div className="flex items-center justify-between text-xs lg:text-sm">
-                        <span className="text-abyss-amber">
-                          {layer.xpRequired.toLocaleString()} XP Required
-                        </span>
-                        {layer.id <= currentLayer && (
-                          <span className="text-abyss-teal">✓ Accessed</span>
-                        )}
-                      </div>
-                      
-                      <div className="mt-2 text-xs text-red-400 italic">
-                        Curse: {layer.curse}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
@@ -278,12 +283,15 @@ export default function AbyssMap() {
       {/* Layer Journal Modal */}
       <Dialog open={selectedLayer !== null} onOpenChange={() => setSelectedLayer(null)}>
         <DialogContent className="max-w-2xl bg-abyss-dark/95 border-abyss-teal/30 text-abyss-ethereal">
-          {selectedLayer && (
+          <DialogDescription className="sr-only">
+            Detailed information about Layer {selectedLayer} of the Abyss
+          </DialogDescription>
+          {selectedLayerData && (
             <>
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-abyss-ethereal flex items-center">
                   <BookOpen className="w-5 h-5 mr-2 text-abyss-amber relic-glow" />
-                  Layer {selectedLayer}: {layers[selectedLayer - 1]?.name}
+                  Layer {selectedLayer}: {selectedLayerData.name}
                 </DialogTitle>
               </DialogHeader>
               
@@ -293,16 +301,16 @@ export default function AbyssMap() {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-abyss-muted">Depth:</span>
-                      <span className="ml-2 text-abyss-ethereal">{layers[selectedLayer - 1]?.depth}</span>
+                      <span className="ml-2 text-abyss-ethereal">{selectedLayerData.depth}</span>
                     </div>
                     <div>
                       <span className="text-abyss-muted">XP Required:</span>
-                      <span className="ml-2 text-abyss-amber">{layers[selectedLayer - 1]?.xpRequired.toLocaleString()}</span>
+                      <span className="ml-2 text-abyss-amber">{selectedLayerData.xpRequired.toLocaleString()}</span>
                     </div>
                   </div>
                   <div className="mt-2">
                     <span className="text-abyss-muted">Curse:</span>
-                    <span className="ml-2 text-red-400 italic">{layers[selectedLayer - 1]?.curse}</span>
+                    <span className="ml-2 text-red-400 italic">{selectedLayerData.curse}</span>
                   </div>
                 </div>
 
@@ -313,7 +321,7 @@ export default function AbyssMap() {
                     Delver's Journal Entry
                   </h4>
                   <p className="text-abyss-ethereal/90 text-sm leading-relaxed italic">
-                    "{layers[selectedLayer - 1]?.journalEntry}"
+                    "{selectedLayerData.journalEntry}"
                   </p>
                 </div>
 
@@ -321,7 +329,7 @@ export default function AbyssMap() {
                 <div className="p-4 bg-abyss-teal/10 rounded-lg border border-abyss-teal/20">
                   <h4 className="font-semibold text-abyss-teal mb-2">Notable Discoveries</h4>
                   <div className="grid grid-cols-1 gap-1">
-                    {layers[selectedLayer - 1]?.discoveries.map((discovery, index) => (
+                    {selectedLayerData.discoveries.map((discovery, index) => (
                       <div key={index} className="flex items-center text-sm text-abyss-ethereal/80">
                         <span className="w-2 h-2 bg-abyss-teal/60 rounded-full mr-2 shrink-0"></span>
                         {discovery}
@@ -335,9 +343,9 @@ export default function AbyssMap() {
                   <div className="flex items-center justify-between">
                     <span className="text-abyss-muted text-sm">Access Status:</span>
                     <span className={`text-sm font-medium ${
-                      selectedLayer <= currentLayer ? 'text-abyss-teal' : 'text-abyss-muted'
+                      selectedLayer && selectedLayer <= currentLayer ? 'text-abyss-teal' : 'text-abyss-muted'
                     }`}>
-                      {selectedLayer <= currentLayer ? '✓ Accessible' : '⚠ Requires More XP'}
+                      {selectedLayer && selectedLayer <= currentLayer ? '✓ Accessible' : '⚠ Requires More XP'}
                     </span>
                   </div>
                 </div>
@@ -348,4 +356,8 @@ export default function AbyssMap() {
       </Dialog>
     </div>
   );
-}
+});
+
+AbyssMap.displayName = 'AbyssMap';
+
+export default AbyssMap;
