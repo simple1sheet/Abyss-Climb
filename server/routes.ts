@@ -104,22 +104,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/user/grade-system', isAuthenticated, async (req: any, res) => {
+  // Update user notifications
+  app.patch('/api/user/notifications', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { gradeSystem } = req.body;
+      const { enabled } = req.body;
       
-      // Validate grade system
-      const validSystems = ["V-Scale", "Font", "German"];
-      if (!validSystems.includes(gradeSystem)) {
-        return res.status(400).json({ message: "Invalid grade system" });
+      if (typeof enabled !== 'boolean') {
+        return res.status(400).json({ message: "Invalid notification setting" });
       }
       
-      const updatedUser = await storage.updateUserGradeSystem(userId, gradeSystem);
+      const updatedUser = await storage.updateUserNotifications(userId, enabled);
       res.json(updatedUser);
     } catch (error) {
-      console.error("Error updating user grade system:", error);
-      res.status(500).json({ message: "Failed to update grade system" });
+      console.error("Error updating user notifications:", error);
+      res.status(500).json({ message: "Failed to update notifications" });
     }
   });
 

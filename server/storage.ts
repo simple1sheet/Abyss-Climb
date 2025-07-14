@@ -47,6 +47,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserGradeSystem(userId: string, gradeSystem: string): Promise<User>;
+  updateUserNotifications(userId: string, enabled: boolean): Promise<User>;
   
   // Climbing session operations
   createClimbingSession(session: InsertClimbingSession): Promise<ClimbingSession>;
@@ -262,6 +263,18 @@ export class DatabaseStorage implements IStorage {
       .update(users)
       .set({
         preferredGradeSystem: gradeSystem,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
+  }
+
+  async updateUserNotifications(userId: string, enabled: boolean): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        notificationsEnabled: enabled,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId))

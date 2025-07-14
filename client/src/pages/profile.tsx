@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
 import { useLocation } from "wouter";
 import BottomNavigation from "@/components/BottomNavigation";
 import ProfilePictureUpload from "@/components/ProfilePictureUpload";
@@ -21,6 +22,30 @@ export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { gradeSystem, setGradeSystem } = useGradeSystem();
+  
+  // Notifications mutation
+  const notificationsMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      return await apiRequest(`/api/user/notifications`, {
+        method: 'PATCH',
+        body: { enabled },
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Settings Updated",
+        description: "Notification preferences saved successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update notification preferences",
+        variant: "destructive",
+      });
+    },
+  });
   
   const { data: achievements, isLoading: isLoadingAchievements } = useQuery({
     queryKey: ["/api/achievements"],
@@ -422,22 +447,24 @@ export default function Profile() {
               <select 
                 value={gradeSystem} 
                 onChange={(e) => setGradeSystem(e.target.value)}
-                className="bg-abyss-purple/30 border border-abyss-teal/20 text-abyss-ethereal rounded px-3 py-1 text-sm"
+                className="bg-abyss-dark/80 border border-abyss-teal/30 text-abyss-ethereal rounded px-3 py-1 text-sm hover:bg-abyss-dark/90 focus:outline-none focus:ring-2 focus:ring-abyss-teal/50"
               >
-                <option value="V-Scale">V-Scale</option>
-                <option value="Font">Fontainebleau</option>
-                <option value="German">German (Saxon)</option>
+                <option value="V-Scale" className="bg-abyss-dark text-abyss-ethereal">V-Scale</option>
+                <option value="Font" className="bg-abyss-dark text-abyss-ethereal">Fontainebleau</option>
+                <option value="German" className="bg-abyss-dark text-abyss-ethereal">German (Saxon)</option>
               </select>
             </div>
             
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-abyss-ethereal font-medium">Notifications</h4>
-                <p className="text-sm text-abyss-ethereal/70">Quest and progress notifications</p>
+                <p className="text-sm text-abyss-ethereal/70">XP and progress notifications</p>
               </div>
-              <div className="w-10 h-6 bg-abyss-amber rounded-full flex items-center justify-end px-1">
-                <div className="w-4 h-4 bg-abyss-dark rounded-full"></div>
-              </div>
+              <Switch
+                checked={user?.notificationsEnabled ?? true}
+                onCheckedChange={(checked) => notificationsMutation.mutate(checked)}
+                disabled={notificationsMutation.isPending}
+              />
             </div>
             
             <div className="flex items-center justify-between">
@@ -445,9 +472,11 @@ export default function Profile() {
                 <h4 className="text-abyss-ethereal font-medium">Privacy</h4>
                 <p className="text-sm text-abyss-ethereal/70">Share progress with community</p>
               </div>
-              <div className="w-10 h-6 bg-abyss-teal/50 rounded-full flex items-center justify-start px-1">
-                <div className="w-4 h-4 bg-abyss-ethereal rounded-full"></div>
-              </div>
+              <Switch
+                checked={false}
+                disabled={true}
+                className="opacity-50"
+              />
             </div>
           </CardContent>
         </Card>

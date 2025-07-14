@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
 import { useAchievementNotification } from "@/hooks/useAchievementNotification";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SessionTrackerProps {
   sessionId: number;
@@ -40,6 +41,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
   const queryClient = useQueryClient();
   const { gradeSystem: userGradeSystem } = useGradeSystem();
   const { showMultipleAchievementNotifications } = useAchievementNotification();
+  const { user } = useAuth();
 
   const [grade, setGrade] = useState("");
   const [styles, setStyles] = useState<string[]>([]);
@@ -94,13 +96,16 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
         setShowXPAnimation(true);
       }
       
+      // Check if notifications are enabled before showing any notifications
+      const notificationsEnabled = user?.notificationsEnabled ?? true;
+      
       // Show achievement notifications first
-      if (achievements.length > 0) {
+      if (achievements.length > 0 && notificationsEnabled) {
         showMultipleAchievementNotifications(achievements);
       }
       
       // Show relic notification if found
-      if (foundRelic) {
+      if (foundRelic && notificationsEnabled) {
         console.log("🏺 RELIC FOUND! Showing toast notification:", foundRelic);
         toast({
           title: "🏺 Relic Found!",
@@ -111,7 +116,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       }
       
       // Show minimal XP notification if XP was earned
-      if (problem.xpEarned) {
+      if (problem.xpEarned && notificationsEnabled) {
         setTimeout(() => {
           toast({
             title: `+${problem.xpEarned} XP`,

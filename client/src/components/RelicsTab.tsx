@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Trophy, Gem, Crown, Star, Award } from "lucide-react";
 import { type Relic } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 interface RelicStats {
   total: number;
@@ -50,17 +51,21 @@ interface GroupedRelic {
 
 const RelicCard = ({ groupedRelic }: { groupedRelic: GroupedRelic }) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const handleRelicClick = () => {
     const relicDetails = groupedRelic.relics.map(r => 
       `Found on ${new Date(r.foundAt).toLocaleDateString()} (Layer ${r.layer}, Grade ${r.grade})`
     ).join('\n');
     
-    toast({
-      title: groupedRelic.count > 1 ? `(${groupedRelic.count}) ${groupedRelic.name}` : groupedRelic.name,
-      description: `${groupedRelic.loreText || groupedRelic.description}\n\n${relicDetails}`,
-      duration: 6000,
-    });
+    // Only show toast if notifications are enabled
+    if (user?.notificationsEnabled ?? true) {
+      toast({
+        title: groupedRelic.count > 1 ? `(${groupedRelic.count}) ${groupedRelic.name}` : groupedRelic.name,
+        description: `${groupedRelic.loreText || groupedRelic.description}\n\n${relicDetails}`,
+        duration: 6000,
+      });
+    }
   };
 
   return (

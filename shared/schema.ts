@@ -39,6 +39,7 @@ export const users = pgTable("users", {
   whistleLevel: integer("whistle_level").default(1),
   totalXP: integer("total_xp").default(0),
   preferredGradeSystem: varchar("preferred_grade_system").default("V-Scale"),
+  notificationsEnabled: boolean("notifications_enabled").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

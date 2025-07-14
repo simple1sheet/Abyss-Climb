@@ -12,7 +12,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### ✓ Fixed Relic System Toast Notifications & Stacking (Latest - January 2025)
+### ✓ Notification Toggle System & Grade System Readability Fix (Latest - January 2025)
+- **Notification Toggle Feature**: Added toggleable notification system in profile settings with database persistence
+- **Database Schema Update**: Added `notificationsEnabled` field to users table with default value of `true`
+- **API Integration**: Created `/api/user/notifications` endpoint for updating user notification preferences
+- **Universal Notification Control**: All toast notifications (XP, achievements, relics) now respect user's notification preference
+- **Grade System Readability Fix**: Fixed white text on grey background issue in grade system dropdown with proper contrast
+- **Enhanced Settings UI**: Improved settings section with functional Switch components and better styling
+- **Mobile-Optimized**: Notification preferences work seamlessly across all devices and screen sizes
+
+### ✓ Fixed Relic System Toast Notifications & Stacking (January 2025)
 - **Fixed Toast Notification Bug**: Increased toast limit from 1 to 3 and added timing delay to prevent relic notifications from being overridden by "Problem Added" toast
 - **Enhanced Relic Toast Visibility**: Improved relic toast styling with bright yellow theme and 8-second duration for better visibility
 - **Relic Stacking Feature**: Implemented grouping of duplicate relics with count displays (e.g., "(2) Apprentice Whistle")
