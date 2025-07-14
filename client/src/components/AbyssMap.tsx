@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronDown, Eye, Compass } from "lucide-react";
 import { getLayerInfo } from "@/utils/layerConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
-import abyssSvg from "@assets/tree-of-skills-slide1_1752449787949.png";
+import abyssMap from "@assets/image_1752500083424.png";
 
 export default function AbyssMap() {
   const [, setLocation] = useLocation();
@@ -141,9 +141,9 @@ export default function AbyssMap() {
                 <div className="relative w-full h-[400px] lg:h-[600px] bg-gradient-to-b from-amber-100 via-slate-200 to-slate-800 rounded-lg overflow-hidden relic-shimmer">
                   {/* Map Background */}
                   <img
-                    src={abyssSvg}
+                    src={abyssMap}
                     alt="Map of the Abyss"
-                    className="absolute inset-0 w-full h-full object-cover opacity-60 curse-distortion"
+                    className="absolute inset-0 w-full h-full object-cover opacity-70 curse-distortion"
                   />
                   
                   {/* Layer Markers */}
