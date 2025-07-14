@@ -15,8 +15,10 @@ import { Camera, Utensils, Target, TrendingUp, Plus, Trash2 } from "lucide-react
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export default function NutritionTab() {
-  const [activeView, setActiveView] = useState<'dashboard' | 'scan' | 'manual' | 'goals' | 'recommendations'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'scan' | 'manual' | 'goals' | 'recommendations' | 'chat-goals'>('dashboard');
   const [scanImage, setScanImage] = useState<string | null>(null);
+  const [goalChatMessage, setGoalChatMessage] = useState('');
+  const [goalChatHistory, setGoalChatHistory] = useState<Array<{type: 'user' | 'nanachi', message: string, timestamp: Date}>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -98,6 +100,25 @@ export default function NutritionTab() {
         description: "Nutrition goal updated successfully!",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/nutrition"] });
+    },
+  });
+
+  const chatGoalMutation = useMutation({
+    mutationFn: async (message: string) => {
+      return await apiRequest("POST", "/api/nanachi/chat", { message });
+    },
+    onSuccess: (data) => {
+      setGoalChatHistory(prev => [...prev, 
+        { type: 'nanachi', message: data.response, timestamp: new Date() }
+      ]);
+      setGoalChatMessage('');
+    },
+    onError: (error) => {
+      toast({
+        title: "Chat Error",
+        description: "Failed to send message to Nanachi. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -189,6 +210,15 @@ export default function NutritionTab() {
         >
           <Target className="h-4 w-4 mr-1" />
           Goals
+        </Button>
+        <Button
+          variant={activeView === 'chat-goals' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setActiveView('chat-goals')}
+          className="abyss-button"
+        >
+          <Camera className="h-4 w-4 mr-1" />
+          Chat Goals
         </Button>
         <Button
           variant={activeView === 'recommendations' ? 'default' : 'outline'}
@@ -426,21 +456,172 @@ export default function NutritionTab() {
                       <p className="text-lg font-semibold text-abyss-amber">{nutritionGoal.dailyProtein}g</p>
                     </div>
                   </div>
+                  <div className="mt-4">
+                    <Button 
+                      className="abyss-button w-full" 
+                      onClick={() => setActiveView('chat-goals')}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Chat with Nanachi about Goals
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <Target className="h-16 w-16 mx-auto mb-4 text-abyss-teal" />
                   <p className="text-abyss-ethereal mb-4">Set your nutrition goals to get started!</p>
-                  <Button className="abyss-button" onClick={() => {
-                    toast({
-                      title: "Coming Soon",
-                      description: "Goal setting will be available soon!",
-                    });
-                  }}>
-                    Set Goals
+                  <Button 
+                    className="abyss-button" 
+                    onClick={() => setActiveView('chat-goals')}
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Chat with Nanachi about Goals
                   </Button>
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Chat Goals View */}
+      {activeView === 'chat-goals' && (
+        <Card className="nature-card">
+          <CardHeader>
+            <CardTitle className="text-abyss-ethereal">Chat with Nanachi about Goals</CardTitle>
+            <p className="text-sm text-abyss-ethereal/70">
+              Tell Nanachi about your nutrition goals, dietary preferences, and climbing objectives. She'll help create a personalized plan!
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Chat History */}
+              <div className="max-h-64 overflow-y-auto space-y-3 p-3 bg-abyss-dark/20 rounded-lg">
+                {goalChatHistory.length === 0 ? (
+                  <div className="text-center py-6">
+                    <Camera className="h-12 w-12 mx-auto mb-3 text-abyss-teal" />
+                    <p className="text-abyss-ethereal/70">Start a conversation with Nanachi!</p>
+                    <p className="text-sm text-abyss-ethereal/50 mt-2">
+                      Ask about nutrition goals, dietary advice, or climbing performance optimization.
+                    </p>
+                  </div>
+                ) : (
+                  goalChatHistory.map((msg, index) => (
+                    <div key={index} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs px-3 py-2 rounded-lg ${
+                        msg.type === 'user' 
+                          ? 'bg-abyss-teal text-abyss-dark' 
+                          : 'bg-abyss-purple/30 text-abyss-ethereal'
+                      }`}>
+                        <p className="text-sm">{msg.message}</p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {msg.timestamp.toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Input Area */}
+              <div className="flex space-x-2">
+                <Input
+                  value={goalChatMessage}
+                  onChange={(e) => setGoalChatMessage(e.target.value)}
+                  placeholder="Tell Nanachi about your nutrition goals..."
+                  className="flex-1"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !chatGoalMutation.isPending && goalChatMessage.trim()) {
+                      setGoalChatHistory(prev => [...prev, 
+                        { type: 'user', message: goalChatMessage, timestamp: new Date() }
+                      ]);
+                      chatGoalMutation.mutate(goalChatMessage);
+                    }
+                  }}
+                />
+                <Button 
+                  onClick={() => {
+                    if (goalChatMessage.trim()) {
+                      setGoalChatHistory(prev => [...prev, 
+                        { type: 'user', message: goalChatMessage, timestamp: new Date() }
+                      ]);
+                      chatGoalMutation.mutate(goalChatMessage);
+                    }
+                  }}
+                  disabled={chatGoalMutation.isPending || !goalChatMessage.trim()}
+                  className="abyss-button"
+                >
+                  {chatGoalMutation.isPending ? (
+                    <LoadingSpinner />
+                  ) : (
+                    <Camera className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+
+              {/* Quick Start Buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    const msg = "I want to optimize my nutrition for climbing performance";
+                    setGoalChatMessage(msg);
+                    setGoalChatHistory(prev => [...prev, 
+                      { type: 'user', message: msg, timestamp: new Date() }
+                    ]);
+                    chatGoalMutation.mutate(msg);
+                  }}
+                  className="text-xs"
+                >
+                  Climbing Performance
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    const msg = "Help me set up my daily nutrition goals";
+                    setGoalChatMessage(msg);
+                    setGoalChatHistory(prev => [...prev, 
+                      { type: 'user', message: msg, timestamp: new Date() }
+                    ]);
+                    chatGoalMutation.mutate(msg);
+                  }}
+                  className="text-xs"
+                >
+                  Daily Goals
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    const msg = "What should I eat before and after climbing?";
+                    setGoalChatMessage(msg);
+                    setGoalChatHistory(prev => [...prev, 
+                      { type: 'user', message: msg, timestamp: new Date() }
+                    ]);
+                    chatGoalMutation.mutate(msg);
+                  }}
+                  className="text-xs"
+                >
+                  Pre/Post Workout
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    const msg = "I have dietary restrictions, can you help?";
+                    setGoalChatMessage(msg);
+                    setGoalChatHistory(prev => [...prev, 
+                      { type: 'user', message: msg, timestamp: new Date() }
+                    ]);
+                    chatGoalMutation.mutate(msg);
+                  }}
+                  className="text-xs"
+                >
+                  Dietary Restrictions
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
