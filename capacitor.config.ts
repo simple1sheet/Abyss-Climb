@@ -28,6 +28,13 @@ const config: CapacitorConfig = {
       style: 'DARK',
       resizeOnFullScreen: true,
     },
+    App: {
+      appendUserAgent: 'AbyssClimber/1.0',
+    },
+    Device: {
+      getName: true,
+      getLanguageCode: true,
+    },
   },
   android: {
     buildOptions: {

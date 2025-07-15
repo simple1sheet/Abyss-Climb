@@ -20,6 +20,7 @@ import { useGradeSystem } from "@/hooks/useGradeSystem";
 import { gradeConverter } from "@/utils/gradeConverter";
 import { useAchievementNotification } from "@/hooks/useAchievementNotification";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SessionTrackerProps {
   sessionId: number;
@@ -84,26 +85,26 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/achievements"] });
       queryClient.invalidateQueries({ queryKey: ["/api/relics"] });
       queryClient.invalidateQueries({ queryKey: ["/api/relics/stats"] });
-      
+
       // Handle both old format (just problem) and new format (problem + achievements + relic)
       const problem = data.problem || data;
       const achievements = data.newAchievements || [];
       const foundRelic = data.foundRelic;
-      
+
       // Show XP animation if XP was earned
       if (problem.xpEarned && problem.xpEarned > 0) {
         setLastXPGained(problem.xpEarned);
         setShowXPAnimation(true);
       }
-      
+
       // Check if notifications are enabled before showing any notifications
       const notificationsEnabled = user?.notificationsEnabled ?? true;
-      
+
       // Show achievement notifications first
       if (achievements.length > 0 && notificationsEnabled) {
         showMultipleAchievementNotifications(achievements);
       }
-      
+
       // Show relic notification if found
       if (foundRelic && notificationsEnabled) {
         console.log("🏺 RELIC FOUND! Showing toast notification:", foundRelic);
@@ -114,7 +115,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
           className: "border-yellow-400 bg-yellow-50 text-yellow-900 text-sm max-w-xs",
         });
       }
-      
+
       // Show minimal XP notification if XP was earned
       if (problem.xpEarned && notificationsEnabled) {
         setTimeout(() => {
@@ -126,7 +127,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
           });
         }, foundRelic ? 500 : 0);
       }
-      
+
       // Reset form
       setGrade("");
       setStyles([]);
@@ -156,15 +157,15 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!grade) {
       errors.grade = "Please select a grade for this problem.";
     }
-    
+
     if (attempts < 1 || attempts > 50) {
       errors.attempts = "Attempts must be between 1 and 50.";
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -182,7 +183,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
 
     // Convert grade from user's preferred system to V-Scale for server storage
     const gradeInVScale = gradeConverter.convertGrade(grade, userGradeSystem, 'V-Scale');
-    
+
     addProblemMutation.mutate({
       sessionId,
       grade: gradeInVScale,
@@ -240,7 +241,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
                 <span className="text-abyss-ethereal">{userGradeSystem}</span>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <Label className="text-abyss-ethereal">Grade</Label>
               <Select value={grade} onValueChange={(value) => {
@@ -325,7 +326,7 @@ function SessionTracker({ sessionId }: SessionTrackerProps) {
                 </p>
               )}
             </div>
-            
+
             <div className="space-y-2">
               <Label className="text-abyss-ethereal">Completed</Label>
               <div className="flex items-center space-x-2 mt-2">
