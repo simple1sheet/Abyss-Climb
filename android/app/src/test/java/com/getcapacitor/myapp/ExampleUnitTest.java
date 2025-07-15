@@ -1,4 +1,4 @@
-package com.getcapacitor.myapp;
+package com.abyssclimber.app;
 
 import static org.junit.Assert.*;
 
