@@ -1,82 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
 
-#!/bin/bash
+echo "Starting complete APK build process..."
 
-echo "🏗️ Building Abyss Climber APK - Complete Process"
+# Clean previous builds
+echo "Cleaning previous builds..."
+rm -rf dist/
+rm -rf android/app/build/
 
-# Check prerequisites
-echo "🔍 Checking prerequisites..."
-if ! command -v npm &> /dev/null; then
-    echo "❌ npm not found"
-    exit 1
+# Ensure Node modules are installed
+echo "Installing dependencies..."
+npm ci
+
+# Build the React app for production
+echo "Building React app..."
+NODE_ENV=production npm run build
+
+# Verify build output
+if [ ! -d "dist/public" ]; then
+  echo "Error: dist/public directory not found after build!"
+  exit 1
 fi
 
-if ! command -v npx &> /dev/null; then
-    echo "❌ npx not found"
-    exit 1
-fi
-
-# Step 1: Install dependencies
-echo "📦 Installing dependencies..."
-npm install
-if [ $? -ne 0 ]; then
-    echo "❌ Failed to install dependencies"
-    exit 1
-fi
-
-# Step 2: Build the web app for production
-echo "🔨 Building web app for production..."
-npm run build
-if [ $? -ne 0 ]; then
-    echo "❌ Web build failed"
-    exit 1
-fi
-
-# Step 3: Initialize Android platform if needed
-if [ ! -d "android" ]; then
-    echo "🔧 Adding Android platform..."
-    npx cap add android
-    if [ $? -ne 0 ]; then
-        echo "❌ Failed to add Android platform"
-        exit 1
-    fi
-fi
-
-# Step 4: Copy web assets and sync
-echo "📱 Syncing Capacitor..."
+# Copy web assets to Capacitor
+echo "Copying web assets to Capacitor..."
 npx cap copy android
+
+# Sync Capacitor plugins
+echo "Syncing Capacitor plugins..."
 npx cap sync android
-if [ $? -ne 0 ]; then
-    echo "❌ Capacitor sync failed"
-    exit 1
-fi
 
-# Step 5: Check if Gradle wrapper exists
-if [ ! -f "android/gradlew" ]; then
-    echo "❌ Gradle wrapper not found. Please run: npx cap open android"
-    echo "   This will open Android Studio to complete the setup"
-    exit 1
-fi
-
-# Step 6: Build APK
-echo "🔨 Building APK..."
+# Clean and build APK
+echo "Building APK..."
 cd android
-chmod +x gradlew
-./gradlew assembleDebug
+./gradlew clean
+./gradlew assembleRelease
+cd ..
 
-if [ $? -eq 0 ]; then
-    echo "✅ APK built successfully!"
-    echo "📦 APK location: android/app/build/outputs/apk/debug/app-debug.apk"
-    echo ""
-    echo "📱 To install on your Android device:"
-    echo "1. Enable 'Unknown Sources' in your Android device settings"
-    echo "2. Transfer the APK file to your device"
-    echo "3. Install the APK"
-    echo ""
-    echo "🔧 For a release APK (signed), run:"
-    echo "   ./gradlew assembleRelease"
-else
-    echo "❌ APK build failed"
-    echo "💡 Try opening Android Studio with: npx cap open android"
-    echo "   Then build from Android Studio directly"
-    exit 1
-fi
+echo "APK build complete! Check android/app/build/outputs/apk/release/"

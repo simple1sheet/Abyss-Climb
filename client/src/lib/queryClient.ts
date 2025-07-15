@@ -30,7 +30,11 @@ export async function apiRequest(
   // Handle FormData differently - don't set Content-Type header and don't stringify
   const isFormData = data instanceof FormData;
 
-  const res = await fetch(url, {
+  // Use full URL for mobile app
+  const baseUrl = getApiBaseUrl();
+  const fullUrl = baseUrl + url;
+
+  const res = await fetch(fullUrl, {
     method,
     headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
     body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
@@ -47,7 +51,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
+    const baseUrl = getApiBaseUrl();
+    const fullUrl = baseUrl + queryKey.join("/");
+    
+    const res = await fetch(fullUrl, {
       credentials: "include",
     });
 
@@ -69,17 +76,4 @@ export const getApiBaseUrl = () => {
   return '';
 };
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      queryFn: getQueryFn({ on401: "throw" }),
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-    },
-    mutations: {
-      retry: false,
-    },
-  },
-});
+// Note: QueryClient is now created in App.tsx to avoid module-level issues
