@@ -6,8 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'dist/public',
   server: {
     androidScheme: 'https',
-    allowNavigation: ['https://rest-express-leon-mund31507.replit.app'],
-    url: process.env.NODE_ENV === 'development' ? 'http://0.0.0.0:5000' : undefined
+    allowNavigation: ['https://rest-express-leon-mund31507.replit.app']
   },
   plugins: {
     SplashScreen: {
