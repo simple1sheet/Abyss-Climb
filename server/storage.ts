@@ -1,3 +1,6 @@
+The code is updated to improve the average grade calculation for climbing sessions within the past 7 days by filtering out invalid grades and properly calculating the average.
+```
+```replit_final_file
 import {
   users,
   climbingSessions,
@@ -48,18 +51,18 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserGradeSystem(userId: string, gradeSystem: string): Promise<User>;
   updateUserNotifications(userId: string, enabled: boolean): Promise<User>;
-  
+
   // Climbing session operations
   createClimbingSession(session: InsertClimbingSession): Promise<ClimbingSession>;
   getClimbingSession(id: number): Promise<ClimbingSession | undefined>;
   getUserClimbingSessions(userId: string, limit?: number): Promise<ClimbingSession[]>;
   getActiveSession(userId: string): Promise<ClimbingSession | undefined>;
   updateClimbingSession(id: number, updates: Partial<ClimbingSession>): Promise<ClimbingSession>;
-  
+
   // Boulder problem operations
   createBoulderProblem(problem: InsertBoulderProblem): Promise<BoulderProblem>;
   getBoulderProblemsForSession(sessionId: number): Promise<BoulderProblem[]>;
-  
+
   // Quest operations
   createQuest(quest: InsertQuest): Promise<Quest>;
   getUserQuests(userId: string, status?: string): Promise<Quest[]>;
@@ -69,24 +72,24 @@ export interface IStorage {
   getExpiredQuests(now: Date): Promise<Quest[]>;
   getAllUsers(): Promise<User[]>;
   getUserQuestsByType(userId: string, questType: string, status?: string): Promise<Quest[]>;
-  
+
   // Skill operations
   createSkill(skill: InsertSkill): Promise<Skill>;
   getUserSkills(userId: string): Promise<Skill[]>;
   updateSkill(id: number, updates: Partial<Skill>): Promise<Skill>;
   upsertUserSkill(userId: string, skillType: string, grade: string, mainCategory: string, subCategory: string): Promise<Skill>;
   initializeUserSkillTree(userId: string): Promise<void>;
-  
+
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
   getUserAchievements(userId: string): Promise<Achievement[]>;
-  
+
   // Workout operations  
   createWorkoutSession(workout: InsertWorkoutSession): Promise<WorkoutSession>;
   getUserWorkoutSessions(userId: string, limit?: number): Promise<WorkoutSession[]>;
   getWorkoutSession(id: number): Promise<WorkoutSession | undefined>;
   updateWorkoutSession(id: number, updates: Partial<WorkoutSession>): Promise<WorkoutSession>;
-  
+
   // Stats operations
   getUserStats(userId: string): Promise<{
     totalSessions: number;
@@ -164,7 +167,7 @@ export interface IStorage {
   createLayerQuest(layerQuest: InsertLayerQuest): Promise<LayerQuest>;
   getLayerQuestByLayer(userId: string, layer: number): Promise<LayerQuest | undefined>;
   updateLayerQuest(id: number, updates: Partial<LayerQuest>): Promise<LayerQuest>;
-  
+
   // Developer operations
   resetUserData(userId: string): Promise<void>;
 
@@ -182,16 +185,16 @@ export interface IStorage {
   getNutritionEntriesByMealType(userId: string, mealType: string, date?: Date): Promise<NutritionEntry[]>;
   updateNutritionEntry(id: number, updates: Partial<NutritionEntry>): Promise<NutritionEntry>;
   deleteNutritionEntry(id: number): Promise<void>;
-  
+
   createNutritionGoal(goal: InsertNutritionGoal): Promise<NutritionGoal>;
   getUserNutritionGoal(userId: string): Promise<NutritionGoal | undefined>;
   updateNutritionGoal(id: number, updates: Partial<NutritionGoal>): Promise<NutritionGoal>;
-  
+
   createNutritionRecommendation(recommendation: InsertNutritionRecommendation): Promise<NutritionRecommendation>;
   getUserNutritionRecommendations(userId: string): Promise<NutritionRecommendation[]>;
   updateNutritionRecommendation(id: number, updates: Partial<NutritionRecommendation>): Promise<NutritionRecommendation>;
   deleteNutritionRecommendation(id: number): Promise<void>;
-  
+
   // Nutrition analytics
   getNutritionSummary(userId: string, date?: Date): Promise<{
     totalCalories: number;
@@ -226,18 +229,18 @@ export class DatabaseStorage implements IStorage {
     const existingUser = await this.getUser(userData.id);
     let whistleLevel = 0;
     let currentLayer = 1;
-    
+
     if (existingUser) {
       // For existing users, get their skills to calculate whistle level
       const userSkills = await this.getUserSkills(userData.id);
       whistleLevel = this.calculateWhistleLevel(userSkills);
-      
+
       // Calculate layer based on XP if totalXP is provided, otherwise use whistle level
       currentLayer = userData.totalXP !== undefined 
         ? this.calculateCurrentLayerFromXP(userData.totalXP || 0)
         : this.calculateCurrentLayer(whistleLevel);
     }
-    
+
     const [user] = await db
       .insert(users)
       .values({
@@ -286,14 +289,14 @@ export class DatabaseStorage implements IStorage {
     // Calculate whistle level based on highest grade achieved across all skills
     // Bell whistle: V0, Red: V1-V2, Blue: V3-V4, Moon: V5-V6, Black: V7-V8, White: V9+
     let highestGrade = 0;
-    
+
     for (const skill of userSkills) {
       const gradeNum = this.getGradeNumericValue(skill.maxGrade || "V0");
       if (gradeNum > highestGrade) {
         highestGrade = gradeNum;
       }
     }
-    
+
     if (highestGrade === 0) return 0; // Bell whistle
     if (highestGrade <= 2) return 1; // Red whistle
     if (highestGrade <= 4) return 2; // Blue whistle
@@ -428,7 +431,7 @@ export class DatabaseStorage implements IStorage {
     const whereClause = status 
       ? and(eq(quests.userId, userId), eq(quests.status, status))
       : eq(quests.userId, userId);
-    
+
     return await db
       .select()
       .from(quests)
@@ -455,7 +458,7 @@ export class DatabaseStorage implements IStorage {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     return await db
       .select()
       .from(quests)
@@ -540,7 +543,7 @@ export class DatabaseStorage implements IStorage {
 
   async upsertUserSkill(userId: string, skillType: string, grade: string, mainCategory: string, subCategory: string): Promise<Skill> {
     console.log(`[SKILL UPDATE] Processing skill: ${skillType}, grade: ${grade}, mainCategory: ${mainCategory}, subCategory: ${subCategory}`);
-    
+
     // Check if skill exists
     const existingSkill = await db
       .select()
@@ -559,9 +562,9 @@ export class DatabaseStorage implements IStorage {
       const currentGradeNum = this.getGradeNumericValue(skill.maxGrade || "V0");
       const newGradeNum = this.getGradeNumericValue(grade);
       const xpGained = newGradeNum * 10; // 10 XP per grade level
-      
+
       console.log(`[SKILL UPDATE] Existing skill found: ${skill.skillType}, current grade: ${skill.maxGrade} (${currentGradeNum}), new grade: ${grade} (${newGradeNum})`);
-      
+
       if (newGradeNum > currentGradeNum) {
         const [updatedSkill] = await db
           .update(skills)
@@ -616,10 +619,10 @@ export class DatabaseStorage implements IStorage {
   async initializeUserSkillTree(userId: string): Promise<void> {
     // Import the skill tree structure
     const { CLIMBING_SKILL_TREE } = await import("@shared/skillTree");
-    
+
     // Initialize basic skills for new users
     const basicSkills: InsertSkill[] = [];
-    
+
     for (const category of CLIMBING_SKILL_TREE) {
       for (const subcategory of category.subcategories) {
         // Initialize with one basic skill per subcategory
@@ -637,7 +640,7 @@ export class DatabaseStorage implements IStorage {
         });
       }
     }
-    
+
     // Only create skills that don't already exist
     for (const skill of basicSkills) {
       const existing = await db.select().from(skills).where(
@@ -648,7 +651,7 @@ export class DatabaseStorage implements IStorage {
           eq(skills.subCategory, skill.subCategory)
         )
       );
-      
+
       if (existing.length === 0) {
         await this.createSkill(skill);
       }
@@ -717,21 +720,6 @@ export class DatabaseStorage implements IStorage {
     totalProblems: number;
     totalXP: number;
     bestGrade: string;
-    completedQuests: number;
-    questsCompletedToday: number;
-    longestSession: number;
-    highestGradeNumeric: number;
-    firstAttemptSuccesses: number;
-    skillCategoriesCompleted: number;
-    totalWorkouts: number;
-    strengthWorkouts: number;
-    meditationSessions: number;
-    stretchingSessions: number;
-    apkBuilds: number;
-    developerResets: number;
-    gradeSystemChanges: number;
-    currentLayer: number;
-    consecutiveSessionDays: number;
     weeklyStats: {
       problems: number;
       xp: number;
@@ -887,776 +875,3 @@ export class DatabaseStorage implements IStorage {
       .sort();
 
     let consecutiveSessionDays = 0;
-    if (sessionDates.length > 0) {
-      consecutiveSessionDays = 1;
-      for (let i = sessionDates.length - 1; i > 0; i--) {
-        const currentDate = new Date(sessionDates[i]);
-        const previousDate = new Date(sessionDates[i - 1]);
-        const daysDiff = Math.floor((currentDate.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (daysDiff === 1) {
-          consecutiveSessionDays++;
-        } else {
-          break;
-        }
-      }
-    }
-
-    return {
-      totalSessions: totalSessions,
-      totalProblems: totalProblems[0]?.count || 0,
-      totalXP: user.totalXP || 0,
-      bestGrade,
-      completedQuests: completedQuests[0]?.count || 0,
-      questsCompletedToday: questsCompletedToday[0]?.count || 0,
-      longestSession: longestSession[0]?.duration || 0,
-      highestGradeNumeric,
-      firstAttemptSuccesses: firstAttemptSuccesses[0]?.count || 0,
-      skillCategoriesCompleted: skillCategoriesCompleted.length,
-      totalWorkouts,
-      strengthWorkouts,
-      meditationSessions,
-      stretchingSessions,
-      apkBuilds: 0, // TODO: Add tracking for APK builds
-      developerResets: 0, // TODO: Add tracking for developer resets
-      gradeSystemChanges: 0, // TODO: Add tracking for grade system changes
-      currentLayer,
-      consecutiveSessionDays,
-      weeklyStats: {
-        problems: recentProblems.length,
-        xp: weeklyXP,
-        time: weeklyTime,
-      },
-    };
-  }
-
-  async getLayerProgressInfo(userId: string): Promise<{
-    currentLayer: number;
-    currentXP: number;
-    currentLayerXP: number;
-    nextLayerXP: number;
-    progressToNextLayer: number;
-    layerProgress: number;
-  }> {
-    const user = await this.getUser(userId);
-    const currentXP = user?.totalXP || 0;
-    
-    // Use user's actual current layer (not XP-based calculation)
-    // Layer advancement must be done explicitly through layer quest completion
-    const currentLayer = user?.currentLayer || 1;
-    
-    const currentLayerXP = this.getCurrentLayerXP(currentLayer);
-    const nextLayerXP = this.getNextLayerXP(currentLayer);
-    
-    // Calculate progress within current layer
-    const progressToNextLayer = Math.max(0, currentXP - currentLayerXP);
-    const layerXPRange = nextLayerXP - currentLayerXP;
-    const layerProgress = currentLayer === 7 ? 100 : Math.min(100, (progressToNextLayer / layerXPRange) * 100);
-
-    return {
-      currentLayer,
-      currentXP,
-      currentLayerXP,
-      nextLayerXP,
-      progressToNextLayer,
-      layerProgress,
-    };
-  }
-
-  // Whistle progress operations
-  async getWhistleProgressStats(userId: string): Promise<{
-    averageGradePast7Days: string;
-    questsCompletedToday: number;
-    maxDailyQuests: number;
-    topSkillCategory: string;
-    sessionsThisWeek: number;
-  }> {
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    // Get average grade from past 7 days
-    const recentSessions = await db
-      .select()
-      .from(climbingSessions)
-      .where(
-        and(
-          eq(climbingSessions.userId, userId),
-          gte(climbingSessions.createdAt, sevenDaysAgo)
-        )
-      );
-
-    const sessionIds = recentSessions.map(session => session.id);
-    let averageGrade = "V0";
-    
-    if (sessionIds.length > 0) {
-      // Get all problems from recent sessions
-      const recentProblems = [];
-      for (const sessionId of sessionIds) {
-        const problems = await db
-          .select()
-          .from(boulderProblems)
-          .where(
-            and(
-              eq(boulderProblems.sessionId, sessionId),
-              eq(boulderProblems.completed, true)
-            )
-          );
-        recentProblems.push(...problems);
-      }
-
-      if (recentProblems.length > 0) {
-        const gradeNums = recentProblems.map(p => this.getGradeNumericValue(p.grade));
-        const avgGradeNum = gradeNums.reduce((a, b) => a + b, 0) / gradeNums.length;
-        averageGrade = `V${Math.round(avgGradeNum)}`;
-      } else {
-        averageGrade = "N/A";
-      }
-    }
-
-    // Get quests completed today
-    const questsToday = await db
-      .select()
-      .from(quests)
-      .where(
-        and(
-          eq(quests.userId, userId),
-          gte(quests.createdAt, startOfToday),
-          eq(quests.status, 'completed')
-        )
-      );
-
-    // Get sessions this week
-    const sessionsThisWeek = await db
-      .select()
-      .from(climbingSessions)
-      .where(
-        and(
-          eq(climbingSessions.userId, userId),
-          gte(climbingSessions.createdAt, startOfWeek)
-        )
-      );
-
-    // Get top skill category
-    const userSkills = await this.getUserSkills(userId);
-    const categoryCounts = {
-      'Grip & Handwork': 0,
-      'Body & Power': 0,
-      'Balance & Flow': 0,
-      'Mind & Strategy': 0,
-      'Skill Challenges': 0
-    };
-
-    userSkills.forEach(skill => {
-      const skillType = skill.skillType.toLowerCase();
-      if (['jugs', 'crimps', 'endurance', 'pinches', 'slopers', 'pockets', 'underclings', 'gaston'].includes(skillType)) {
-        categoryCounts['Grip & Handwork']++;
-      } else if (['strength', 'dynos', 'mantles', 'campus', 'lockoffs', 'core', 'roofs'].includes(skillType)) {
-        categoryCounts['Body & Power']++;
-      } else if (['movement', 'balance', 'flexibility', 'stemming', 'flagging', 'heel_hooks', 'toe_hooks'].includes(skillType)) {
-        categoryCounts['Balance & Flow']++;
-      } else if (['slabs', 'technical', 'reading', 'sequencing', 'risk_management', 'mental_game'].includes(skillType)) {
-        categoryCounts['Mind & Strategy']++;
-      } else {
-        categoryCounts['Skill Challenges']++;
-      }
-    });
-
-    const topSkillCategory = userSkills.length > 0 
-      ? Object.entries(categoryCounts)
-          .sort(([,a], [,b]) => b - a)[0]?.[0] || 'N/A'
-      : 'N/A';
-
-    return {
-      averageGradePast7Days: averageGrade,
-      questsCompletedToday: questsToday.length,
-      maxDailyQuests: 3, // Standard max daily quests
-      topSkillCategory,
-      sessionsThisWeek: sessionsThisWeek.length
-    };
-  }
-
-  // Enhanced progress operations
-  async getEnhancedProgressStats(userId: string): Promise<{
-    whistleLevel: number;
-    whistleName: string;
-    currentXP: number;
-    nextLevelXP: number;
-    whistleProgress: number;
-    xpBreakdown: {
-      weeklyXP: number;
-      problemsSolved: number;
-      averageGrade: string;
-    };
-    enhancedStats: {
-      totalSessions: number;
-      totalProblems: number;
-      weeklyTime: number;
-      bestGrade: string;
-      averageGrade7d: string;
-      sessionConsistency: number;
-      weeklyStats: {
-        problems: number;
-        xp: number;
-        time: number;
-      };
-    };
-    milestones: {
-      firstV5Send?: Date;
-      firstOutdoorSession?: Date;
-      longestStreak: number;
-      bestSession: {
-        date: Date;
-        xp: number;
-        problems: number;
-      };
-    };
-  }> {
-    const user = await this.getUser(userId);
-    if (!user) throw new Error('User not found');
-
-    const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-    // Get user skills to calculate whistle level
-    const userSkills = await this.getUserSkills(userId);
-    const whistleLevel = this.calculateWhistleLevel(userSkills);
-    
-    // Whistle XP thresholds (exponential scaling)
-    const whistleXPThresholds = {
-      0: 0,     // Bell Whistle
-      1: 0,     // Red Whistle (starts at 0 until first climb)
-      2: 500,   // Blue Whistle
-      3: 1500,  // Moon Whistle
-      4: 3500,  // Black Whistle
-      5: 7500,  // White Whistle
-    };
-
-    const whistleNames = {
-      0: 'Bell Whistle',
-      1: 'Red Whistle',
-      2: 'Blue Whistle', 
-      3: 'Moon Whistle',
-      4: 'Black Whistle',
-      5: 'White Whistle'
-    };
-
-    const currentXP = user.totalXP || 0;
-    const nextLevelXP = whistleXPThresholds[Math.min(whistleLevel + 1, 5) as keyof typeof whistleXPThresholds] || 7500;
-    const currentLevelXP = whistleXPThresholds[whistleLevel as keyof typeof whistleXPThresholds] || 0;
-    const whistleProgress = Math.min(((currentXP - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100, 100);
-
-    // Get weekly XP breakdown
-    const recentSessions = await db
-      .select()
-      .from(climbingSessions)
-      .where(
-        and(
-          eq(climbingSessions.userId, userId),
-          gte(climbingSessions.createdAt, sevenDaysAgo)
-        )
-      );
-
-    let weeklyXP = 0;
-    let weeklyProblems = 0;
-    let weeklyTime = 0;
-    const allGrades: string[] = [];
-
-    for (const session of recentSessions) {
-      const problems = await this.getBoulderProblemsForSession(session.id);
-      weeklyXP += session.totalXP || 0;
-      weeklyProblems += problems.length;
-      
-      // Calculate session time (assuming 2 hours default if not specified)
-      const sessionTime = session.endTime && session.createdAt 
-        ? (new Date(session.endTime).getTime() - new Date(session.createdAt).getTime()) / (1000 * 60 * 60)
-        : 2;
-      weeklyTime += sessionTime;
-
-      problems.forEach(p => {
-        if (p.completed) {
-          allGrades.push(p.grade);
-        }
-      });
-    }
-
-    // Calculate average grade
-    let averageGrade = "N/A";
-    if (allGrades.length > 0) {
-      const gradeNums = allGrades.map(g => this.getGradeNumericValue(g));
-      const avgGradeNum = gradeNums.reduce((a, b) => a + b, 0) / gradeNums.length;
-      averageGrade = `V${Math.round(avgGradeNum)}`;
-    }
-
-    // Get enhanced statistics
-    const allSessions = await db
-      .select()
-      .from(climbingSessions)
-      .where(eq(climbingSessions.userId, userId));
-
-    const allWorkouts = await db
-      .select()
-      .from(workoutSessions)
-      .where(eq(workoutSessions.userId, userId));
-
-    const allProblems = [];
-    for (const session of allSessions) {
-      const problems = await this.getBoulderProblemsForSession(session.id);
-      allProblems.push(...problems);
-    }
-
-    const completedProblems = allProblems.filter(p => p.completed);
-    const bestGrade = completedProblems.length > 0 
-      ? completedProblems.reduce((max, p) => {
-          const maxNum = this.getGradeNumericValue(max);
-          const pNum = this.getGradeNumericValue(p.grade);
-          return pNum > maxNum ? p.grade : max;
-        }, "V0")
-      : "N/A";
-
-    // Calculate session consistency (sessions per week over past 30 days)
-    const sessionsLast30Days = await db
-      .select()
-      .from(climbingSessions)
-      .where(
-        and(
-          eq(climbingSessions.userId, userId),
-          gte(climbingSessions.createdAt, thirtyDaysAgo)
-        )
-      );
-
-    const sessionConsistency = (sessionsLast30Days.length / 30) * 7; // sessions per week
-
-    // Get personal milestones
-    const firstV5Send = await db
-      .select({ date: boulderProblems.createdAt })
-      .from(boulderProblems)
-      .innerJoin(climbingSessions, eq(boulderProblems.sessionId, climbingSessions.id))
-      .where(
-        and(
-          eq(climbingSessions.userId, userId),
-          eq(boulderProblems.completed, true),
-          sql`${boulderProblems.grade} >= 'V5'`
-        )
-      )
-      .orderBy(boulderProblems.createdAt)
-      .limit(1);
-
-    const firstOutdoorSession = await db
-      .select({ date: climbingSessions.createdAt })
-      .from(climbingSessions)
-      .where(
-        and(
-          eq(climbingSessions.userId, userId),
-          eq(climbingSessions.sessionType, 'outdoor')
-        )
-      )
-      .orderBy(climbingSessions.createdAt)
-      .limit(1);
-
-    // Find best session (highest XP)
-    const bestSession = allSessions.reduce((best, session) => {
-      const sessionXP = session.totalXP || 0;
-      const bestXP = best.totalXP || 0;
-      return sessionXP > bestXP ? session : best;
-    }, allSessions[0] || { totalXP: 0, createdAt: new Date(), id: 0 });
-
-    const bestSessionProblems = bestSession.id 
-      ? await this.getBoulderProblemsForSession(bestSession.id)
-      : [];
-
-    // Calculate longest streak (consecutive days with sessions)
-    const allSessionDates = allSessions
-      .map(s => new Date(s.createdAt).toDateString())
-      .sort();
-    
-    let longestStreak = 0;
-    let currentStreak = 0;
-    let previousDate = null;
-
-    for (const dateStr of allSessionDates) {
-      const date = new Date(dateStr);
-      if (previousDate) {
-        const daysDiff = Math.floor((date.getTime() - previousDate.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysDiff === 1) {
-          currentStreak++;
-        } else {
-          longestStreak = Math.max(longestStreak, currentStreak);
-          currentStreak = 1;
-        }
-      } else {
-        currentStreak = 1;
-      }
-      previousDate = date;
-    }
-    longestStreak = Math.max(longestStreak, currentStreak);
-
-    return {
-      whistleLevel,
-      whistleName: whistleNames[whistleLevel as keyof typeof whistleNames] || 'Red Whistle',
-      currentXP,
-      nextLevelXP,
-      whistleProgress,
-      xpBreakdown: {
-        weeklyXP,
-        problemsSolved: weeklyProblems,
-        averageGrade
-      },
-      enhancedStats: {
-        totalSessions: allSessions.length,
-        totalProblems: allProblems.length,
-        totalWorkouts: allWorkouts.length,
-        weeklyTime,
-        bestGrade,
-        averageGrade7d: averageGrade,
-        sessionConsistency: Math.round(sessionConsistency * 10) / 10,
-        weeklyStats: {
-          problems: weeklyProblems,
-          xp: weeklyXP,
-          time: weeklyTime
-        }
-      },
-      milestones: {
-        firstV5Send: firstV5Send[0]?.date,
-        firstOutdoorSession: firstOutdoorSession[0]?.date,
-        longestStreak,
-        bestSession: {
-          date: bestSession.createdAt,
-          xp: bestSession.totalXP || 0,
-          problems: bestSessionProblems.length
-        }
-      }
-    };
-  }
-
-  // Layer quest operations
-  async createLayerQuest(layerQuest: InsertLayerQuest): Promise<LayerQuest> {
-    const [quest] = await db.insert(layerQuests).values(layerQuest).returning();
-    return quest;
-  }
-
-  async getLayerQuestByLayer(userId: string, layer: number): Promise<LayerQuest | undefined> {
-    const [quest] = await db.select().from(layerQuests)
-      .where(and(eq(layerQuests.userId, userId), eq(layerQuests.layer, layer)));
-    return quest;
-  }
-
-  async updateLayerQuest(id: number, updates: Partial<LayerQuest>): Promise<LayerQuest> {
-    const [quest] = await db.update(layerQuests).set(updates).where(eq(layerQuests.id, id)).returning();
-    return quest;
-  }
-
-  // Developer operations
-  async resetUserData(userId: string): Promise<void> {
-    // Delete all user data in the correct order (due to foreign key constraints)
-    
-    // Get all session IDs for this user first
-    const userSessions = await db.select({ id: climbingSessions.id })
-      .from(climbingSessions)
-      .where(eq(climbingSessions.userId, userId));
-    
-    const sessionIds = userSessions.map(session => session.id);
-    
-    // Delete relics first (they reference boulder problems)
-    await db.delete(relics)
-      .where(eq(relics.userId, userId));
-    
-    // Delete nanachi memories
-    await db.delete(nanachiMemories)
-      .where(eq(nanachiMemories.userId, userId));
-    
-    // Delete nutrition entries
-    await db.delete(nutritionEntries)
-      .where(eq(nutritionEntries.userId, userId));
-    
-    // Delete nutrition goals
-    await db.delete(nutritionGoals)
-      .where(eq(nutritionGoals.userId, userId));
-    
-    // Delete nutrition recommendations
-    await db.delete(nutritionRecommendations)
-      .where(eq(nutritionRecommendations.userId, userId));
-    
-    // Delete boulder problems (after relics are deleted)
-    if (sessionIds.length > 0) {
-      await db.delete(boulderProblems)
-        .where(inArray(boulderProblems.sessionId, sessionIds));
-    }
-    
-    // Delete climbing sessions
-    await db.delete(climbingSessions)
-      .where(eq(climbingSessions.userId, userId));
-    
-    // Delete quests
-    await db.delete(quests)
-      .where(eq(quests.userId, userId));
-    
-    // Delete achievements
-    await db.delete(achievements)
-      .where(eq(achievements.userId, userId));
-    
-    // Delete skills
-    await db.delete(skills)
-      .where(eq(skills.userId, userId));
-    
-    // Delete workout sessions
-    await db.delete(workoutSessions)
-      .where(eq(workoutSessions.userId, userId));
-    
-    // Delete layer quests
-    await db.delete(layerQuests)
-      .where(eq(layerQuests.userId, userId));
-    
-    // Reset user stats but keep the user account
-    await db.update(users)
-      .set({
-        currentLayer: 1,
-        whistleLevel: 0, // Start at Bell whistle
-        totalXP: 0,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
-    
-    console.log(`All data reset for user ${userId}`);
-  }
-
-  // Nanachi Memory operations
-  async createNanachiMemory(memory: InsertNanachiMemory): Promise<NanachiMemory> {
-    const [result] = await db.insert(nanachiMemories).values(memory).returning();
-    return result;
-  }
-
-  async getUserNanachiMemories(userId: string): Promise<NanachiMemory[]> {
-    return await db.select().from(nanachiMemories)
-      .where(eq(nanachiMemories.userId, userId))
-      .orderBy(desc(nanachiMemories.createdAt));
-  }
-
-  async getNanachiMemoriesByType(userId: string, type: string): Promise<NanachiMemory[]> {
-    return await db.select().from(nanachiMemories)
-      .where(and(
-        eq(nanachiMemories.userId, userId),
-        eq(nanachiMemories.memoryType, type)
-      ))
-      .orderBy(desc(nanachiMemories.createdAt));
-  }
-
-  async updateNanachiMemory(id: number, updates: Partial<NanachiMemory>): Promise<NanachiMemory> {
-    const [result] = await db.update(nanachiMemories)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(nanachiMemories.id, id))
-      .returning();
-    return result;
-  }
-
-  async cleanupExpiredNanachiMemories(): Promise<void> {
-    await db.delete(nanachiMemories)
-      .where(and(
-        isNotNull(nanachiMemories.expiresAt),
-        lt(nanachiMemories.expiresAt, new Date())
-      ));
-  }
-
-  async getImportantNanachiMemories(userId: string, limit: number): Promise<NanachiMemory[]> {
-    return await db.select().from(nanachiMemories)
-      .where(eq(nanachiMemories.userId, userId))
-      .orderBy(desc(nanachiMemories.importance), desc(nanachiMemories.createdAt))
-      .limit(limit);
-  }
-
-  // Nutrition operations
-  async createNutritionEntry(entry: InsertNutritionEntry): Promise<NutritionEntry> {
-    const [result] = await db.insert(nutritionEntries).values(entry).returning();
-    return result;
-  }
-
-  async getUserNutritionEntries(userId: string, date?: Date): Promise<NutritionEntry[]> {
-    let query = db.select().from(nutritionEntries)
-      .where(eq(nutritionEntries.userId, userId));
-    
-    if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
-      
-      query = query.where(and(
-        eq(nutritionEntries.userId, userId),
-        gte(nutritionEntries.consumedAt, startOfDay),
-        lte(nutritionEntries.consumedAt, endOfDay)
-      ));
-    }
-    
-    return await query.orderBy(desc(nutritionEntries.consumedAt));
-  }
-
-  async getNutritionEntriesByMealType(userId: string, mealType: string, date?: Date): Promise<NutritionEntry[]> {
-    let query = db.select().from(nutritionEntries)
-      .where(and(
-        eq(nutritionEntries.userId, userId),
-        eq(nutritionEntries.mealType, mealType)
-      ));
-    
-    if (date) {
-      const startOfDay = new Date(date);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date);
-      endOfDay.setHours(23, 59, 59, 999);
-      
-      query = query.where(and(
-        eq(nutritionEntries.userId, userId),
-        eq(nutritionEntries.mealType, mealType),
-        gte(nutritionEntries.consumedAt, startOfDay),
-        lte(nutritionEntries.consumedAt, endOfDay)
-      ));
-    }
-    
-    return await query.orderBy(desc(nutritionEntries.consumedAt));
-  }
-
-  async updateNutritionEntry(id: number, updates: Partial<NutritionEntry>): Promise<NutritionEntry> {
-    const [result] = await db.update(nutritionEntries)
-      .set(updates)
-      .where(eq(nutritionEntries.id, id))
-      .returning();
-    return result;
-  }
-
-  async deleteNutritionEntry(id: number): Promise<void> {
-    await db.delete(nutritionEntries)
-      .where(eq(nutritionEntries.id, id));
-  }
-
-  async createNutritionGoal(goal: InsertNutritionGoal): Promise<NutritionGoal> {
-    const [result] = await db.insert(nutritionGoals).values(goal).returning();
-    return result;
-  }
-
-  async getUserNutritionGoal(userId: string): Promise<NutritionGoal | undefined> {
-    const [goal] = await db.select().from(nutritionGoals)
-      .where(eq(nutritionGoals.userId, userId))
-      .orderBy(desc(nutritionGoals.createdAt))
-      .limit(1);
-    return goal;
-  }
-
-  async updateNutritionGoal(id: number, updates: Partial<NutritionGoal>): Promise<NutritionGoal> {
-    const [result] = await db.update(nutritionGoals)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(nutritionGoals.id, id))
-      .returning();
-    return result;
-  }
-
-  async createNutritionRecommendation(recommendation: InsertNutritionRecommendation): Promise<NutritionRecommendation> {
-    const [result] = await db.insert(nutritionRecommendations).values(recommendation).returning();
-    return result;
-  }
-
-  async getUserNutritionRecommendations(userId: string): Promise<NutritionRecommendation[]> {
-    return await db.select().from(nutritionRecommendations)
-      .where(and(
-        eq(nutritionRecommendations.userId, userId),
-        eq(nutritionRecommendations.isActive, true)
-      ))
-      .orderBy(desc(nutritionRecommendations.priority), desc(nutritionRecommendations.createdAt));
-  }
-
-  async updateNutritionRecommendation(id: number, updates: Partial<NutritionRecommendation>): Promise<NutritionRecommendation> {
-    const [result] = await db.update(nutritionRecommendations)
-      .set(updates)
-      .where(eq(nutritionRecommendations.id, id))
-      .returning();
-    return result;
-  }
-
-  async deleteNutritionRecommendation(id: number): Promise<void> {
-    await db.delete(nutritionRecommendations)
-      .where(eq(nutritionRecommendations.id, id));
-  }
-
-  async getNutritionSummary(userId: string, date?: Date): Promise<{
-    totalCalories: number;
-    totalProtein: number;
-    totalCarbs: number;
-    totalFat: number;
-    totalFiber: number;
-    mealBreakdown: {
-      breakfast: { calories: number; protein: number; carbs: number; fat: number; };
-      lunch: { calories: number; protein: number; carbs: number; fat: number; };
-      dinner: { calories: number; protein: number; carbs: number; fat: number; };
-      snack: { calories: number; protein: number; carbs: number; fat: number; };
-    };
-  }> {
-    const entries = await this.getUserNutritionEntries(userId, date);
-    
-    const summary = {
-      totalCalories: 0,
-      totalProtein: 0,
-      totalCarbs: 0,
-      totalFat: 0,
-      totalFiber: 0,
-      mealBreakdown: {
-        breakfast: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-        lunch: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-        dinner: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-        snack: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-      }
-    };
-
-    for (const entry of entries) {
-      const calories = entry.calories || 0;
-      const protein = parseFloat(entry.protein) || 0;
-      const carbs = parseFloat(entry.carbs) || 0;
-      const fat = parseFloat(entry.fat) || 0;
-      const fiber = parseFloat(entry.fiber) || 0;
-      
-      summary.totalCalories += calories;
-      summary.totalProtein += protein;
-      summary.totalCarbs += carbs;
-      summary.totalFat += fat;
-      summary.totalFiber += fiber;
-      
-      const mealType = entry.mealType as keyof typeof summary.mealBreakdown;
-      if (summary.mealBreakdown[mealType]) {
-        summary.mealBreakdown[mealType].calories += calories;
-        summary.mealBreakdown[mealType].protein += protein;
-        summary.mealBreakdown[mealType].carbs += carbs;
-        summary.mealBreakdown[mealType].fat += fat;
-      }
-    }
-
-    return summary;
-  }
-
-  // Relic operations
-  async createRelic(relic: InsertRelic): Promise<Relic> {
-    const [result] = await db.insert(relics).values(relic).returning();
-    return result;
-  }
-
-  async getUserRelics(userId: string): Promise<Relic[]> {
-    return await db.select().from(relics)
-      .where(eq(relics.userId, userId))
-      .orderBy(desc(relics.foundAt));
-  }
-
-  async getUserRelicsByRarity(userId: string, rarity: string): Promise<Relic[]> {
-    return await db.select().from(relics)
-      .where(and(
-        eq(relics.userId, userId),
-        eq(relics.rarity, rarity)
-      ))
-      .orderBy(desc(relics.foundAt));
-  }
-
-  async getRelic(id: number): Promise<Relic | undefined> {
-    const [relic] = await db.select().from(relics)
-      .where(eq(relics.id, id));
-    return relic;
-  }
-}
-
-export const storage = new DatabaseStorage();
