@@ -1,0 +1,97 @@
+Replit Assistant Prompt for Converting Abyss Climber to APK
+Hi Replit Assistant! I need help converting my full-stack climbing progression app "Abyss Climber" into an APK file that I can install on my Android phone. Here are the details:
+
+Current App Setup
+Tech Stack: React 18 + TypeScript + Vite frontend, Node.js + Express backend
+Database: PostgreSQL with Drizzle ORM
+Authentication: Replit Auth with OpenID Connect
+UI: Radix UI components + Tailwind CSS
+Port: Running on port 5000 (single Node.js process serving both API and static files)
+Mobile: Already has Capacitor configured for Android builds
+App Features
+7-layer climbing progression system (Made in Abyss themed)
+Skill-based whistle system with grade progression
+AI-powered quest generation (OpenAI API)
+Climbing session tracking with boulder problem logging
+Grade conversion system (V-Scale, Fontainebleau, German)
+Nutrition tracking with AI food analysis
+Achievement system with XP rewards
+Profile management with picture uploads
+What I Need You To Do
+1. Set up Capacitor for Android Build
+Please help me:
+
+Install necessary Capacitor dependencies if not already present
+Configure capacitor.config.ts for my app
+Set up the Android platform
+Configure the app to work properly as a mobile app
+2. Handle the Full-Stack Architecture
+My app currently runs as a single Node.js process. For the APK:
+
+Help me configure the frontend to work with the backend
+Set up proper API endpoints that the mobile app can access
+Handle any CORS issues for mobile requests
+Ensure the React app can communicate with the Express backend
+3. Mobile-Specific Configurations
+Set up proper mobile navigation and UI adaptations
+Configure camera access for profile pictures
+Handle mobile-specific features like back button behavior
+Set up proper splash screen and app icons
+4. Build Configuration
+Configure Vite build settings for mobile
+Set up proper Android manifest permissions
+Configure app metadata (name, package ID, version)
+Set up proper build scripts in package.json
+5. Database and API Considerations
+Help configure the app to work with my PostgreSQL database
+Set up proper API base URLs for mobile
+Handle authentication flow for mobile app
+Configure environment variables for mobile build
+6. Generate the APK
+Walk me through the complete build process
+Generate a debug APK that I can install on my phone
+Test that all features work properly in mobile environment
+Provide instructions for installing the APK on my Android device
+Specific Requirements
+App Configuration
+App Name: "Abyss Climber"
+Package ID: com.abyssclimber.app
+Theme: Dark theme with Made in Abyss aesthetic
+Orientation: Portrait preferred, but responsive
+Permissions Needed
+Internet access (for API calls and OpenAI)
+Camera access (for profile pictures)
+Storage access (for local data caching)
+Network state access
+Key Features to Preserve
+Real-time progress tracking
+AI quest generation functionality
+Grade conversion system
+Session logging capabilities
+Achievement notifications
+Profile picture uploads
+Expected Deliverables
+Updated capacitor.config.ts with proper mobile configuration
+Modified package.json with mobile build scripts
+Updated React components for mobile optimization
+Proper API configuration for mobile requests
+Complete build instructions and generated APK file
+Installation guide for the APK on Android devices
+Questions to Address
+How do I handle the backend API in a mobile context?
+Should I deploy the backend separately or bundle it somehow?
+How do I handle authentication in the mobile app?
+What's the best way to handle file uploads on mobile?
+How do I test the APK before final build?
+Current File Structure
+My app has a monorepo structure with:
+
+/src - React frontend
+/server - Express backend
+/shared - Shared TypeScript types
+/database - Drizzle schema and migrations
+Various config files for Vite, TypeScript, etc.
+Please provide step-by-step instructions and help me build a working APK that preserves all the functionality of my web app while being optimized for mobile use. If you need to see any specific files or configurations, please let me know and I'll share them.
+
+Note: If there are any limitations with building APKs directly in Replit, please suggest alternative approaches or workarounds that would allow me to get my app running on my Android phone.
+
