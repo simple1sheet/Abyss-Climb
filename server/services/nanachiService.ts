@@ -234,9 +234,8 @@ As Nanachi, provide personalized training advice and encouragement. Focus on spe
       return "I'd love to give you some advice, but I'm having trouble thinking right now, naa. Maybe ask me again?";
     }
   }
-}
 
-// Recovery Optimizer - analyze rest needs and recovery recommendations
+  // Recovery Optimizer - analyze rest needs and recovery recommendations
   async getRecoveryOptimization(
     user: User | undefined,
     userStats: EnhancedProgressStats,
