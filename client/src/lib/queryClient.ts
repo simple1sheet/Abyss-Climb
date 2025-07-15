@@ -9,7 +9,7 @@ async function throwIfResNotOk(res: Response) {
     } catch (e) {
       errorObj = { message: text };
     }
-    
+
     const error = new Error(errorObj.message || `HTTP error! status: ${res.status}`);
     (error as any).status = res.status;
     (error as any).response = { data: errorObj };
@@ -26,10 +26,10 @@ export async function apiRequest(
   if (typeof method !== 'string') {
     throw new Error(`apiRequest expects method to be a string, got ${typeof method}. Usage: apiRequest('POST', '/api/endpoint', data)`);
   }
-  
+
   // Handle FormData differently - don't set Content-Type header and don't stringify
   const isFormData = data instanceof FormData;
-  
+
   const res = await fetch(url, {
     method,
     headers: isFormData ? {} : (data ? { "Content-Type": "application/json" } : {}),
@@ -58,6 +58,16 @@ export const getQueryFn: <T>(options: {
     await throwIfResNotOk(res);
     return await res.json();
   };
+
+// API base URL configuration for mobile and web
+export const getApiBaseUrl = () => {
+  if (window.location.protocol === 'capacitor:') {
+    // Running in Capacitor (mobile app)
+    return 'https://rest-express-leon-mund31507.replit.app';
+  }
+  // Running in browser (development or web)
+  return '';
+};
 
 export const queryClient = new QueryClient({
   defaultOptions: {

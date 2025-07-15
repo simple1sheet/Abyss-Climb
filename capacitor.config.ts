@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Abyss Climber',
   webDir: 'dist/public',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    url: process.env.NODE_ENV === 'development' ? 'http://0.0.0.0:5000' : undefined
   },
   plugins: {
     SplashScreen: {
