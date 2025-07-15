@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { GradeSystemProvider } from "@/hooks/useGradeSystem";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
@@ -22,9 +23,7 @@ import Skills from "@/pages/skills";
 import SessionForm from "@/components/SessionForm";
 import AbyssMap from "@/components/AbyssMap";
 import Nanachi from "@/pages/nanachi";
-import React, { useEffect } from 'react';
 import { useIsMobile } from './hooks/use-mobile';
-import ErrorBoundary from './components/ErrorBoundary';
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -56,7 +55,7 @@ function Router() {
   );
 }
 
-function App() {
+function AppContent() {
   const { user, isLoading } = useAuth();
   const isMobile = useIsMobile();
 
@@ -92,13 +91,22 @@ function App() {
       document.removeEventListener('touchend', preventZoom);
     };
   }, [isMobile]);
+
+  return (
+    <>
+      <Toaster />
+      <Router />
+    </>
+  );
+}
+
+function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <GradeSystemProvider>
-            <Toaster />
-            <Router />
+            <AppContent />
           </GradeSystemProvider>
         </TooltipProvider>
       </QueryClientProvider>
