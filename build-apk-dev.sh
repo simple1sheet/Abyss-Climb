@@ -3,6 +3,20 @@
 
 echo "🏗️ Quick Development APK Build"
 
+# Set up Java environment
+export JAVA_HOME=$(dirname $(dirname $(which java)))
+export PATH=$JAVA_HOME/bin:$PATH
+
+# Verify Java installation
+if ! command -v java &> /dev/null; then
+    echo "❌ Java not found. Installing..."
+    nix-env -iA nixpkgs.openjdk17
+    export JAVA_HOME=$(dirname $(dirname $(which java)))
+    export PATH=$JAVA_HOME/bin:$PATH
+fi
+
+echo "✅ Java configured: $(java -version 2>&1 | head -n 1)"
+
 # Build web app
 echo "📦 Building web app..."
 npm run build

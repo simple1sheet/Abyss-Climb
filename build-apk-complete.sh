@@ -3,6 +3,22 @@
 
 echo "🏗️ Building Abyss Climber APK - Complete Process"
 
+# Set up Java environment
+echo "☕ Setting up Java environment..."
+export JAVA_HOME=$(dirname $(dirname $(which java)))
+export PATH=$JAVA_HOME/bin:$PATH
+
+# Verify Java installation
+if ! command -v java &> /dev/null; then
+    echo "❌ Java not found. Installing..."
+    nix-env -iA nixpkgs.openjdk17
+    export JAVA_HOME=$(dirname $(dirname $(which java)))
+    export PATH=$JAVA_HOME/bin:$PATH
+fi
+
+echo "✅ Java version: $(java -version 2>&1 | head -n 1)"
+echo "✅ JAVA_HOME: $JAVA_HOME"
+
 # Check prerequisites
 echo "🔍 Checking prerequisites..."
 if ! command -v npm &> /dev/null; then
