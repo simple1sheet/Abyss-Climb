@@ -1,0 +1,116 @@
+Replit Assistant Prompt: Fix Java/JAVA_HOME Error for APK Build
+Hi Replit Assistant! I'm trying to build an APK for my "Abyss Climber" app using Capacitor, but I'm getting this error:
+ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+Please set the JAVA_HOME variable in your environment to match the location of your Java installation.
+❌ APK build failed 💡 Try opening Android Studio with: npx cap open android Then build from Android Studio directly
+What I Need You To Do
+1. Install Java Development Kit (JDK)
+Please help me install OpenJDK in my Replit environment:
+
+Install OpenJDK 11 or 17 (whichever works best for Android development)
+Make sure it's properly configured
+Verify the installation is working
+
+2. Set Up JAVA_HOME Environment Variable
+I need you to:
+
+Configure the JAVA_HOME environment variable correctly
+Set up the PATH to include Java binaries
+Make sure these settings persist in my Replit environment
+Update my .replit file if necessary
+
+3. Install Android SDK Components
+For APK building, I need:
+
+Android SDK command line tools
+Platform tools
+Build tools (version 33.0.0 or compatible)
+Android platform (API level 33 or compatible)
+Proper SDK licenses acceptance
+
+4. Configure Environment Variables
+Set up these environment variables in my Replit:
+
+JAVA_HOME - pointing to Java installation
+ANDROID_HOME - pointing to Android SDK
+PATH - including Java and Android tools
+
+5. Create Build Script
+Create a build script (build-android.sh) that:
+
+Checks if Java is installed
+Sets up environment variables
+Builds my web app (npm run build)
+Syncs with Capacitor (npx cap sync android)
+Builds the APK (./gradlew assembleDebug)
+Shows where the APK is located
+
+My Current Setup
+
+App: React 18 + TypeScript + Vite frontend with Node.js backend
+Mobile: Capacitor already configured
+Current Command: npx cap run android (this is what's failing)
+Target: Debug APK that I can install on my Android phone
+
+Expected Commands You Should Help Me Run
+bash# Install Java
+sudo apt-get update
+sudo apt-get install -y openjdk-11-jdk
+
+# Set environment variables
+export JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"
+export PATH="$JAVA_HOME/bin:$PATH"
+
+# Verify Java
+java -version
+
+# Install Android SDK
+# (help me with this part)
+
+# Build APK
+npm run build
+npx cap sync android
+cd android && ./gradlew assembleDebug
+Specific Questions to Address
+
+Which Java version should I use? (OpenJDK 11 vs 17)
+How do I make environment variables persistent? (across Replit sessions)
+What's the minimal Android SDK setup needed? (just for APK building)
+How do I handle SDK licenses? (accept them programmatically)
+Where will the APK be generated? (what folder path)
+
+Files to Update or Create
+Please help me update/create these files:
+
+.replit file with proper environment variables
+build-android.sh script for automated building
+Any necessary configuration files for Android/Capacitor
+
+What I Want as Output
+After your help, I should be able to run:
+bash./build-android.sh
+And get:
+✅ APK built successfully!
+📱 APK location: android/app/build/outputs/apk/debug/app-debug.apk
+Fallback Options
+If setting up Java in Replit is too complex, please suggest:
+
+Alternative Replit templates that have Java pre-installed
+GitHub Actions approach for free APK builds
+Other free cloud services that can build APKs
+
+Troubleshooting
+If you encounter issues, please help me troubleshoot:
+
+Java installation problems
+Environment variable issues
+Android SDK setup problems
+Gradle build failures
+Permission issues
+
+Current Error Details
+The error happens when I run:
+bashnpx cap run android
+The build process starts but fails at the Java compilation step. I need a complete solution that sets up the entire Android build environment in Replit.
+
+Please provide step-by-step instructions and run the necessary commands to get my APK building successfully. I need this to work in my current Replit environment without switching to other platforms.
