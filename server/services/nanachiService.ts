@@ -34,12 +34,12 @@ class NanachiService {
     const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
     const totalProblems = userStats?.enhancedStats?.totalProblems || 0;
     const sessionConsistency = userStats?.enhancedStats?.sessionConsistency || 0;
-    
+
     // Find user's strongest and weakest skills
     const skillsByLevel = userSkills.sort((a, b) => b.level - a.level);
     const strongestSkill = skillsByLevel[0]?.skillType || "none";
     const weakestSkills = skillsByLevel.slice(-3).map(s => s.skillType);
-    
+
     return `You are Nanachi from Made in Abyss - a knowledgeable, caring, and slightly playful character who has become a personal climbing assistant. 
 
 CHARACTER TRAITS:
@@ -81,7 +81,7 @@ Remember: You're here to help ${userName} improve their climbing and enjoy their
       const userName = user?.firstName || "Delver";
       const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
       const gradeSystem = user?.preferredGradeSystem || "V-Scale";
-      
+
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
@@ -136,13 +136,13 @@ If you can't clearly see a boulder problem in the image, politely ask for a clea
   ): Promise<string> {
     try {
       const personalityPrompt = this.createPersonalityPrompt(user, userStats, userSkills);
-      
+
       // Add memory context to the prompt
       let memoryContext = "";
       if (contextualMemories && contextualMemories.length > 0) {
         memoryContext = `\n\nRECENT CONVERSATION CONTEXT:\n${contextualMemories.map(m => `- ${m.title}: ${m.content}`).join('\n')}\n\nUse this context to provide more personalized responses and remember past interactions.`;
       }
-      
+
       const response = await openai.chat.completions.create({
         model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
         messages: [
@@ -178,7 +178,7 @@ If you can't clearly see a boulder problem in the image, politely ask for a clea
       if (imageFile) {
         return await this.analyzeImage(imageFile.buffer, user, userStats, contextualMemories);
       }
-      
+
       // Otherwise, generate a chat response
       return await this.generateChatResponse(message, user, userStats, userSkills, contextualMemories);
     } catch (error) {
@@ -198,11 +198,11 @@ If you can't clearly see a boulder problem in the image, politely ask for a clea
     const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
     const weeklyXP = userStats?.xpBreakdown?.weeklyXP || 0;
     const sessionConsistency = userStats?.enhancedStats?.sessionConsistency || 0;
-    
+
     // Find areas for improvement
     const skillsByLevel = userSkills.sort((a, b) => a.level - b.level);
     const weakestSkills = skillsByLevel.slice(0, 3);
-    
+
     const advicePrompt = `Based on ${userName}'s climbing progress:
 - Current Layer: ${currentLayer}
 - Best Grade: ${bestGrade}
@@ -254,7 +254,7 @@ As Nanachi, provide personalized training advice and encouragement. Focus on spe
       const sessionIntensity = recentSessions.length > 0 ? recentSessions.length : 0;
       const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
       const sessionConsistency = userStats?.enhancedStats?.sessionConsistency || 0;
-      
+
       const recoveryPrompt = `As Nanachi from Made in Abyss, analyze ${userName}'s recovery needs:
 
 Current Status:
@@ -325,7 +325,7 @@ Focus on:
     try {
       const userName = user?.firstName || "Delver";
       const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
-      
+
       const analysisPrompt = `As Nanachi from Made in Abyss, analyze ${userName}'s energy and mood for climbing:
 
 Current Status:
@@ -393,12 +393,12 @@ Consider how energy, mood, and sleep affect climbing performance and progression
       const userName = user?.firstName || "Delver";
       const sessionIntensity = recentSessions.length > 0 ? recentSessions.length : 0;
       const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
-      
+
       // Find user's skill imbalances
       const skillsByLevel = userSkills.sort((a, b) => b.level - a.level);
       const strongestSkills = skillsByLevel.slice(0, 3);
       const weakestSkills = skillsByLevel.slice(-3);
-      
+
       const injuryPrompt = `As Nanachi from Made in Abyss, provide injury prevention advice for ${userName}:
 
 Current Status:
@@ -476,12 +476,12 @@ Focus on:
       const sessionIntensity = recentSessions.length || 0;
       const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
       const sessionConsistency = userStats?.enhancedStats?.sessionConsistency || 0;
-      
+
       // Find user's skill imbalances for injury prevention
       const skillsByLevel = userSkills.sort((a, b) => b.level - a.level);
       const strongestSkills = skillsByLevel.slice(0, 3);
       const weakestSkills = skillsByLevel.slice(-3);
-      
+
       const wellnessPrompt = `As Nanachi from Made in Abyss, provide comprehensive wellness analysis for ${userName}:
 
 Current Status:
@@ -531,7 +531,13 @@ Consider:
         max_tokens: 800,
       });
 
-      return JSON.parse(response.choices[0].message.content || '{}');
+      const parsedResponse = JSON.parse(response.choices[0].message.content || '{}');
+      const { recommendations = [] } = parsedResponse;
+
+      return {
+        ...parsedResponse,
+        recommendations: recommendations.filter((rec: string) => rec.length > 0),
+      };
     } catch (error) {
       console.error("Error generating wellness analysis:", error);
       return {
@@ -573,10 +579,10 @@ Consider:
       const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
       const sessionConsistency = userStats?.enhancedStats?.sessionConsistency || 0;
       const weeklyXP = userStats?.xpBreakdown?.weeklyXP || 0;
-      
+
       // Calculate days since last session
       const daysSinceLastSession = recentSessions.length > 0 ? 0 : 1;
-      
+
       const dailyPrompt = `As Nanachi from Made in Abyss, provide daily climbing recommendations for ${userName}:
 
 Current Status:

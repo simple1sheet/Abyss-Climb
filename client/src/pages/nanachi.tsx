@@ -424,7 +424,7 @@ What would you like to explore together today?`,
                         Personalized Recommendations
                       </h4>
                       <div className="space-y-2">
-                        {wellnessMutation.data.recommendations.map((rec: string, index: number) => (
+                        {wellnessMutation.data.recommendations && wellnessMutation.data.recommendations.map((rec: string, index: number) => (
                           <div key={index} className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-abyss-teal rounded-full"></div>
                             <span className="text-sm text-abyss-ethereal/80">{rec}</span>
