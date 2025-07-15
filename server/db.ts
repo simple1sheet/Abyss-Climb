@@ -15,22 +15,34 @@ if (!process.env.DATABASE_URL) {
 // Create pool with proper error handling and connection limits
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 1, // Limit connections for serverless
-  idleTimeoutMillis: 0, // Disable idle timeout
-  connectionTimeoutMillis: 0, // Disable connection timeout
-  maxUses: Infinity, // Allow unlimited uses per connection
-  allowExitOnIdle: false, // Don't exit when idle
-  maxLifetimeSeconds: 0, // Disable connection lifetime limit
+  max: 5, // Increase pool size for better stability
+  idleTimeoutMillis: 30000, // 30 seconds idle timeout
+  connectionTimeoutMillis: 10000, // 10 seconds connection timeout
+  maxUses: 7500, // Limit uses per connection to prevent stale connections
+  allowExitOnIdle: true, // Allow graceful shutdown
+  maxLifetimeSeconds: 3600, // 1 hour max connection lifetime
 });
 
-// Handle pool errors gracefully
+// Handle pool errors gracefully with reconnection
 pool.on('error', (err) => {
   console.error('Database pool error:', err);
+  
+  // Log specific error types for debugging
+  if (err.code === '57P01') {
+    console.log('Database connection terminated by administrator - will reconnect automatically');
+  }
 });
 
-// Handle connection errors
-pool.on('connect', () => {
+// Handle connection events
+pool.on('connect', (client) => {
   console.log('Database connected successfully');
+  
+  // Set connection timeout to prevent hanging connections
+  client.query('SET statement_timeout = 30000');
+});
+
+pool.on('remove', () => {
+  console.log('Database connection removed from pool');
 });
 
 // Graceful shutdown
