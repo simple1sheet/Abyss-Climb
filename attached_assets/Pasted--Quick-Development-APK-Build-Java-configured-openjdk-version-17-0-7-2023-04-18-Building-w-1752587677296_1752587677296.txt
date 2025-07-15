@@ -1,0 +1,68 @@
+🏗️ Quick Development APK Build
+✅ Java configured: openjdk version "17.0.7" 2023-04-18
+📦 Building web app...
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+transforming (3) src/main.tsxBrowserslist: browsers data (caniuse-lite) is 9 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 2422 modules transformed.
+../dist/public/index.html                                              0.90 kB │ gzip:   0.45 kB
+../dist/public/assets/cinzel-latin-ext-400-normal-XQK_CSAr.woff2       7.86 kB
+../dist/public/assets/cinzel-latin-ext-400-normal-DJ0Lq8y-.woff        9.29 kB
+../dist/public/assets/cinzel-latin-400-normal-CXbiKSL7.woff2          14.12 kB
+../dist/public/assets/cinzel-latin-400-normal-CXlcSA6a.woff           16.54 kB
+../dist/public/assets/image_1752500083424-CaZWO92O.png            40,787.15 kB
+../dist/public/assets/index-BdIaM1ZF.css                              98.37 kB │ gzip:  17.65 kB
+../dist/public/assets/index-B4IeFU15.js                              758.65 kB │ gzip: 216.12 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 12.39s
+
+  dist/index.js  273.3kb
+
+⚡ Done in 26ms
+🔄 Syncing Capacitor...
+✔ Copying web assets from public to android/app/src/main/assets/public in 25.51ms
+✔ Creating capacitor.config.json in android/app/src/main/assets in 2.21ms
+✔ copy android in 244.33ms
+✔ Updating Android plugins in 72.02ms
+[info] Found 4 Capacitor plugins for android:
+       @capacitor/app@7.0.1
+       @capacitor/haptics@7.0.1
+       @capacitor/keyboard@7.0.1
+       @capacitor/status-bar@7.0.1
+✔ update android in 335.60ms
+[info] Sync finished in 0.831s
+🔨 Building debug APK...
+Starting a Gradle Daemon, 1 incompatible and 2 stopped Daemons could not be reused, use --status for details
+Calculating task graph as no configuration cache is available for tasks: assembleDebug
+
+> Configure project :app
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+
+> Configure project :capacitor-cordova-android-plugins
+WARNING: Using flatDir should be avoided because it doesn't support any meta-data formats.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Could not determine the dependencies of task ':app:compileDebugJavaWithJavac'.
+> Could not determine the dependencies of null.
+   > SDK location not found. Define a valid SDK location with an ANDROID_HOME environment variable or by setting the sdk.dir path in your project's local properties file at '/home/runner/workspace/android/local.properties'.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 21s
+Configuration cache entry stored.
+❌ Build failed. Try: npx cap open android
