@@ -8,6 +8,7 @@ import RecentSessions from "@/components/RecentSessions";
 import StatsOverview from "@/components/StatsOverview";
 import BottomNavigation from "@/components/BottomNavigation";
 import SessionIndicator from "@/components/SessionIndicator";
+import ForTodayWindow from "@/components/ForTodayWindow";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -182,6 +183,7 @@ export default function Home() {
       {/* Main Content */}
       <div className="relative z-10 pb-24">
         <SessionIndicator />
+        <ForTodayWindow />
         <WhistleProgress />
         <CurrentLayer />
         <QuickActions />

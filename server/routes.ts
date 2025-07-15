@@ -1298,6 +1298,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Recovery Optimizer API route
+  app.get("/api/nanachi/recovery-optimization", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const [user, userStats, userSkills] = await Promise.all([
+        storage.getUser(userId),
+        storage.getEnhancedProgressStats(userId),
+        storage.getUserSkills(userId)
+      ]);
+
+      const recentSessions = await storage.getUserClimbingSessions(userId, 7);
+      
+      const { nanachiService } = await import("./services/nanachiService");
+      const recoveryAnalysis = await nanachiService.getRecoveryOptimization(
+        user,
+        userStats,
+        userSkills,
+        recentSessions
+      );
+      
+      res.json(recoveryAnalysis);
+    } catch (error) {
+      console.error("Recovery optimization error:", error);
+      res.status(500).json({ error: "Failed to get recovery optimization" });
+    }
+  });
+
+  // Energy/Mood Tracking API route
+  app.post("/api/nanachi/energy-mood-analysis", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { energyLevel, moodLevel, sleepHours, stressLevel } = req.body;
+      
+      const [user, userStats] = await Promise.all([
+        storage.getUser(userId),
+        storage.getEnhancedProgressStats(userId)
+      ]);
+      
+      const { nanachiService } = await import("./services/nanachiService");
+      const analysis = await nanachiService.getEnergyMoodAnalysis(
+        user,
+        userStats,
+        energyLevel,
+        moodLevel,
+        sleepHours,
+        stressLevel
+      );
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error("Energy/mood analysis error:", error);
+      res.status(500).json({ error: "Failed to analyze energy/mood" });
+    }
+  });
+
+  // Injury Prevention API route
+  app.get("/api/nanachi/injury-prevention", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const [user, userStats, userSkills] = await Promise.all([
+        storage.getUser(userId),
+        storage.getEnhancedProgressStats(userId),
+        storage.getUserSkills(userId)
+      ]);
+
+      const recentSessions = await storage.getUserClimbingSessions(userId, 7);
+      
+      const { nanachiService } = await import("./services/nanachiService");
+      const injuryAdvice = await nanachiService.getInjuryPreventionAdvice(
+        user,
+        userStats,
+        userSkills,
+        recentSessions
+      );
+      
+      res.json(injuryAdvice);
+    } catch (error) {
+      console.error("Injury prevention error:", error);
+      res.status(500).json({ error: "Failed to get injury prevention advice" });
+    }
+  });
+
+  // Daily Recommendations API route
+  app.get("/api/nanachi/daily-recommendations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const [user, userStats, userSkills] = await Promise.all([
+        storage.getUser(userId),
+        storage.getEnhancedProgressStats(userId),
+        storage.getUserSkills(userId)
+      ]);
+
+      const recentSessions = await storage.getUserClimbingSessions(userId, 7);
+      
+      const { nanachiService } = await import("./services/nanachiService");
+      const dailyRecommendations = await nanachiService.getDailyRecommendations(
+        user,
+        userStats,
+        userSkills,
+        recentSessions
+      );
+      
+      res.json(dailyRecommendations);
+    } catch (error) {
+      console.error("Daily recommendations error:", error);
+      res.status(500).json({ error: "Failed to get daily recommendations" });
+    }
+  });
+
   // Nutrition API routes
   app.get("/api/nutrition/summary", isAuthenticated, async (req, res) => {
     try {

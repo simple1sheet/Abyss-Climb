@@ -236,4 +236,307 @@ As Nanachi, provide personalized training advice and encouragement. Focus on spe
   }
 }
 
+// Recovery Optimizer - analyze rest needs and recovery recommendations
+  async getRecoveryOptimization(
+    user: User | undefined,
+    userStats: EnhancedProgressStats,
+    userSkills: Skill[],
+    recentSessions: any[]
+  ): Promise<{
+    recoveryScore: number;
+    restDayRecommendation: boolean;
+    recoveryActivities: string[];
+    sleepRecommendation: string;
+    nanachiAdvice: string;
+  }> {
+    try {
+      const userName = user?.firstName || "Delver";
+      const sessionIntensity = recentSessions.length > 0 ? recentSessions.length : 0;
+      const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
+      const sessionConsistency = userStats?.enhancedStats?.sessionConsistency || 0;
+      
+      const recoveryPrompt = `As Nanachi from Made in Abyss, analyze ${userName}'s recovery needs:
+
+Current Status:
+- Best Grade: ${bestGrade}
+- Recent Sessions: ${sessionIntensity} this week
+- Session Consistency: ${Math.round(sessionConsistency * 100)}%
+- Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
+
+Provide recovery optimization in JSON format:
+{
+  "recoveryScore": 1-10_scale,
+  "restDayRecommendation": true_or_false,
+  "recoveryActivities": ["activity1", "activity2", "activity3"],
+  "sleepRecommendation": "specific sleep advice",
+  "nanachiAdvice": "Nanachi's caring advice about recovery with 'naa' speech patterns"
+}
+
+Focus on:
+- Preventing overtraining and injuries
+- Optimizing recovery between sessions
+- Sleep quality for climbing performance
+- Active recovery suggestions`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: this.createPersonalityPrompt(user, userStats, userSkills)
+          },
+          {
+            role: "user",
+            content: recoveryPrompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 500,
+      });
+
+      return JSON.parse(response.choices[0].message.content || '{}');
+    } catch (error) {
+      console.error("Error generating recovery optimization:", error);
+      return {
+        recoveryScore: 7,
+        restDayRecommendation: false,
+        recoveryActivities: ["Light stretching", "Walk in nature", "Meditation"],
+        sleepRecommendation: "Aim for 7-8 hours of quality sleep, naa!",
+        nanachiAdvice: "Listen to your body and don't push too hard, naa! Recovery is just as important as training."
+      };
+    }
+  }
+
+  // Energy/Mood Tracking analysis
+  async getEnergyMoodAnalysis(
+    user: User | undefined,
+    userStats: EnhancedProgressStats,
+    energyLevel: number,
+    moodLevel: number,
+    sleepHours: number,
+    stressLevel: number
+  ): Promise<{
+    energyInsights: string;
+    moodInsights: string;
+    climbingRecommendations: string[];
+    performancePrediction: string;
+    nanachiEncouragement: string;
+  }> {
+    try {
+      const userName = user?.firstName || "Delver";
+      const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
+      
+      const analysisPrompt = `As Nanachi from Made in Abyss, analyze ${userName}'s energy and mood for climbing:
+
+Current Status:
+- Energy Level: ${energyLevel}/10
+- Mood Level: ${moodLevel}/10
+- Sleep Hours: ${sleepHours}
+- Stress Level: ${stressLevel}/10
+- Best Grade: ${bestGrade}
+- Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
+
+Provide analysis in JSON format:
+{
+  "energyInsights": "Analysis of energy patterns and recommendations",
+  "moodInsights": "Mood impact on climbing performance",
+  "climbingRecommendations": ["rec1", "rec2", "rec3"],
+  "performancePrediction": "Expected climbing performance today",
+  "nanachiEncouragement": "Supportive advice with 'naa' speech patterns"
+}
+
+Consider how energy, mood, and sleep affect climbing performance and progression.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: this.createPersonalityPrompt(user, userStats, userSkills)
+          },
+          {
+            role: "user",
+            content: analysisPrompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 600,
+      });
+
+      return JSON.parse(response.choices[0].message.content || '{}');
+    } catch (error) {
+      console.error("Error generating energy/mood analysis:", error);
+      return {
+        energyInsights: "Your energy levels seem moderate today, naa!",
+        moodInsights: "A positive mood can greatly improve your climbing performance!",
+        climbingRecommendations: ["Start with easier problems", "Focus on technique", "Stay hydrated"],
+        performancePrediction: "You should have a good climbing session today!",
+        nanachiEncouragement: "Remember, every day is different, naa! Listen to your body and climb within your limits."
+      };
+    }
+  }
+
+  // Injury Prevention analysis
+  async getInjuryPreventionAdvice(
+    user: User | undefined,
+    userStats: EnhancedProgressStats,
+    userSkills: Skill[],
+    recentSessions: any[]
+  ): Promise<{
+    riskAssessment: string;
+    preventionTips: string[];
+    warmupSuggestions: string[];
+    coolingDownAdvice: string[];
+    nanachiWarnings: string;
+  }> {
+    try {
+      const userName = user?.firstName || "Delver";
+      const sessionIntensity = recentSessions.length > 0 ? recentSessions.length : 0;
+      const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
+      
+      // Find user's skill imbalances
+      const skillsByLevel = userSkills.sort((a, b) => b.level - a.level);
+      const strongestSkills = skillsByLevel.slice(0, 3);
+      const weakestSkills = skillsByLevel.slice(-3);
+      
+      const injuryPrompt = `As Nanachi from Made in Abyss, provide injury prevention advice for ${userName}:
+
+Current Status:
+- Best Grade: ${bestGrade}
+- Recent Sessions: ${sessionIntensity} this week
+- Strongest Skills: ${strongestSkills.map(s => s.skillType).join(", ")}
+- Weakest Skills: ${weakestSkills.map(s => s.skillType).join(", ")}
+- Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
+
+Provide injury prevention advice in JSON format:
+{
+  "riskAssessment": "Current injury risk based on climbing patterns",
+  "preventionTips": ["tip1", "tip2", "tip3", "tip4"],
+  "warmupSuggestions": ["warmup1", "warmup2", "warmup3"],
+  "coolingDownAdvice": ["cooldown1", "cooldown2", "cooldown3"],
+  "nanachiWarnings": "Caring warnings about injury prevention with 'naa' speech patterns"
+}
+
+Focus on:
+- Common climbing injuries and prevention
+- Proper warm-up and cool-down routines
+- Skill imbalances that might lead to injury
+- Progressive overload principles`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: this.createPersonalityPrompt(user, userStats, userSkills)
+          },
+          {
+            role: "user",
+            content: injuryPrompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 700,
+      });
+
+      return JSON.parse(response.choices[0].message.content || '{}');
+    } catch (error) {
+      console.error("Error generating injury prevention advice:", error);
+      return {
+        riskAssessment: "Your injury risk appears to be low, but always be cautious, naa!",
+        preventionTips: ["Always warm up properly", "Listen to your body", "Don't rush progression", "Maintain good technique"],
+        warmupSuggestions: ["Arm circles and stretches", "Light cardio", "Easy climbing moves"],
+        coolingDownAdvice: ["Gentle stretching", "Hydrate well", "Rest and recovery"],
+        nanachiWarnings: "Remember, preventing injuries is much easier than healing them, naa! Take care of your body."
+      };
+    }
+  }
+
+  // Generate daily recommendations for "For Today" window
+  async getDailyRecommendations(
+    user: User | undefined,
+    userStats: EnhancedProgressStats,
+    userSkills: Skill[],
+    recentSessions: any[]
+  ): Promise<{
+    dailyGoal: string;
+    focusArea: string;
+    energyLevel: string;
+    recoveryAdvice: string;
+    motivationalMessage: string;
+    specificActions: string[];
+    nanachiPersonality: string;
+  }> {
+    try {
+      const userName = user?.firstName || "Delver";
+      const currentLayer = userStats?.currentLayer || 1;
+      const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
+      const sessionConsistency = userStats?.enhancedStats?.sessionConsistency || 0;
+      const weeklyXP = userStats?.xpBreakdown?.weeklyXP || 0;
+      
+      // Calculate days since last session
+      const daysSinceLastSession = recentSessions.length > 0 ? 0 : 1;
+      
+      const dailyPrompt = `As Nanachi from Made in Abyss, provide daily climbing recommendations for ${userName}:
+
+Current Status:
+- Name: ${userName}
+- Current Layer: ${currentLayer}
+- Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
+- Best Grade: ${bestGrade}
+- Weekly XP: ${weeklyXP}
+- Session Consistency: ${Math.round(sessionConsistency * 100)}%
+- Days Since Last Session: ${daysSinceLastSession}
+- Recent Sessions: ${recentSessions.length} this week
+
+Provide daily recommendations in JSON format:
+{
+  "dailyGoal": "Specific achievable goal for today",
+  "focusArea": "What to focus on (technique, strength, endurance, etc.)",
+  "energyLevel": "Expected energy needs and recommendations",
+  "recoveryAdvice": "Recovery considerations for today",
+  "motivationalMessage": "Encouraging message for the day",
+  "specificActions": ["action1", "action2", "action3"],
+  "nanachiPersonality": "Nanachi's caring daily message with 'naa' speech patterns"
+}
+
+Make recommendations based on:
+- Current progression level
+- Recent climbing activity
+- Day of the week patterns
+- Recovery needs
+- Skill development priorities`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: this.createPersonalityPrompt(user, userStats, userSkills)
+          },
+          {
+            role: "user",
+            content: dailyPrompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 600,
+      });
+
+      return JSON.parse(response.choices[0].message.content || '{}');
+    } catch (error) {
+      console.error("Error generating daily recommendations:", error);
+      return {
+        dailyGoal: "Focus on consistent technique practice",
+        focusArea: "Technique and form",
+        energyLevel: "Moderate energy recommended",
+        recoveryAdvice: "Listen to your body and rest when needed",
+        motivationalMessage: "Every climb is a step deeper into the Abyss!",
+        specificActions: ["Warm up properly", "Practice basic holds", "Cool down with stretching"],
+        nanachiPersonality: "Good morning, naa! Today's a perfect day to explore new challenges in the Abyss. Remember, progress comes from consistent practice, not rushing through the layers!"
+      };
+    }
+  }
+}
+
 export const nanachiService = new NanachiService();
