@@ -195,7 +195,7 @@ export default function WhistleProgress() {
                 }
               </div>
               <div className="text-sm text-abyss-ethereal/70">📊 Avg Grade (7d)</div>
-            </div>
+            </div></old_str>
             <div className="text-center">
               <div className="text-2xl font-bold text-abyss-teal">
                 {whistleStats?.questsCompletedToday || 0} / {whistleStats?.maxDailyQuests || 3}
