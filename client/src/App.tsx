@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { GradeSystemProvider } from "@/hooks/useGradeSystem";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
@@ -23,7 +22,6 @@ import Skills from "@/pages/skills";
 import SessionForm from "@/components/SessionForm";
 import AbyssMap from "@/components/AbyssMap";
 import Nanachi from "@/pages/nanachi";
-import { useIsMobile } from './hooks/use-mobile';
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -55,58 +53,14 @@ function Router() {
   );
 }
 
-function AppContent() {
-  const { user, isLoading } = useAuth();
-  const isMobile = useIsMobile();
-
-  useEffect(() => {
-    // Set viewport meta tag for mobile optimization
-    let viewport = document.querySelector('meta[name="viewport"]');
-    if (!viewport) {
-      viewport = document.createElement('meta');
-      viewport.name = 'viewport';
-      document.head.appendChild(viewport);
-    }
-    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
-
-    // Add mobile-specific body classes
-    document.body.classList.add('mobile-optimized');
-    if (isMobile) {
-      document.body.classList.add('is-mobile');
-    }
-
-    // Prevent zoom on double tap
-    let lastTouchEnd = 0;
-    const preventZoom = (e: TouchEvent) => {
-      const now = Date.now();
-      if (now - lastTouchEnd <= 300) {
-        e.preventDefault();
-      }
-      lastTouchEnd = now;
-    };
-
-    document.addEventListener('touchend', preventZoom, { passive: false });
-
-    return () => {
-      document.removeEventListener('touchend', preventZoom);
-    };
-  }, [isMobile]);
-
-  return (
-    <>
-      <Toaster />
-      <Router />
-    </>
-  );
-}
-
 function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <GradeSystemProvider>
-            <AppContent />
+            <Toaster />
+            <Router />
           </GradeSystemProvider>
         </TooltipProvider>
       </QueryClientProvider>

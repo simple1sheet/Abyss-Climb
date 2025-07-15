@@ -7,10 +7,6 @@
   "background_color": "#1a1a2e",
   "theme_color": "#16213e",
   "orientation": "portrait-primary",
-  "display_override": ["window-controls-overlay", "minimal-ui"],
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
   "categories": ["sports", "fitness", "health"],
   "lang": "en-US",
   "icons": [
