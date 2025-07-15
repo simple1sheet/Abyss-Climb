@@ -1,6 +1,6 @@
-import React from "react";
 import { Switch, Route } from "wouter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,21 +22,6 @@ import Skills from "@/pages/skills";
 import SessionForm from "@/components/SessionForm";
 import AbyssMap from "@/components/AbyssMap";
 import Nanachi from "@/pages/nanachi";
-
-// Create QueryClient once at module level
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-    },
-    mutations: {
-      retry: false,
-    },
-  },
-});
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
