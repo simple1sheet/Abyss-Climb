@@ -55,22 +55,10 @@ export default function Nanachi() {
     enabled: !!user,
   });
 
-  // Recovery Optimizer
-  const { data: recoveryData, isLoading: recoveryLoading } = useQuery({
-    queryKey: ["/api/nanachi/recovery-optimization"],
-    enabled: !!user && activeTab === "recovery",
-  });
-
-  // Injury Prevention
-  const { data: injuryData, isLoading: injuryLoading } = useQuery({
-    queryKey: ["/api/nanachi/injury-prevention"],
-    enabled: !!user && activeTab === "injury",
-  });
-
-  // Energy/Mood Analysis
-  const energyMoodMutation = useMutation({
+  // Unified Wellness Analysis
+  const wellnessMutation = useMutation({
     mutationFn: async (data: { energyLevel: number; moodLevel: number; sleepHours: number; stressLevel: number }) => {
-      const response = await fetch("/api/nanachi/energy-mood-analysis", {
+      const response = await fetch("/api/nanachi/wellness-analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -136,8 +124,8 @@ export default function Nanachi() {
     sendMessageMutation.mutate({ message: inputMessage, image: selectedImage || undefined });
   };
 
-  const handleEnergyMoodAnalysis = () => {
-    energyMoodMutation.mutate({
+  const handleWellnessAnalysis = () => {
+    wellnessMutation.mutate({
       energyLevel: energyLevel[0],
       moodLevel: moodLevel[0],
       sleepHours: sleepHours[0],
@@ -256,11 +244,9 @@ What would you like to explore together today?`,
       {/* Tabbed Interface */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-abyss-purple/20 mb-6">
+          <TabsList className="grid w-full grid-cols-2 bg-abyss-purple/20 mb-6">
             <TabsTrigger value="chat" className="text-abyss-ethereal">Chat</TabsTrigger>
-            <TabsTrigger value="recovery" className="text-abyss-ethereal">Recovery</TabsTrigger>
-            <TabsTrigger value="energy" className="text-abyss-ethereal">Energy/Mood</TabsTrigger>
-            <TabsTrigger value="injury" className="text-abyss-ethereal">Injury Prevention</TabsTrigger>
+            <TabsTrigger value="wellness" className="text-abyss-ethereal">Wellness Analysis</TabsTrigger>
           </TabsList>
 
           {/* Chat Tab */}
@@ -306,77 +292,20 @@ What would you like to explore together today?`,
         <div ref={messagesEndRef} />
           </TabsContent>
 
-          {/* Recovery Optimizer Tab */}
-          <TabsContent value="recovery" className="space-y-4">
+          {/* Unified Wellness Tab */}
+          <TabsContent value="wellness" className="space-y-4">
             <Card className="nature-card">
               <CardHeader>
                 <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
                   <Heart className="w-5 h-5 text-red-400" />
-                  <span>Recovery Optimizer</span>
+                  <span>Comprehensive Wellness Analysis</span>
                 </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recoveryLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-abyss-amber mr-2" />
-                    <span className="text-abyss-ethereal">Analyzing your recovery needs...</span>
-                  </div>
-                ) : recoveryData ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-abyss-ethereal">Recovery Score</span>
-                      <Badge className={`${recoveryData.recoveryScore >= 7 ? 'bg-green-500/20 text-green-400' : recoveryData.recoveryScore >= 4 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
-                        {recoveryData.recoveryScore}/10
-                      </Badge>
-                    </div>
-                    
-                    {recoveryData.restDayRecommendation && (
-                      <div className="bg-abyss-amber/10 p-4 rounded-lg">
-                        <p className="text-abyss-ethereal font-medium flex items-center">
-                          <AlertTriangle className="w-4 h-4 mr-2 text-abyss-amber" />
-                          Rest Day Recommended
-                        </p>
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Recovery Activities</h4>
-                      <div className="space-y-2">
-                        {recoveryData.recoveryActivities.map((activity: string, index: number) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-abyss-teal rounded-full"></div>
-                            <span className="text-sm text-abyss-ethereal/80">{activity}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Sleep Recommendation</h4>
-                      <p className="text-sm text-abyss-ethereal/80">{recoveryData.sleepRecommendation}</p>
-                    </div>
-
-                    <div className="bg-abyss-purple/20 p-4 rounded-lg">
-                      <p className="text-abyss-ethereal/90 italic">"{recoveryData.nanachiAdvice}"</p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-abyss-ethereal/70">Unable to load recovery data</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Energy/Mood Tab */}
-          <TabsContent value="energy" className="space-y-4">
-            <Card className="nature-card">
-              <CardHeader>
-                <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
-                  <Battery className="w-5 h-5 text-green-400" />
-                  <span>Energy & Mood Tracking</span>
-                </CardTitle>
+                <p className="text-sm text-abyss-ethereal/70">
+                  Track your energy, mood, recovery, and injury prevention all in one place
+                </p>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Input Controls */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-abyss-ethereal">Energy Level</Label>
@@ -432,11 +361,11 @@ What would you like to explore together today?`,
                 </div>
 
                 <Button 
-                  onClick={handleEnergyMoodAnalysis}
+                  onClick={handleWellnessAnalysis}
                   className="w-full abyss-button"
-                  disabled={energyMoodMutation.isPending}
+                  disabled={wellnessMutation.isPending}
                 >
-                  {energyMoodMutation.isPending ? (
+                  {wellnessMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Analyzing...
@@ -444,115 +373,77 @@ What would you like to explore together today?`,
                   ) : (
                     <>
                       <Brain className="w-4 h-4 mr-2" />
-                      Analyze Energy & Mood
+                      Analyze Wellness
                     </>
                   )}
                 </Button>
 
-                {energyMoodMutation.data && (
+                {wellnessMutation.data && (
                   <div className="space-y-4">
                     <Separator className="bg-abyss-amber/20" />
                     
-                    <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Energy Insights</h4>
-                      <p className="text-sm text-abyss-ethereal/80">{energyMoodMutation.data.energyInsights}</p>
+                    {/* Recovery Score */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-abyss-ethereal">Recovery Score</span>
+                      <Badge className={`${wellnessMutation.data.recoveryScore >= 7 ? 'bg-green-500/20 text-green-400' : wellnessMutation.data.recoveryScore >= 4 ? 'bg-yellow-500/20 text-yellow-400' : 'bg-red-500/20 text-red-400'}`}>
+                        {wellnessMutation.data.recoveryScore}/10
+                      </Badge>
                     </div>
 
-                    <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Mood Insights</h4>
-                      <p className="text-sm text-abyss-ethereal/80">{energyMoodMutation.data.moodInsights}</p>
+                    {/* Energy & Mood Insights */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-medium text-abyss-ethereal mb-2 flex items-center">
+                          <Battery className="w-4 h-4 mr-2 text-green-400" />
+                          Energy Insights
+                        </h4>
+                        <p className="text-sm text-abyss-ethereal/80">{wellnessMutation.data.energyInsights}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-abyss-ethereal mb-2 flex items-center">
+                          <Brain className="w-4 h-4 mr-2 text-purple-400" />
+                          Mood Insights
+                        </h4>
+                        <p className="text-sm text-abyss-ethereal/80">{wellnessMutation.data.moodInsights}</p>
+                      </div>
                     </div>
 
+                    {/* Injury Risk */}
                     <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Climbing Recommendations</h4>
+                      <h4 className="font-medium text-abyss-ethereal mb-2 flex items-center">
+                        <Shield className="w-4 h-4 mr-2 text-blue-400" />
+                        Injury Risk Assessment
+                      </h4>
+                      <p className="text-sm text-abyss-ethereal/80">{wellnessMutation.data.injuryRisk}</p>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div>
+                      <h4 className="font-medium text-abyss-ethereal mb-2 flex items-center">
+                        <Target className="w-4 h-4 mr-2 text-abyss-amber" />
+                        Personalized Recommendations
+                      </h4>
                       <div className="space-y-2">
-                        {energyMoodMutation.data.climbingRecommendations.map((rec: string, index: number) => (
+                        {wellnessMutation.data.recommendations.map((rec: string, index: number) => (
                           <div key={index} className="flex items-center space-x-2">
-                            <Target className="w-3 h-3 text-abyss-amber" />
+                            <div className="w-2 h-2 bg-abyss-teal rounded-full"></div>
                             <span className="text-sm text-abyss-ethereal/80">{rec}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
+                    {/* Daily Advice */}
                     <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Performance Prediction</h4>
-                      <p className="text-sm text-abyss-ethereal/80">{energyMoodMutation.data.performancePrediction}</p>
+                      <h4 className="font-medium text-abyss-ethereal mb-2">Today's Focus</h4>
+                      <p className="text-sm text-abyss-ethereal/80">{wellnessMutation.data.dailyAdvice}</p>
                     </div>
 
+                    {/* Nanachi's Wisdom */}
                     <div className="bg-abyss-purple/20 p-4 rounded-lg">
-                      <p className="text-abyss-ethereal/90 italic">"{energyMoodMutation.data.nanachiEncouragement}"</p>
+                      <p className="text-abyss-ethereal/90 italic">"{wellnessMutation.data.nanachiWisdom}"</p>
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Injury Prevention Tab */}
-          <TabsContent value="injury" className="space-y-4">
-            <Card className="nature-card">
-              <CardHeader>
-                <CardTitle className="text-abyss-ethereal flex items-center space-x-2">
-                  <Shield className="w-5 h-5 text-blue-400" />
-                  <span>Injury Prevention</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {injuryLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-abyss-amber mr-2" />
-                    <span className="text-abyss-ethereal">Analyzing injury risk...</span>
-                  </div>
-                ) : injuryData ? (
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Risk Assessment</h4>
-                      <p className="text-sm text-abyss-ethereal/80">{injuryData.riskAssessment}</p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Prevention Tips</h4>
-                      <div className="space-y-2">
-                        {injuryData.preventionTips.map((tip: string, index: number) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <Shield className="w-3 h-3 text-blue-400" />
-                            <span className="text-sm text-abyss-ethereal/80">{tip}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Warm-up Suggestions</h4>
-                      <div className="space-y-2">
-                        {injuryData.warmupSuggestions.map((warmup: string, index: number) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                            <span className="text-sm text-abyss-ethereal/80">{warmup}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-medium text-abyss-ethereal mb-2">Cool-down Advice</h4>
-                      <div className="space-y-2">
-                        {injuryData.coolingDownAdvice.map((cooldown: string, index: number) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                            <span className="text-sm text-abyss-ethereal/80">{cooldown}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="bg-abyss-purple/20 p-4 rounded-lg">
-                      <p className="text-abyss-ethereal/90 italic">"{injuryData.nanachiWarnings}"</p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-abyss-ethereal/70">Unable to load injury prevention data</p>
                 )}
               </CardContent>
             </Card>

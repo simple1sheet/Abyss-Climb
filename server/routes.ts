@@ -1361,14 +1361,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Injury Prevention API route
-  app.get("/api/nanachi/injury-prevention", isAuthenticated, async (req, res) => {
+  // Unified Wellness Analysis API route
+  app.post("/api/nanachi/wellness-analysis", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user?.claims?.sub;
       if (!userId) {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      const { energyLevel, moodLevel, sleepHours, stressLevel } = req.body;
+      
       const [user, userStats, userSkills] = await Promise.all([
         storage.getUser(userId),
         storage.getEnhancedProgressStats(userId),
@@ -1378,17 +1380,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recentSessions = await storage.getUserClimbingSessions(userId, 7);
       
       const { nanachiService } = await import("./services/nanachiService");
-      const injuryAdvice = await nanachiService.getInjuryPreventionAdvice(
+      const wellnessAnalysis = await nanachiService.getWellnessAnalysis(
         user,
         userStats,
         userSkills,
-        recentSessions
+        recentSessions,
+        energyLevel,
+        moodLevel,
+        sleepHours,
+        stressLevel
       );
       
-      res.json(injuryAdvice);
+      res.json(wellnessAnalysis);
     } catch (error) {
-      console.error("Injury prevention error:", error);
-      res.status(500).json({ error: "Failed to get injury prevention advice" });
+      console.error("Wellness analysis error:", error);
+      res.status(500).json({ error: "Failed to analyze wellness" });
     }
   });
 

@@ -452,6 +452,106 @@ Focus on:
     }
   }
 
+  // Comprehensive Wellness Analysis - combines recovery, energy/mood, and injury prevention
+  async getWellnessAnalysis(
+    user: User | undefined,
+    userStats: EnhancedProgressStats,
+    userSkills: Skill[],
+    recentSessions: any[],
+    energyLevel?: number,
+    moodLevel?: number,
+    sleepHours?: number,
+    stressLevel?: number
+  ): Promise<{
+    recoveryScore: number;
+    energyInsights: string;
+    moodInsights: string;
+    injuryRisk: string;
+    recommendations: string[];
+    dailyAdvice: string;
+    nanachiWisdom: string;
+  }> {
+    try {
+      const userName = user?.firstName || "Delver";
+      const sessionIntensity = recentSessions.length || 0;
+      const bestGrade = userStats?.enhancedStats?.bestGrade || "V0";
+      const sessionConsistency = userStats?.enhancedStats?.sessionConsistency || 0;
+      
+      // Find user's skill imbalances for injury prevention
+      const skillsByLevel = userSkills.sort((a, b) => b.level - a.level);
+      const strongestSkills = skillsByLevel.slice(0, 3);
+      const weakestSkills = skillsByLevel.slice(-3);
+      
+      const wellnessPrompt = `As Nanachi from Made in Abyss, provide comprehensive wellness analysis for ${userName}:
+
+Current Status:
+- Best Grade: ${bestGrade}
+- Recent Sessions: ${sessionIntensity} this week
+- Session Consistency: ${Math.round(sessionConsistency * 100)}%
+- Whistle Level: ${userStats.whistleLevel} (${userStats.whistleName})
+- Strongest Skills: ${strongestSkills.map(s => s.skillType).join(", ")}
+- Weakest Skills: ${weakestSkills.map(s => s.skillType).join(", ")}
+
+${energyLevel ? `Energy Level: ${energyLevel}/10` : ''}
+${moodLevel ? `Mood Level: ${moodLevel}/10` : ''}
+${sleepHours ? `Sleep Hours: ${sleepHours}` : ''}
+${stressLevel ? `Stress Level: ${stressLevel}/10` : ''}
+
+Provide wellness analysis in JSON format:
+{
+  "recoveryScore": 1-10_scale,
+  "energyInsights": "Energy analysis and recommendations",
+  "moodInsights": "Mood impact on climbing performance",
+  "injuryRisk": "Injury risk assessment and prevention tips",
+  "recommendations": ["rec1", "rec2", "rec3", "rec4", "rec5"],
+  "dailyAdvice": "What to focus on today",
+  "nanachiWisdom": "Nanachi's caring advice with 'naa' speech patterns about overall wellness"
+}
+
+Consider:
+- Recovery needs based on recent activity
+- Energy and mood optimization for climbing
+- Injury prevention based on skill imbalances
+- Sleep quality impact on performance
+- Stress management for climbing performance`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: this.createPersonalityPrompt(user, userStats, userSkills)
+          },
+          {
+            role: "user",
+            content: wellnessPrompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 800,
+      });
+
+      return JSON.parse(response.choices[0].message.content || '{}');
+    } catch (error) {
+      console.error("Error generating wellness analysis:", error);
+      return {
+        recoveryScore: 7,
+        energyInsights: "Your energy levels seem balanced today, naa!",
+        moodInsights: "A positive mindset can greatly improve your climbing performance!",
+        injuryRisk: "Your injury risk appears low, but always be mindful of proper warm-up, naa!",
+        recommendations: [
+          "Warm up thoroughly before climbing",
+          "Listen to your body's signals",
+          "Stay hydrated throughout the day",
+          "Get adequate sleep for recovery",
+          "Practice stress management techniques"
+        ],
+        dailyAdvice: "Focus on technique and enjoy your climbing session today!",
+        nanachiWisdom: "Remember, taking care of your body is just as important as pushing your limits, naa! Balance is key to long-term progress in the Abyss."
+      };
+    }
+  }
+
   // Generate daily recommendations for "For Today" window
   async getDailyRecommendations(
     user: User | undefined,

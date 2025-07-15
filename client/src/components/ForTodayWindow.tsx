@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
@@ -44,7 +43,7 @@ export default function ForTodayWindow() {
   useEffect(() => {
     const today = new Date().toDateString();
     const lastUpdate = localStorage.getItem('lastDailyUpdate');
-    
+
     if (!lastUpdate || lastUpdate !== today) {
       setIsNewDay(true);
       localStorage.setItem('lastDailyUpdate', today);
