@@ -18,17 +18,17 @@ export default function WhistleProgress() {
   const [openCategories, setOpenCategories] = useState<string[]>([]);
   const { gradeSystem } = useGradeSystem();
   
-  const { data: skills } = useQuery({
+  const { data: skills, isLoading: skillsLoading } = useQuery({
     queryKey: ["/api/skills"],
     enabled: !!user,
   });
 
-  const { data: whistleStats } = useQuery({
+  const { data: whistleStats, isLoading: whistleStatsLoading } = useQuery({
     queryKey: ["/api/whistle-progress"],
     enabled: !!user,
   });
 
-  const { data: enhancedProgress } = useQuery({
+  const { data: enhancedProgress, isLoading: enhancedProgressLoading } = useQuery({
     queryKey: ["/api/enhanced-progress"],
     enabled: !!user,
   });
@@ -134,8 +134,38 @@ export default function WhistleProgress() {
     );
   }
 
+  // Show loading state while data is being fetched
+  if (skillsLoading || whistleStatsLoading || enhancedProgressLoading) {
+    return (
+      <section className="px-6 mb-8 relative z-10">
+        <Card className="nature-card vine-border">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-abyss-ethereal ancient-text">Whistle Progress</h2>
+              <div className="flex items-center space-x-2">
+                <div className="w-16 h-6 bg-abyss-dark/60 rounded animate-pulse"></div>
+                <div className="w-5 h-5 bg-abyss-dark/60 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-12 bg-abyss-dark/40 rounded animate-pulse"></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-16 bg-abyss-dark/40 rounded animate-pulse"></div>
+                <div className="h-16 bg-abyss-dark/40 rounded animate-pulse"></div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-16 bg-abyss-dark/40 rounded animate-pulse"></div>
+                <div className="h-16 bg-abyss-dark/40 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    );
+  }
+
   // Use enhanced progress data for whistle level as it's always fresh from server
-  const currentLevel = enhancedProgress?.whistleLevel ?? user.whistleLevel ?? 0;
+  const currentLevel = enhancedProgress?.whistleLevel ?? user?.whistleLevel ?? 0;
   const nextLevelGrade = getGradeRequiredForNextLevel(currentLevel);
   
   // Calculate progress to next whistle based on highest skill grade
@@ -150,7 +180,7 @@ export default function WhistleProgress() {
   };
   
   const highestGrade = getHighestSkillGrade();
-  const progressPercentage = currentLevel >= 5 ? 100 : Math.min((highestGrade / parseInt(nextLevelGrade.replace('V', '')) || 1) * 100, 100);
+  const progressPercentage = currentLevel >= 5 ? 100 : Math.min((highestGrade / (parseInt(nextLevelGrade.replace('V', '')) || 1)) * 100, 100);
 
   return (
     <section className="px-6 mb-8 relative z-10">
@@ -194,13 +224,19 @@ export default function WhistleProgress() {
                   : gradeConverter.convertGrade(whistleStats.averageGradePast7Days, 'V-Scale', gradeSystem)
                 }
               </div>
-              <div className="text-sm text-abyss-ethereal/70">📊 Avg Grade (7d)</div>
+              <div className="text-sm text-abyss-ethereal/70 flex items-center justify-center">
+                <Target className="h-3 w-3 mr-1" />
+                Avg Grade (7d)
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-abyss-teal">
                 {whistleStats?.questsCompletedToday || 0} / {whistleStats?.maxDailyQuests || 3}
               </div>
-              <div className="text-sm text-abyss-ethereal/70">🏆 Quests Today</div>
+              <div className="text-sm text-abyss-ethereal/70 flex items-center justify-center">
+                <Award className="h-3 w-3 mr-1" />
+                Quests Today
+              </div>
             </div>
           </div>
 
@@ -212,11 +248,17 @@ export default function WhistleProgress() {
                   : whistleStats.topSkillCategory
                 }
               </div>
-              <div className="text-sm text-abyss-ethereal/70">🔥 Top Skill</div>
+              <div className="text-sm text-abyss-ethereal/70 flex items-center justify-center">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Top Skill
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-abyss-amber">{whistleStats?.sessionsThisWeek || 0}</div>
-              <div className="text-sm text-abyss-ethereal/70">🧗 Sessions/Week</div>
+              <div className="text-sm text-abyss-ethereal/70 flex items-center justify-center">
+                <Sparkles className="h-3 w-3 mr-1" />
+                Sessions/Week
+              </div>
             </div>
           </div>
 
@@ -296,8 +338,11 @@ export default function WhistleProgress() {
               </div>
             ) : (
               <div className="bg-abyss-dark/20 border border-abyss-teal/10 rounded-lg p-4 text-center">
-                <p className="text-abyss-ethereal/70 text-sm">No skills logged yet.</p>
-                <p className="text-abyss-ethereal/60 text-xs mt-1">Complete climbing problems to start building your skills!</p>
+                <div className="flex items-center justify-center mb-2">
+                  <Target className="h-4 w-4 text-abyss-ethereal/60 mr-2" />
+                  <p className="text-abyss-ethereal/70 text-sm">No skills logged yet</p>
+                </div>
+                <p className="text-abyss-ethereal/60 text-xs">Complete climbing problems to start building your skills!</p>
               </div>
             )}
           </div>
