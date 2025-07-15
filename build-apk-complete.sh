@@ -3,24 +3,6 @@
 
 echo "🏗️ Building Abyss Climber APK - Complete Process"
 
-# Set up Java environment
-echo "☕ Setting up Java environment..."
-
-# Check if Java is available
-if ! command -v java &> /dev/null; then
-    echo "❌ Java not found. Please install Java through Replit's package manager."
-    echo "💡 Add 'pkgs.openjdk17' to your replit.nix file and restart the repl."
-    echo "   Then run this script again."
-    exit 1
-fi
-
-# Set JAVA_HOME
-export JAVA_HOME=$(readlink -f $(which java) | sed 's/bin\/java$//')
-export PATH=$JAVA_HOME/bin:$PATH
-
-echo "✅ Java version: $(java -version 2>&1 | head -n 1)"
-echo "✅ JAVA_HOME: $JAVA_HOME"
-
 # Check prerequisites
 echo "🔍 Checking prerequisites..."
 if ! command -v npm &> /dev/null; then
