@@ -1,1 +1,5 @@
-modules = ["postgresql-16"]
+modules = ["postgresql-16", "nodejs-20"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
