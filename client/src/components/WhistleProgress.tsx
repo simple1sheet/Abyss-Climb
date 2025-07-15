@@ -226,7 +226,10 @@ export default function WhistleProgress() {
               </div>
               <div className="text-sm text-abyss-ethereal/70 flex items-center justify-center">
                 <Target className="h-3 w-3 mr-1" />
-                Avg Grade (7d)
+                {whistleStats?.averageGradePast7Days === "N/A" || !whistleStats?.averageGradePast7Days
+                  ? "Avg Grade (7d)"
+                  : `${gradeConverter.convertGrade(whistleStats.averageGradePast7Days, 'V-Scale', gradeSystem)} (7d avg)`
+                }
               </div>
             </div>
             <div className="text-center">
