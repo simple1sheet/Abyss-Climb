@@ -3,11 +3,11 @@
   deps = [
     pkgs.nodejs-18_x
     pkgs.openjdk17
-    pkgs.android-studio
+    pkgs.android-tools
   ];
   
   env = {
-    ANDROID_HOME = "${pkgs.android-studio}/libexec/android-studio/sdk";
-    ANDROID_SDK_ROOT = "${pkgs.android-studio}/libexec/android-studio/sdk";
+    ANDROID_HOME = "/opt/android-sdk";
+    ANDROID_SDK_ROOT = "/opt/android-sdk";
   };
 }
