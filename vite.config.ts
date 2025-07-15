@@ -1,14 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
   base: './',
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./client/src"),
+      "@": path.resolve(path.dirname(fileURLToPath(import.meta.url)), "./client/src"),
     },
   },
   build: {

@@ -46,7 +46,19 @@ if [ ! -d "android" ]; then
     npx cap add android
 fi
 
-# Step 6: Copy web assets to Capacitor
+# Step 6: Copy required Capacitor dependencies to android folder
+echo "📦 Creating self-contained Android project..."
+
+# Create capacitor dependencies folder in android project
+mkdir -p android/capacitor-deps/node_modules/@capacitor
+
+# Copy required capacitor modules
+if [ -d "node_modules/@capacitor" ]; then
+    echo "Copying Capacitor modules..."
+    cp -r node_modules/@capacitor/* android/capacitor-deps/node_modules/@capacitor/
+fi
+
+# Step 7: Copy web assets to Capacitor
 echo "📱 Copying web assets to Android project..."
 npx cap copy android
 
@@ -55,16 +67,56 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-# Step 7: Sync Capacitor
+# Step 8: Sync Capacitor
 echo "🔄 Syncing Capacitor..."
 npx cap sync android
 
 if [ $? -ne 0 ]; then
-    echo "❌ Capacitor sync failed"
+    echo "❌ Failed to sync Capacitor"
     exit 1
 fi
 
-# Step 8: Verify Android assets
+# Step 9: Update settings.gradle to use local dependencies
+echo "🔧 Configuring Android project for standalone build..."
+
+# Create a standalone settings.gradle
+cat > android/settings.gradle << 'EOF'
+pluginManagement {
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+include ':app'
+include ':capacitor-android'
+project(':capacitor-android').projectDir = file('capacitor-deps/node_modules/@capacitor/android/capacitor')
+
+include ':capacitor-cordova-android-plugins'
+
+include ':capacitor-app'
+project(':capacitor-app').projectDir = file('capacitor-deps/node_modules/@capacitor/app/android')
+
+include ':capacitor-haptics'
+project(':capacitor-haptics').projectDir = file('capacitor-deps/node_modules/@capacitor/haptics/android')
+
+include ':capacitor-keyboard'
+project(':capacitor-keyboard').projectDir = file('capacitor-deps/node_modules/@capacitor/keyboard/android')
+
+include ':capacitor-status-bar'  
+project(':capacitor-status-bar').projectDir = file('capacitor-deps/node_modules/@capacitor/status-bar/android')
+EOF
+
+# Step 10: Verify Android assets
 if [ ! -f "android/app/src/main/assets/public/index.html" ]; then
     echo "❌ Assets not properly copied to Android project"
     exit 1
@@ -74,12 +126,13 @@ echo "✅ App prepared for Android Studio!"
 echo ""
 echo "📱 Next steps:"
 echo "1. Download the entire 'android' folder from Replit"
-echo "2. Extract it to your local machine"
+echo "2. Extract it to your local machine"  
 echo "3. Open Android Studio"
 echo "4. Choose 'Open an existing Android Studio project'"
 echo "5. Select the 'android' folder"
 echo "6. Wait for Gradle sync to complete"
 echo "7. Build → Generate Signed Bundle / APK"
 echo ""
-echo "🎯 The android folder is now ready for Android Studio!"
+echo "🎯 The android folder is now self-contained and ready for Android Studio!"
 echo "📦 Web assets have been bundled and copied to: android/app/src/main/assets/public/"
+echo "🔧 Capacitor dependencies are included in: android/capacitor-deps/"

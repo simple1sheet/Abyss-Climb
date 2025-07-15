@@ -34,3 +34,16 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Prepare for Android Studio"
+author = 44870178
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "chmod +x prepare-android-studio.sh"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "./prepare-android-studio.sh"
